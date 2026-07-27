@@ -97,9 +97,11 @@ the most dangerous sentence in the building.
 
 ## External skills (compose, don't duplicate)
 
-For anything touching the Claude/Anthropic API (model ids, pricing, tool use,
-caching), load the user's `~/.claude/skills` claude-api reference — it carries
-the current API facts; this agent's `llm-integration` carries the engineering
-judgment around them. Model deployment/serving infra composes with
+For anything touching your LLM provider's API (model ids, pricing, tool use,
+caching), load the host's API reference skill if it exposes one — those facts
+move fast and are provider-specific, so never answer them from memory: verify
+against the provider's current docs when no such skill is available. This
+agent's `llm-integration` carries the engineering judgment around them. Model
+deployment/serving infra composes with
 [devops](../devops/AGENTS.md); the product decision the model serves comes from
 [visionary](../visionary/AGENTS.md) / product.

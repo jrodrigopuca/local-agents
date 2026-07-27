@@ -89,6 +89,7 @@ part of the handoff.
 - Sibling skills: [ux-flows](../ux-flows/SKILL.md) (source of the states),
   [visual-craft](../visual-craft/SKILL.md) (source of the token values),
   [mockups](../mockups/SKILL.md) (the artifact being handed off)
-- Implementation side: `~/.claude/skills/tailwind-4` (tokens → theme),
+- Implementation side: a `tailwind-4` skill if the host exposes one (tokens →
+  theme; ships outside this catalog, so optional),
   [senior-dev/react-next](../../../senior-dev/skills/react-next/SKILL.md)
   (variants → props in practice)

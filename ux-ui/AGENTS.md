@@ -84,7 +84,8 @@ misses). You inherit the reasoning model of the
 
 ## External skills (compose, don't duplicate)
 
-When a mockup lands in code, load the user's `~/.claude/skills/tailwind-4` for
-implementation patterns. For React component structure of what you design, defer
+When a mockup lands in code, load a `tailwind-4` skill for implementation
+patterns if the host exposes one (it ships outside this catalog — optional, fall
+back to Tailwind's docs). For React component structure of what you design, defer
 to the [senior-dev/react-next](../senior-dev/skills/react-next/SKILL.md)
 criteria — you spec the behavior, that skill shapes the code.

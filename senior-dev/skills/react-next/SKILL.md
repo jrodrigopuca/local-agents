@@ -4,7 +4,8 @@ description: >
   Decision criteria for React/Next.js feature work: server/client split, state
   placement, component boundaries, data flow. Trigger: load when building or
   restructuring React components, pages, or data fetching in a React/Next.js
-  app. Complements (does not replace) ~/.claude/skills/react-19 and nextjs-15.
+  app. Complements (does not replace) any `react-19` / `nextjs-15` skill the
+  host exposes.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
@@ -76,7 +77,8 @@ inside components. Memoization patches what placement should have prevented.
 
 ## Resources
 
-- API-level patterns: `~/.claude/skills/react-19/SKILL.md`,
-  `~/.claude/skills/nextjs-15/SKILL.md`, `~/.claude/skills/zustand-5/SKILL.md`
+- API-level patterns: a `react-19`, `nextjs-15`, or `zustand-5` skill if the host
+  exposes one — all ship outside this catalog, so treat them as optional and fall
+  back to each framework's current docs
 - Sibling skill: [fullstack-boundaries](../fullstack-boundaries/SKILL.md) — where
   the component tree meets the wire

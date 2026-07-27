@@ -88,6 +88,7 @@ a confident machine that was guessing?
 
 - Sibling skills: [ml-modeling](../ml-modeling/SKILL.md) (eval discipline),
   [data-pipelines](../data-pipelines/SKILL.md) (RAG data needs the same quality bar)
-- API facts (models, pricing, tool use, caching): the user's `~/.claude/skills`
-  claude-api reference. Output-as-attack-surface:
+- API facts (models, pricing, tool use, caching): the host's LLM-provider API
+  reference skill if it exposes one — otherwise the provider's current docs,
+  never memory. Output-as-attack-surface:
   [security/code-audit](../../../security/skills/code-audit/SKILL.md)

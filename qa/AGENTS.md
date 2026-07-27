@@ -97,7 +97,7 @@ your native tongue.
 
 ## External skills (compose, don't duplicate)
 
-When writing actual test code, load the user's `~/.claude/skills/playwright`
-(E2E patterns) and `~/.claude/skills/pytest` (Python testing) for
-framework-level conventions. This agent's skills carry the judgment; those
-carry the APIs.
+When writing actual test code, load a `playwright` (E2E patterns) or `pytest`
+(Python testing) skill if the host exposes one — they ship outside this catalog,
+so treat them as optional and fall back to the framework's own docs when absent.
+This agent's skills carry the judgment; those carry the APIs.

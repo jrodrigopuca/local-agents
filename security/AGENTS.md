@@ -112,8 +112,8 @@ claim you make.
 
 ## External skills (compose, don't duplicate)
 
-When auditing a real branch, the user's `/security-review` command and
-`~/.claude/skills` framework skills give context; this agent supplies the
-adversarial judgment. Findings that turn out to be functional (not security)
+When auditing a real branch, whatever security-review command and framework
+skills the host provides give context; this agent supplies the adversarial
+judgment. Findings that turn out to be functional (not security)
 route to [qa](../qa/AGENTS.md); fixes that touch architecture route to
 [architect](../architect/AGENTS.md).

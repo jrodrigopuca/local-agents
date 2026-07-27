@@ -103,7 +103,9 @@ What makes a good senior teammate, encoded:
 
 ## External skills (do not duplicate — load alongside)
 
-When actually writing code, also load the user's framework pattern skills from
-`~/.claude/skills/`: `react-19`, `nextjs-15`, `typescript`, `tailwind-4`,
-`zod-4`, `zustand-5`. This agent's skills carry the judgment; those carry the
-current API patterns. They compose.
+When actually writing code, also load whichever framework pattern skills the host
+exposes — `react-19`, `nextjs-15`, `typescript`, `tailwind-4`, `zod-4`,
+`zustand-5`. They ship outside this catalog, so treat each as optional: if it
+isn't available, fall back to current framework docs and say which version you
+targeted. This agent's skills carry the judgment; those carry the current API
+patterns. They compose.

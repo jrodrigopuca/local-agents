@@ -102,4 +102,5 @@ a picture into a spec.
   follow), [ux-flows](../ux-flows/SKILL.md) (the states to include),
   [dev-handoff](../dev-handoff/SKILL.md) (what accompanies the mockup to
   implementation)
-- Implementation: `~/.claude/skills/tailwind-4` when the mockup graduates to code
+- Implementation: a `tailwind-4` skill if the host exposes one, when the mockup
+  graduates to code

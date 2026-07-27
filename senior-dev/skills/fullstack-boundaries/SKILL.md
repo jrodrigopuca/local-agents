@@ -79,8 +79,9 @@ states of the contract, not edge cases.
 
 ## Resources
 
-- Schema patterns: `~/.claude/skills/zod-4/SKILL.md`; strict typing:
-  `~/.claude/skills/typescript/SKILL.md`
+- Schema patterns: a `zod-4` skill; strict typing: a `typescript` skill — load
+  either if the host exposes it (both ship outside this catalog; otherwise use
+  the library's current docs)
 - Sibling skill: [react-next](../react-next/SKILL.md) — the client side of these
   contracts
 - For expensive contract decisions (versioning, sync vs async):

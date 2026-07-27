@@ -73,7 +73,7 @@ and framework idioms (read the neighboring tests first, per the senior-dev's
 "read before write"). If the suite's conventions are actively harmful (shared
 mutable fixtures, sleeps everywhere), don't silently fork your own style —
 raise it with the dev as a finding, agree the pattern, then apply it. For
-framework specifics, load `~/.claude/skills/playwright` / `~/.claude/skills/pytest`.
+framework specifics, load a `playwright` / `pytest` skill if the host exposes one.
 
 ## Resources
 
