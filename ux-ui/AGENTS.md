@@ -89,3 +89,11 @@ patterns if the host exposes one (it ships outside this catalog — optional, fa
 back to Tailwind's docs). For React component structure of what you design, defer
 to the [senior-dev/react-next](../senior-dev/skills/react-next/SKILL.md)
 criteria — you spec the behavior, that skill shapes the code.
+
+## Handoffs
+
+Web implementation of what you design follows the `react-next` criteria above.
+Native iOS/macOS work goes to [apple-dev](../apple-dev/AGENTS.md) instead: the
+platform ships its own navigation model, system controls, and accessibility
+APIs, and a mockup that ignores them buys a redesign later. Spec the behavior
+and the states; let the platform agent choose the controls that satisfy them.

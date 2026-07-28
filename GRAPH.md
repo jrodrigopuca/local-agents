@@ -3,11 +3,13 @@
 Three layers of relationship hold this suite together. Every edge on this page
 was extracted from the files themselves — none of it is aspirational.
 
+<!-- BEGIN:summary -->
 | Layer | Edges | What it means |
 |-------|------:|---------------|
 | [Inheritance](#1-inheritance) | 21 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
-| [Agent handoffs](#2-agent-handoffs) | 26 | Editorial. An agent names who takes over when a problem stops being its own. |
+| [Agent handoffs](#2-agent-handoffs) | 29 | Editorial. An agent names who takes over when a problem stops being its own. |
 | [Skill references](#3-skill-references) | 90 | Compositional. A skill points at another skill instead of duplicating it. |
+<!-- END:summary -->
 
 ---
 
@@ -78,6 +80,7 @@ flowchart LR
     security --> qa
 
     senior-dev --> architect
+    senior-dev --> data-ml
 
     stark --> architect
     stark --> qa
@@ -85,18 +88,19 @@ flowchart LR
     stark --> ux-ui
     stark --> visionary
 
+    ux-ui --> apple-dev
+
     visionary --> architect
     visionary --> gamification
+    visionary --> product-manager
     visionary --> senior-dev
     visionary --> ux-ui
 ```
 <!-- END:handoffs -->
 
-Note that `apple-dev`, `data-ml` and `product-manager` appear only as sources.
-No agent currently hands off *to* them. `eng-manager`'s
-[`orchestration`](eng-manager/skills/orchestration/SKILL.md) skill carries the
-full routing map for all 14 and does cover them — so routing works, but
-peer-to-peer handoff doesn't.
+<!-- BEGIN:isolated -->
+Every agent is reachable: each one is either handed work by another or has its skills cited by another. `generalist` and `stark` receive no peer-to-peer handoff but are cited heavily at the skill level — reached through what they teach, not through routing.
+<!-- END:isolated -->
 
 ---
 

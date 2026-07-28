@@ -219,6 +219,25 @@ def check_agent_rows(cat: Catalog):
     return errs
 
 
+def check_section_scope(cat: Catalog):
+    """Root AGENTS.md rule 10. `## External skills` is about skills that ship
+    outside the catalog; routing between agents belongs in `## Handoffs`. The
+    two drifted together once already."""
+    errs = []
+    for agent, text in cat.agents.items():
+        m = re.search(r"^## External skills.*$", text, re.M)
+        if not m:
+            continue
+        nxt = re.search(r"^## ", text[m.end():], re.M)
+        body = text[m.end():m.end() + nxt.start()] if nxt else text[m.end():]
+        for link in re.finditer(r"(?:\.\./)+([a-z][a-z-]*)/AGENTS\.md", body):
+            line = text[:m.end() + link.start()].count("\n") + 1
+            errs.append(f"{agent}/AGENTS.md:{line}: `## External skills` links to "
+                        f"agent `{link.group(1)}` — agent routing belongs in "
+                        f"`## Handoffs` (rule 10)")
+    return errs
+
+
 def check_readme_counts(cat: Catalog):
     """The README roster mixes curated prose with counts, so it is validated
     rather than generated — generation would overwrite the prose."""
@@ -252,6 +271,67 @@ def check_installer(cat: Catalog):
 # --------------------------------------------------------------------------- #
 # Derived blocks — pure data, safe to generate
 # --------------------------------------------------------------------------- #
+LAYER_BLURBS = {
+    "Inheritance": ("#1-inheritance",
+                    "Structural. `install.py` inlines the parent's `CORE.md` into the child."),
+    "Agent handoffs": ("#2-agent-handoffs",
+                       "Editorial. An agent names who takes over when a problem "
+                       "stops being its own."),
+    "Skill references": ("#3-skill-references",
+                         "Compositional. A skill points at another skill instead "
+                         "of duplicating it."),
+}
+
+
+def gen_summary(cat: Catalog) -> str:
+    """The counts in the opening table drift the moment an edge is added — the
+    generated graphs stay right but the prose around them silently lies."""
+    counts = {
+        "Inheritance": sum(len(v) for v in cat.inheritance().values()),
+        "Agent handoffs": sum(len(v) for v in cat.handoffs().values()),
+        "Skill references": sum(len(v) for v in cat.skill_refs().values()),
+    }
+    out = ["| Layer | Edges | What it means |", "|-------|------:|---------------|"]
+    for layer, (anchor, blurb) in LAYER_BLURBS.items():
+        out.append(f"| [{layer}]({anchor}) | {counts[layer]} | {blurb} |")
+    return "\n".join(out)
+
+
+def gen_isolated(cat: Catalog) -> str:
+    """Who nothing points at. Measured on BOTH levels on purpose: an agent with
+    no inbound handoff can still be well connected through its skills, and
+    reporting only one level makes a healthy agent look orphaned."""
+    inbound_h = {t for v in cat.handoffs().values() for t in v}
+    inbound_s = {ta for tgts in cat.skill_refs().values() for ta, _t in tgts}
+    orphans = sorted(set(cat.agents) - inbound_h - inbound_s)
+    handoff_only = sorted(set(cat.agents) - inbound_h - set(orphans))
+
+    def names(xs):
+        marked = [f"`{x}`" for x in xs]
+        return marked[0] if len(marked) == 1 else \
+            " and ".join([", ".join(marked[:-1]), marked[-1]])
+
+    if orphans:
+        one = len(orphans) == 1
+        lead = (f"{names(orphans)} {'is' if one else 'are'} unreachable: nothing "
+                f"hands off to {'it' if one else 'them'} and no skill cites "
+                f"{'its' if one else 'their'} work. `eng-manager`'s "
+                f"[`orchestration`](eng-manager/skills/orchestration/SKILL.md) skill "
+                f"still routes to {'it' if one else 'them'}, so the suite works — "
+                f"but peer-to-peer, {'it is' if one else 'they are'} a leaf.")
+    else:
+        lead = ("Every agent is reachable: each one is either handed work by "
+                "another or has its skills cited by another.")
+
+    if handoff_only:
+        one = len(handoff_only) == 1
+        lead += (f" {names(handoff_only)} {'receives' if one else 'receive'} no "
+                 f"peer-to-peer handoff but {'is' if one else 'are'} cited heavily "
+                 f"at the skill level — reached through what "
+                 f"{'it teaches' if one else 'they teach'}, not through routing.")
+    return lead
+
+
 def gen_inheritance(cat: Catalog) -> str:
     inh = cat.inheritance()
     peers = sorted(a for a, p in inh.items() if "senior-dev" in p)
@@ -334,6 +414,8 @@ def gen_orphan_skills(cat: Catalog) -> str:
 
 
 GENERATORS = {
+    "summary": gen_summary,
+    "isolated": gen_isolated,
     "inheritance": gen_inheritance,
     "handoffs": gen_handoffs,
     "refcounts": gen_refcounts,
@@ -374,6 +456,7 @@ CHECKS = [
     ("harness-paths", "no tool-specific paths in agent/skill bodies", check_harness_paths),
     ("language-register", "rule 5 — neutral vs Rioplatense", check_language_register),
     ("agent-rows", "rule 4 — every agent indexed in AGENTS.md", check_agent_rows),
+    ("section-scope", "rule 10 — External skills holds no agent routing", check_section_scope),
     ("readme-counts", "README roster matches reality", check_readme_counts),
     ("installer", "install.py --list and --dry-run succeed", check_installer),
 ]

@@ -44,6 +44,26 @@ Rules for this catalog:
    and per-project: [USAGE.md](USAGE.md).
 9. To COPY an agent/skills into a tool's global config automatically, use
    `install.py` — see [INSTALL.md](INSTALL.md) for the how-to.
+10. **Section scope.** Three optional `##` sections carry relationship content,
+    and each answers a different question. Keep them apart:
+    - `## Handoffs` — *where does work go when it stops being mine?* The routing
+      summary. Required once an agent routes work to another; links to
+      `../{agent}/AGENTS.md` belong here.
+    - `## External skills` — *what ships outside this catalog?* Host-provided
+      skills only, referenced **by name and conditionally** (never by path — the
+      catalog installs into five tools with five layouts). No agent links.
+    - `## Where you sit in the team` — *how do I differ from the agent next to
+      me?* Disambiguation, for agents whose scope overlaps a neighbour's.
+
+    A handoff mentioned inline in `## Persona` or a judgment section as a rule
+    of conduct ("if it turns technical, hand it to senior-dev") stays put — it's
+    behaviour, not a routing table. `validate.py` enforces the `## External
+    skills` boundary; the rest is review.
+11. `validate.py` checks these conventions and regenerates the derived blocks in
+    [GRAPH.md](GRAPH.md). Run it before committing; CI runs it on every PR.
+12. Docs that describe the catalog as a whole — [README.md](README.md) (front
+    door), [GRAPH.md](GRAPH.md) (how everything is wired), [LICENSE](LICENSE) —
+    live at the root. Adding one means adding it to this list.
 
 ## Agents
 

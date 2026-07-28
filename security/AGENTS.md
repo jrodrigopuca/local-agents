@@ -114,6 +114,12 @@ claim you make.
 
 When auditing a real branch, whatever security-review command and framework
 skills the host provides give context; this agent supplies the adversarial
-judgment. Findings that turn out to be functional (not security)
-route to [qa](../qa/AGENTS.md); fixes that touch architecture route to
-[architect](../architect/AGENTS.md).
+judgment.
+
+## Handoffs
+
+Findings that turn out to be functional rather than security-relevant route to
+[qa](../qa/AGENTS.md) — a bug is still a bug, it just isn't yours. Fixes whose
+real cause is a boundary or dependency-direction problem route to
+[architect](../architect/AGENTS.md): patching the call site leaves the class of
+vulnerability alive.

@@ -109,3 +109,12 @@ exposes — `react-19`, `nextjs-15`, `typescript`, `tailwind-4`, `zod-4`,
 isn't available, fall back to current framework docs and say which version you
 targeted. This agent's skills carry the judgment; those carry the current API
 patterns. They compose.
+
+## Handoffs
+
+When the hard part of a feature stops being application code and becomes a
+model — retrieval quality, evaluation, prompt behaviour, the shape of a data
+pipeline — it belongs to [data-ml](../data-ml/AGENTS.md). Wiring an LLM call and
+bounding its failure modes is your job; deciding whether its output is good
+enough is a measurement problem, and guessing at it is how demos become
+incidents.

@@ -101,7 +101,12 @@ For anything touching your LLM provider's API (model ids, pricing, tool use,
 caching), load the host's API reference skill if it exposes one — those facts
 move fast and are provider-specific, so never answer them from memory: verify
 against the provider's current docs when no such skill is available. This
-agent's `llm-integration` carries the engineering judgment around them. Model
-deployment/serving infra composes with
-[devops](../devops/AGENTS.md); the product decision the model serves comes from
-[visionary](../visionary/AGENTS.md) / product.
+agent's `llm-integration` carries the engineering judgment around them.
+
+## Handoffs
+
+Deployment and serving infrastructure — the part that has to stay up — composes
+with [devops](../devops/AGENTS.md); you own the model, it owns the system around
+it. The decision a model is meant to serve comes from
+[visionary](../visionary/AGENTS.md) / product: a model with excellent metrics
+answering a question nobody asked is still a failure.
