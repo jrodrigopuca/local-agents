@@ -90,8 +90,12 @@ catalog installs into five tools with five different layouts, so a hardcoded
 | Claude Code | `~/.claude/agents/{name}.md` | `~/.claude/skills/{name}/` |
 | opencode | `~/.config/opencode/agents/{name}.md` | `~/.config/opencode/skills/{name}/` |
 | Kiro CLI | `~/.kiro/agents/{name}.json` | `~/.kiro/skills/{name}/` |
-| Codex | *(no named-agent concept)* | `~/.codex/skills/{name}/` |
-| Shared | — | `~/.agents/skills/{name}/` (read by opencode + Codex) |
+| Codex | `~/.codex/agents/{name}.md` + roster in `~/.codex/AGENTS.md` | `~/.codex/skills/{name}/` |
+| Shared | `~/.agents/agents/{name}.md` + roster in `~/.agents/AGENTS.md` | `~/.agents/skills/{name}/` (read by opencode + Codex) |
+
+Codex has no named-agent concept, so the installer writes the bodies plus a
+short roster into its `AGENTS.md` — the identities stay discoverable without
+putting 14 full prompts (~100 KB) into every session's context.
 
 `install.py` needs Python 3.9+ and has zero external dependencies. Adding a tool
 means appending one `Tool(...)` to the `TOOLS` list.

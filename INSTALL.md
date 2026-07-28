@@ -165,12 +165,20 @@ a mano.
 | Claude Code (`claude`) | `~/.claude/agents/{nombre}.md` | `~/.claude/skills/{nombre}/` |
 | opencode (`opencode`) | `~/.config/opencode/agents/{nombre}.md` | `~/.config/opencode/skills/{nombre}/` |
 | Kiro CLI (`kiro`) | `~/.kiro/agents/{nombre}.json` | `~/.kiro/skills/{nombre}/` |
-| Codex (`codex`) | *(sin agentes con nombre)* | `~/.codex/skills/{nombre}/` |
-| Shared (`shared`) | — | `~/.agents/skills/{nombre}/` (lo leen opencode + Codex) |
+| Codex (`codex`) | `~/.codex/agents/{nombre}.md` + roster en `~/.codex/AGENTS.md` | `~/.codex/skills/{nombre}/` |
+| Shared (`shared`) | `~/.agents/agents/{nombre}.md` + roster en `~/.agents/AGENTS.md` | `~/.agents/skills/{nombre}/` (lo leen opencode + Codex) |
 
-**Nota sobre Codex:** no tiene concepto de "agente con nombre". Si instalás un
-agente a Codex, el script copia sus skills y te imprime la línea que tenés que
-agregar a mano en tu `~/.codex/AGENTS.md`.
+**Nota sobre Codex:** no tiene concepto de "agente con nombre", así que el
+script resuelve el hueco en dos partes: copia los cuerpos a
+`~/.codex/agents/{nombre}.md` y escribe un **roster** (una tabla de una línea por
+agente) dentro de `~/.codex/AGENTS.md`, que Codex carga solo. El modelo ve el
+roster siempre y abre el cuerpo del agente que corresponde. Inlinear los 14
+cuerpos serían ~100 KB en contexto en cada sesión; el roster son ~3 KB.
+
+El roster va entre marcadores `<!-- BEGIN:local-agents -->` / `<!-- END: -->`:
+todo lo que tengas fuera de ellos se preserva tal cual, y reinstalar reemplaza
+el bloque en vez de duplicarlo. La tabla lista todos los agentes que haya en
+`agents/`, no solo los de esa corrida — instalar uno suelto no borra los otros.
 
 **Nota sobre `shared`:** `~/.agents/skills/` es una ubicación que leen tanto
 opencode como Codex — instalás una vez, la ven las dos.

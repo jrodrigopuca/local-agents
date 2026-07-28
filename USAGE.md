@@ -171,6 +171,12 @@ Codex no tiene "agentes con nombre": su mecanismo es la jerarquía de AGENTS.md
 (se concatenan de la raíz hacia tu directorio; el más cercano manda) más skills.
 Dos movimientos:
 
+> Si lo que querés es la suite completa, `./install.py --all --tool codex` ya
+> hace esto solo: copia los cuerpos a `~/.codex/agents/` y escribe el roster en
+> `~/.codex/AGENTS.md` entre marcadores, sin tocar lo que tengas ahí. Lo de
+> abajo es la receta a mano, para cablear un agente puntual referenciando el
+> catálogo en vez de copiarlo.
+
 ### Global — el generalist como base de todo
 
 En `~/.codex/AGENTS.md` (guía personal, aplica en todos lados):

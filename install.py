@@ -44,10 +44,15 @@ class Tool:
     label: str
     config_root: Path            # existence of this dir => tool is installed
     skills_dir: Path
-    agents_dir: Optional[Path]   # None => no named-agent support
-    agent_style: Optional[str]   # "claude_md" | "opencode_md" | "kiro_json" | None
+    agents_dir: Optional[Path]   # None => no place to put agent bodies at all
+    agent_style: Optional[str]   # "claude_md" | "opencode_md" | "kiro_json" | "roster_md"
 
 
+# `roster_md` is for tools with no named-agent concept (Codex, and the shared
+# folder). The bodies still get copied — self-contained, same as everywhere else
+# — and a short roster is written into the tool's AGENTS.md pointing at them, so
+# the identities are discoverable without paying 14 full prompts of context on
+# every session.
 TOOLS = [
     Tool("claude", "Claude Code",
          HOME / ".claude", HOME / ".claude/skills",
@@ -60,11 +65,14 @@ TOOLS = [
          HOME / ".kiro/agents", "kiro_json"),
     Tool("codex", "Codex",
          HOME / ".codex", HOME / ".codex/skills",
-         None, None),
+         HOME / ".codex/agents", "roster_md"),
     Tool("shared", "Shared (~/.agents — read by opencode + Codex)",
          HOME / ".agents", HOME / ".agents/skills",
-         None, None),
+         HOME / ".agents/agents", "roster_md"),
 ]
+
+ROSTER_BEGIN = "<!-- BEGIN:local-agents -->"
+ROSTER_END = "<!-- END:local-agents -->"
 
 TOOLS_BY_KEY = {t.key: t for t in TOOLS}
 
@@ -223,6 +231,14 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
             "resources": [f"skill://~/.kiro/skills/{s}/SKILL.md" for s in skill_names],
         }
         return tool.agents_dir / f"{name}.json", json.dumps(obj, indent=2, ensure_ascii=False)
+    if tool.agent_style == "roster_md":
+        # No frontmatter: nothing parses it here. The lead paragraph states what
+        # the file is so a model that opens it knows immediately.
+        head = (f"# `{name}` agent\n\n"
+                f"Adopt this identity fully when the task matches its row in the "
+                f"agent catalog (`../AGENTS.md`). Load the skills it references "
+                f"when their triggers fire.\n\n---\n\n")
+        return tool.agents_dir / f"{name}.md", head + body
     raise ValueError(f"Tool {tool.key} has no agent format")
 
 
@@ -351,7 +367,8 @@ def resolve_deps(agent: Agent, agents: dict, skills_by_name: dict):
 
 def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
                   dry_run: bool, agents: dict, skills_by_name: dict,
-                  with_deps: bool = True, skip_skills: bool = False):
+                  with_deps: bool = True, skip_skills: bool = False,
+                  roster: bool = True):
     print(f"\n  Installing agent '{agent.name}' → {tool.label}")
 
     if with_deps:
@@ -379,9 +396,8 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
                 installed_skill_names.append(nm)
 
     if tool.agents_dir is None:
-        print(f"    note   → {tool.label} has no named-agent slot. Skills installed above.")
-        print(f"             Add this line to your {tool.config_root}/AGENTS.md by hand:")
-        print(f"             Adopt {agent.agents_md} — load its skills when triggers fire.")
+        print(f"    note   → {tool.label} has nowhere to put an agent body. "
+              f"Skills installed above.")
         return
 
     meta, body = split_frontmatter(agent.agents_md.read_text())
@@ -410,6 +426,68 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(contents)
 
+    # Tools with no named-agent concept only find the body through the roster,
+    # so writing one without the other leaves a half-install. The suite path
+    # passes roster=False and writes it once at the end instead.
+    if roster and tool.agent_style == "roster_md":
+        write_roster(tool, agents, [final], dry_run)
+
+
+def short_description(agent: Agent) -> str:
+    """One line for the roster: the curated frontmatter description up to its
+    first sentence, or the body's opening sentence when there is no frontmatter."""
+    meta, body = split_frontmatter(agent.agents_md.read_text())
+    desc = meta.get("description") or agent_description(body)
+    desc = desc.split("<example>")[0].strip()
+    first = re.split(r"(?<=[.!?])\s", " ".join(desc.split()))[0]
+    return first if len(first) <= 160 else first[:157] + "..."
+
+
+def write_roster(tool: Tool, agents: dict, just_installed: list, dry_run: bool):
+    """Write the agent roster into the tool's AGENTS.md, between markers.
+
+    Anything outside the markers is the user's and is preserved verbatim: an
+    existing block is replaced in place, and a file with no block keeps all of
+    its content with the block appended.
+
+    The roster lists every agent body present in `agents_dir`, not just the ones
+    installed in this run — otherwise installing one agent would drop the rows
+    for the thirteen already there. (In `--dry-run` nothing is on disk yet, so
+    this run's names are unioned in to show what the result would look like.)"""
+    dest = tool.config_root / "AGENTS.md"
+    on_disk = {p.stem for p in tool.agents_dir.glob("*.md")} if tool.agents_dir.exists() else set()
+    listed = sorted((on_disk | set(just_installed)) & set(agents))
+    rows = "\n".join(
+        f"| `{n}` | {short_description(agents[n])} | [`agents/{n}.md`](agents/{n}.md) |"
+        for n in listed)
+    block = (f"{ROSTER_BEGIN}\n"
+             f"## Agent catalog\n\n"
+             f"These agent definitions are installed locally. When a task matches one,\n"
+             f"read its file and adopt that identity for the task — reasoning model,\n"
+             f"heuristics, and limits. Load the skills it references when their triggers\n"
+             f"fire; they live in `skills/`.\n\n"
+             f"| Agent | Use it for | Definition |\n"
+             f"|-------|-----------|------------|\n"
+             f"{rows}\n"
+             f"{ROSTER_END}")
+
+    if dest.exists():
+        current = dest.read_text()
+        if ROSTER_BEGIN in current and ROSTER_END in current:
+            head = current[:current.index(ROSTER_BEGIN)]
+            tail = current[current.index(ROSTER_END) + len(ROSTER_END):]
+            contents, verb = head + block + tail, "roster updated in"
+        else:
+            contents = current.rstrip() + "\n\n" + block + "\n"
+            verb = "roster appended to"
+    else:
+        contents, verb = block + "\n", "roster written to"
+
+    print(f"    {verb} → {dest}")
+    if not dry_run:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(contents)
+
 
 def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
                   agents: dict, skills_by_name: dict):
@@ -430,7 +508,13 @@ def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
     print("  — agents (inheritance inlined; skills already installed above) —")
     for name in sorted(agents):
         install_agent(agents[name], tool, policy, interactive, dry_run,
-                      agents, skills_by_name, with_deps=True, skip_skills=True)
+                      agents, skills_by_name, with_deps=True, skip_skills=True,
+                      roster=False)
+
+    if tool.agent_style == "roster_md":
+        print(f"  — roster ({tool.label} has no named-agent slot, so the bodies "
+              f"above are indexed by hand) —")
+        write_roster(tool, agents, sorted(agents), dry_run)
 
 
 # --------------------------------------------------------------------------- #
