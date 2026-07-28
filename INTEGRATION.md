@@ -16,13 +16,13 @@ one-liner that delegates to the catalog:
   "architect": {
     "mode": "primary",
     "description": "Senior Architect mentor - helpful first, challenging when it matters",
-    "prompt": "Read ~/Developer/agents/architect/AGENTS.md and fully adopt it: identity, judgment model, and escalation ladder. It inherits ~/Developer/agents/generalist/AGENTS.md — read that too. Load the skills it references when their triggers fire.",
+    "prompt": "Read ~/Developer/local-agents/architect/AGENTS.md and fully adopt it: identity, judgment model, and escalation ladder. It inherits ~/Developer/local-agents/generalist/AGENTS.md — read that too. Load the skills it references when their triggers fire.",
     "tools": { "read": true, "write": true, "edit": true }
   },
   "generalist": {
     "mode": "primary",
     "description": "Multipurpose agent - reasoning loop, verification habits, decomposition",
-    "prompt": "Read ~/Developer/agents/generalist/AGENTS.md and fully adopt it. Load the skills it references when their triggers fire.",
+    "prompt": "Read ~/Developer/local-agents/generalist/AGENTS.md and fully adopt it. Load the skills it references when their triggers fire.",
     "tools": { "read": true, "write": true, "edit": true }
   }
 }

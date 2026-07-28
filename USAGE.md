@@ -1,10 +1,15 @@
 # Guía de uso: el catálogo en cada herramienta
 
-Cómo usar los agentes de `~/Developer/agents` en Claude Code, opencode, Kiro CLI
-y Codex — de forma global (disponibles en todo lados) o por proyecto. Los
-principios generales (referenciar, nunca copiar) están en
+Cómo usar los agentes del catálogo en Claude Code, opencode, Kiro CLI y Codex —
+de forma global (disponibles en todo lados) o por proyecto. Los principios
+generales (referenciar, nunca copiar) están en
 [INTEGRATION.md](INTEGRATION.md); esto son las recetas concretas por
 herramienta, verificadas contra la documentación oficial (julio 2026).
+
+> **Rutas en esta guía.** Los ejemplos usan `~/Developer/local-agents` (o
+> `/Users/you/Developer/local-agents` donde la herramienta exige ruta absoluta).
+> Reemplazalo por donde hayas clonado el catálogo. Las rutas absolutas a un home
+> no existen en la máquina de un compañero ni en CI — ver la última sección.
 
 ## Resumen: el mecanismo de cada herramienta
 
@@ -33,9 +38,9 @@ name: architect
 description: Senior Architect mentor - guidance on architecture, tradeoffs, design reviews, and learning paths. Helpful first, challenging when it matters.
 ---
 
-Read /Users/juan/Developer/agents/architect/AGENTS.md and fully adopt it:
+Read /Users/you/Developer/local-agents/architect/AGENTS.md and fully adopt it:
 identity, judgment model, and escalation ladder. It inherits
-/Users/juan/Developer/agents/generalist/AGENTS.md — read that too.
+/Users/you/Developer/local-agents/generalist/AGENTS.md — read that too.
 Load the skills it references when their triggers fire.
 ```
 
@@ -57,7 +62,7 @@ Los SKILL.md del catálogo siguen el spec de Agent Skills que Claude Code lee
 nativamente. Para exponer una skill suelta sin pasar por el agente:
 
 ```bash
-ln -s ~/Developer/agents/generalist/skills/verification ~/.claude/skills/verification
+ln -s ~/Developer/local-agents/generalist/skills/verification ~/.claude/skills/verification
 ```
 
 Ojo con colisiones de nombre con skills existentes; si chocan, renombrá el
@@ -78,9 +83,9 @@ description: Senior Architect mentor - helpful first, challenging when it matter
 mode: primary
 ---
 
-Read /Users/juan/Developer/agents/architect/AGENTS.md and fully adopt it:
+Read /Users/you/Developer/local-agents/architect/AGENTS.md and fully adopt it:
 identity, judgment model, and escalation ladder. It inherits
-/Users/juan/Developer/agents/generalist/AGENTS.md — read that too.
+/Users/you/Developer/local-agents/generalist/AGENTS.md — read that too.
 Load the skills it references when their triggers fire.
 ```
 
@@ -98,7 +103,7 @@ En `opencode.json` el prompt puede SER el archivo:
   "architect": {
     "mode": "primary",
     "description": "Senior Architect mentor",
-    "prompt": "{file:/Users/juan/Developer/agents/architect/AGENTS.md}"
+    "prompt": "{file:/Users/you/Developer/local-agents/architect/AGENTS.md}"
   }
 }
 ```
@@ -128,9 +133,9 @@ agente):
 {
   "name": "architect",
   "description": "Senior Architect mentor - helpful first, challenging when it matters",
-  "prompt": "file:///Users/juan/Developer/agents/architect/AGENTS.md",
+  "prompt": "file:///Users/you/Developer/local-agents/architect/AGENTS.md",
   "resources": [
-    "file:///Users/juan/Developer/agents/generalist/AGENTS.md"
+    "file:///Users/you/Developer/local-agents/generalist/AGENTS.md"
   ],
   "tools": ["read", "write", "shell"],
   "allowedTools": ["read"]
@@ -141,7 +146,7 @@ agente):
   cual, relativas se resuelven desde el directorio del config.
 - `resources` precarga archivos como contexto — ideal para la herencia del
   generalist. Podés precargar también las skills con un glob
-  (`"file:///Users/juan/Developer/agents/architect/skills/**/*.md"`), pero eso
+  (`"file:///Users/you/Developer/local-agents/architect/skills/**/*.md"`), pero eso
   rompe el disclosure progresivo: pagás todo el contexto siempre. Preferí
   precargar solo los AGENTS.md y dejar que las skills se lean bajo demanda con
   el tool `read`.
@@ -172,7 +177,7 @@ En `~/.codex/AGENTS.md` (guía personal, aplica en todos lados):
 
 ```markdown
 Adopt the reasoning model defined in
-/Users/juan/Developer/agents/generalist/AGENTS.md — operating loop, epistemic
+/Users/you/Developer/local-agents/generalist/AGENTS.md — operating loop, epistemic
 rules, and reporting contract. Load the skills it references when their
 triggers fire.
 ```
@@ -183,7 +188,7 @@ En el `AGENTS.md` de la raíz del repo:
 
 ```markdown
 For this repository, additionally adopt
-/Users/juan/Developer/agents/senior-dev/AGENTS.md (work as a peer, not an
+/Users/you/Developer/local-agents/senior-dev/AGENTS.md (work as a peer, not an
 assistant).
 ```
 
@@ -197,8 +202,8 @@ SKILL.md del catálogo. Symlink y listo:
 
 ```bash
 mkdir -p ~/.codex/skills
-ln -s ~/Developer/agents/generalist/skills/verification ~/.codex/skills/verification
-ln -s ~/Developer/agents/architect/skills/tradeoffs ~/.codex/skills/tradeoffs
+ln -s ~/Developer/local-agents/generalist/skills/verification ~/.codex/skills/verification
+ln -s ~/Developer/local-agents/architect/skills/tradeoffs ~/.codex/skills/tradeoffs
 ```
 
 Codex carga solo name+description de cada skill y trae el contenido cuando
@@ -216,7 +221,7 @@ si mañana otra CLI la adopta, un solo set de symlinks sirve para todas.
 | Tu forma de trabajar, siempre (generalist) | Global |
 | Roles que usás en cualquier lado (architect, senior-dev, ux-ui) | Global |
 | Un repo con equipo: convenciones que viajan con el código | Por proyecto (y commiteá la config) |
-| Ojo: config por proyecto que referencia `~/Developer/agents` | Solo funciona en TU máquina — para equipos, vendorizá el catálogo en el repo o usá Patrón B |
+| Ojo: config por proyecto que referencia `~/Developer/local-agents` | Solo funciona en TU máquina — para equipos, vendorizá el catálogo en el repo o usá Patrón B |
 
 Esa última fila es la trampa para tener presente: las rutas absolutas a tu home
 no existen en la máquina de un compañero ni en CI.

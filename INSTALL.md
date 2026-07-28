@@ -36,7 +36,7 @@ ciegas: mirás qué hay, previsualizás, y recién ahí escribís.
 ### Paso 1 — Mirá qué hay
 
 ```bash
-cd ~/Developer/agents
+cd ~/Developer/local-agents
 ./install.py --list
 ```
 
@@ -57,10 +57,10 @@ Salida de ejemplo:
 
 ```
   Installing agent 'architect' → Claude Code
-    skill  → /Users/juan/.claude/skills/design-review
-    skill  → /Users/juan/.claude/skills/mentoring
-    skill  → /Users/juan/.claude/skills/tradeoffs
-    agent  → /Users/juan/.claude/agents/architect.md
+    skill  → /Users/you/.claude/skills/design-review
+    skill  → /Users/you/.claude/skills/mentoring
+    skill  → /Users/you/.claude/skills/tradeoffs
+    agent  → /Users/you/.claude/agents/architect.md
 ```
 
 ### Paso 3 — Instalá de verdad (sacás el `--dry-run`)
