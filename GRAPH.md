@@ -18,26 +18,28 @@ reproduce-before-fixing. `senior-dev` adds the **Peer Contract** (disagree once
 with evidence then commit, pull your weight, flag scope creep), which eight
 agents adopt on top.
 
+<!-- BEGIN:inheritance -->
 ```mermaid
 flowchart TD
     G["generalist — reasoning loop"]
     SD["senior-dev — + peer contract"]
 
     G --> SD
-    G --> architect
     G --> apple-dev
+    G --> architect
     G --> eng-manager
     G --> visionary
 
-    SD --> ux-ui
+    SD --> data-ml
+    SD --> devops
+    SD --> gamification
+    SD --> product-manager
     SD --> qa
     SD --> security
-    SD --> devops
-    SD --> data-ml
-    SD --> gamification
     SD --> stark
-    SD --> product-manager
+    SD --> ux-ui
 ```
+<!-- END:inheritance -->
 
 The eight peer agents declare **both** parents directly (21 edges in the files);
 the graph draws the layering instead. `install.py` walks it transitively, so each
@@ -49,40 +51,46 @@ one gets both `CORE.md` files inlined and stays self-contained after install.
 
 Who routes work to whom, from the links in each `AGENTS.md`.
 
+<!-- BEGIN:handoffs -->
 ```mermaid
 flowchart LR
-    product-manager --> visionary
+    data-ml --> devops
+    data-ml --> security
+    data-ml --> visionary
+
+    devops --> security
+    devops --> senior-dev
+
+    eng-manager --> visionary
+
+    gamification --> senior-dev
+    gamification --> ux-ui
+
     product-manager --> eng-manager
     product-manager --> gamification
     product-manager --> qa
     product-manager --> ux-ui
+    product-manager --> visionary
 
-    eng-manager --> visionary
-    visionary --> architect
-    visionary --> senior-dev
-    visionary --> ux-ui
-    visionary --> gamification
-
-    gamification --> ux-ui
-    gamification --> senior-dev
     qa --> ux-ui
-    senior-dev --> architect
 
     security --> architect
     security --> qa
 
+    senior-dev --> architect
+
     stark --> architect
-    stark --> senior-dev
     stark --> qa
+    stark --> senior-dev
     stark --> ux-ui
     stark --> visionary
 
-    data-ml --> devops
-    data-ml --> security
-    data-ml --> visionary
-    devops --> security
-    devops --> senior-dev
+    visionary --> architect
+    visionary --> gamification
+    visionary --> senior-dev
+    visionary --> ux-ui
 ```
+<!-- END:handoffs -->
 
 Note that `apple-dev`, `data-ml` and `product-manager` appear only as sources.
 No agent currently hands off *to* them. `eng-manager`'s
@@ -117,36 +125,54 @@ That direction is the catalog practising what `architect` preaches: dependencies
 point inward toward stable things. `generalist` is referenced 21 times and
 references nothing — it's the innermost ring. The three consumers are leaves.
 
+<!-- BEGIN:refcounts -->
 | Agent | Referenced by others | References others |
 |-------|---------------------:|------------------:|
 | `generalist` | **21** | 0 |
 | `architect` | 13 | 1 |
 | `senior-dev` | 13 | 4 |
-| `qa` | 9 | 3 |
 | `ux-ui` | 9 | 2 |
+| `qa` | 9 | 3 |
 | `stark` | 8 | 13 |
 | `gamification` | 6 | 4 |
 | `visionary` | 4 | 4 |
 | `devops` | 3 | 6 |
 | `eng-manager` | 2 | 7 |
 | `security` | 2 | 9 |
-| `apple-dev` | 0 | 13 |
 | `data-ml` | 0 | 9 |
+| `apple-dev` | 0 | 13 |
 | `product-manager` | 0 | 15 |
+<!-- END:refcounts -->
 
 ### The load-bearing skills
 
 Six skills carry most of the weight. Change one of these and the blast radius is
 wide — they're the catalog's shared vocabulary.
 
-| Skill | Consumed by | Why it's load-bearing |
-|-------|------------:|-----------------------|
-| [`generalist/verification`](generalist/skills/verification/SKILL.md) | 8 agents | The evidence ladder every agent stands on before claiming anything |
-| [`architect/tradeoffs`](architect/skills/tradeoffs/SKILL.md) | 6 agents | The shared method for expensive-to-reverse decisions |
-| [`ux-ui/ux-flows`](ux-ui/skills/ux-flows/SKILL.md) | 6 agents | Flows and states — the common language for what a product *does* |
-| [`generalist/decomposition`](generalist/skills/decomposition/SKILL.md) | 4 agents | Breaking work into independently verifiable steps |
-| [`senior-dev/fullstack-boundaries`](senior-dev/skills/fullstack-boundaries/SKILL.md) | 4 agents | Where the contract between client and server is defined |
-| [`qa/bug-reporting`](qa/skills/bug-reporting/SKILL.md) | 4 agents | Reproduction-first reporting, reused by security and management |
+<!-- BEGIN:hubs -->
+| Skill | Consumed by | Consumers |
+|-------|------------:|-----------|
+| [`generalist/verification`](generalist/skills/verification/SKILL.md) | 8 agents | apple-dev, architect, data-ml, gamification, product-manager, qa, security, senior-dev |
+| [`architect/tradeoffs`](architect/skills/tradeoffs/SKILL.md) | 6 agents | data-ml, devops, gamification, product-manager, senior-dev, stark |
+| [`ux-ui/ux-flows`](ux-ui/skills/ux-flows/SKILL.md) | 6 agents | apple-dev, gamification, product-manager, qa, stark, visionary |
+| [`generalist/decomposition`](generalist/skills/decomposition/SKILL.md) | 4 agents | eng-manager, product-manager, stark, visionary |
+| [`qa/bug-reporting`](qa/skills/bug-reporting/SKILL.md) | 4 agents | apple-dev, eng-manager, product-manager, security |
+| [`senior-dev/fullstack-boundaries`](senior-dev/skills/fullstack-boundaries/SKILL.md) | 4 agents | data-ml, qa, security, ux-ui |
+<!-- END:hubs -->
+
+Why each one carries weight:
+
+- **`verification`** — the evidence ladder every agent stands on before claiming
+  anything is done. The single most reused idea in the catalog.
+- **`tradeoffs`** — the shared method for decisions that are expensive to
+  reverse. Six agents defer to it rather than improvising their own.
+- **`ux-flows`** — flows and states: the common language for what a product
+  *does*, borrowed even by agents that never draw a screen.
+- **`decomposition`** — breaking work into independently verifiable steps.
+- **`bug-reporting`** — reproduction-first reporting, reused by security for
+  vulnerabilities and by management for triage.
+- **`fullstack-boundaries`** — where the contract between client and server
+  lives, which is also where QA and security go looking for holes.
 
 ### What composition looks like in practice
 
@@ -180,17 +206,19 @@ automatically a defect — `apple-dev/shipping` (App Store, notarization) is
 genuinely domain-bound. But `security/threat-modeling` and
 `ux-ui/visual-craft` are general enough that nobody citing them is worth a look.
 
+<!-- BEGIN:orphan-skills -->
 ```
 apple-dev/       code-review · debugging · shipping · state-architecture
 data-ml/         data-pipelines · llm-integration · ml-modeling
+devops/          ci-cd
+eng-manager/     orchestration · team-health
+gamification/    game-mechanics
 product-manager/ backlog · discovery · stakeholders
 security/        remediation · threat-modeling
-eng-manager/     orchestration · team-health
-devops/          ci-cd
-gamification/    game-mechanics
 ux-ui/           visual-craft
 visionary/       inspire
 ```
+<!-- END:orphan-skills -->
 
 ---
 

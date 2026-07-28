@@ -1,0 +1,423 @@
+#!/usr/bin/env python3
+"""validate.py — check catalog invariants and regenerate derived blocks.
+
+Nine checks over the catalog, plus generation of the data-only blocks in
+GRAPH.md (mermaid graphs and reference tables). Prose is never touched: the
+generator only rewrites what sits between `<!-- BEGIN:x -->` / `<!-- END:x -->`.
+
+Usage:
+  ./validate.py                 # run every check, exit 1 on any failure
+  ./validate.py --write         # regenerate derived blocks in place
+  ./validate.py --list-checks   # show what runs
+
+CI runs `--write` then `git diff --exit-code`, so a stale graph fails the build.
+
+Requires PyYAML (`pip install pyyaml`). install.py stays dependency-free on
+purpose — it runs on users' machines; this one runs on contributors' and in CI.
+"""
+from __future__ import annotations
+
+import argparse
+import glob
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+try:
+    import yaml
+except ImportError:
+    sys.exit("validate.py needs PyYAML — run: pip install pyyaml")
+
+ROOT = Path(__file__).resolve().parent
+
+# Mirrors install.py's INHERIT_SOURCES: a `../X/AGENTS.md` link counts as
+# inheritance only when X is a known source AND its trigger phrase sits within
+# 140 chars, so a handoff mention is never mistaken for inheritance.
+INHERIT_SOURCES = {"generalist": "reasoning model", "senior-dev": "peer contract"}
+PROXIMITY = 140
+
+# Root AGENTS.md rule 5. Character-archetype agents speak Neutral Spanish;
+# real-teammate agents speak Rioplatense; the generalist base stays neutral.
+CHARACTER_AGENTS = {"visionary", "stark", "security"}
+REGISTER_EXEMPT = {"generalist"}
+
+# Paths that would be a lie in four of the five install targets.
+HARNESS_PATTERNS = [
+    (r"~/\.claude", "Claude Code config path"),
+    (r"~/\.config/opencode", "opencode config path"),
+    (r"~/\.kiro", "Kiro config path"),
+    (r"~/\.codex", "Codex config path"),
+    (r"`/[a-z][a-z-]*`", "harness slash command"),
+]
+
+
+# --------------------------------------------------------------------------- #
+# Catalog model
+# --------------------------------------------------------------------------- #
+class Catalog:
+    def __init__(self, root: Path):
+        self.root = root
+        self.agents = {}   # name -> text of AGENTS.md
+        self.skills = {}   # skill-name -> (agent, path, text)
+        for p in sorted(root.glob("*/AGENTS.md")):
+            self.agents[p.parent.name] = p.read_text()
+        for p in sorted(root.glob("*/skills/*/SKILL.md")):
+            self.skills[p.parent.name] = (p.parent.parent.parent.name, p, p.read_text())
+
+    def owner(self, skill: str):
+        return self.skills[skill][0] if skill in self.skills else None
+
+    def inheritance(self):
+        """{child: {parents}} — the structural edges install.py inlines."""
+        out = {}
+        for name, text in self.agents.items():
+            for m in re.finditer(r"(?:\.\./)+([a-z][a-z-]*)/AGENTS\.md", text):
+                tgt = m.group(1)
+                trig = INHERIT_SOURCES.get(tgt)
+                lo, hi = max(0, m.start() - PROXIMITY), m.end() + PROXIMITY
+                if trig and trig in text[lo:hi].lower():
+                    out.setdefault(name, set()).add(tgt)
+        return out
+
+    def handoffs(self):
+        """{source: {targets}} — agent-level links that are NOT inheritance."""
+        out = {}
+        for name, text in self.agents.items():
+            for m in re.finditer(r"(?:\.\./)+([a-z][a-z-]*)/AGENTS\.md", text):
+                tgt = m.group(1)
+                trig = INHERIT_SOURCES.get(tgt)
+                lo, hi = max(0, m.start() - PROXIMITY), m.end() + PROXIMITY
+                if trig and trig in text[lo:hi].lower():
+                    continue
+                out.setdefault(name, set()).add(tgt)
+        return out
+
+    def skill_refs(self):
+        """{(agent, skill) -> {(agent, skill)}} for CROSS-agent references."""
+        out = {}
+        for skill, (agent, _p, text) in self.skills.items():
+            for m in re.finditer(r"\]\(((?:\.\./)+[^)]*?)([a-z][a-z-]*)/SKILL\.md\)", text):
+                tgt = m.group(2)
+                if tgt == skill or tgt not in self.skills:
+                    continue
+                towner = self.owner(tgt)
+                if towner != agent:
+                    out.setdefault((agent, skill), set()).add((towner, tgt))
+        return out
+
+
+def frontmatter(text: str):
+    m = re.match(r"---\n(.*?)\n---\n", text, re.DOTALL)
+    if not m:
+        return None, "no frontmatter block"
+    try:
+        data = yaml.safe_load(m.group(1))
+    except Exception as exc:
+        return None, f"invalid YAML: {exc}"
+    if not isinstance(data, dict):
+        return None, "frontmatter is not a mapping"
+    return data, None
+
+
+# --------------------------------------------------------------------------- #
+# Checks — each returns a list of human-readable failures
+# --------------------------------------------------------------------------- #
+def check_links(cat: Catalog):
+    errs = []
+    files = ["AGENTS.md", "README.md", "GRAPH.md", "INSTALL.md", "USAGE.md",
+             "INTEGRATION.md", "REFERENCE_.md"]
+    files += [f"{a}/AGENTS.md" for a in cat.agents]
+    files += [str(p.relative_to(cat.root)) for _a, p, _t in cat.skills.values()]
+    for rel in files:
+        src = cat.root / rel
+        if not src.exists():
+            continue
+        for m in re.finditer(r"\]\(([^)\s]+?\.md)(?:#[^)]*)?\)", src.read_text()):
+            link = m.group(1)
+            if link.startswith(("http://", "https://", "/")) or link.startswith("~"):
+                continue
+            if not (src.parent / link).exists():
+                errs.append(f"{rel}: broken link -> {link}")
+    return errs
+
+
+def check_frontmatter(cat: Catalog):
+    errs = []
+    for skill, (agent, path, text) in cat.skills.items():
+        rel = path.relative_to(cat.root)
+        data, err = frontmatter(text)
+        if err:
+            errs.append(f"{rel}: {err}")
+            continue
+        for key in ("name", "description", "license", "metadata"):
+            if key not in data:
+                errs.append(f"{rel}: missing `{key}` in frontmatter")
+        if not str(data.get("description", "")).strip():
+            errs.append(f"{rel}: empty description")
+    for agent, text in cat.agents.items():
+        data, err = frontmatter(text)
+        if err:
+            errs.append(f"{agent}/AGENTS.md: {err}")
+        elif not str(data.get("description", "")).strip():
+            errs.append(f"{agent}/AGENTS.md: empty or missing description")
+    return errs
+
+
+def check_skill_names(cat: Catalog):
+    """install.py keys on both the folder and the frontmatter name."""
+    errs = []
+    for skill, (agent, path, text) in cat.skills.items():
+        data, err = frontmatter(text)
+        if err:
+            continue
+        if data.get("name") != skill:
+            errs.append(f"{path.relative_to(cat.root)}: name `{data.get('name')}` "
+                        f"!= folder `{skill}`")
+    return errs
+
+
+def check_harness_paths(cat: Catalog):
+    """The catalog installs into five tools with five layouts — a hardcoded
+    path to one of them is wrong in the other four."""
+    errs = []
+    targets = [(f"{a}/AGENTS.md", t) for a, t in cat.agents.items()]
+    targets += [(str(p.relative_to(cat.root)), t) for _a, p, t in cat.skills.values()]
+    for rel, text in targets:
+        for pattern, label in HARNESS_PATTERNS:
+            for m in re.finditer(pattern, text):
+                line = text[:m.start()].count("\n") + 1
+                errs.append(f"{rel}:{line}: {label} `{m.group(0)}` — "
+                            f"reference skills by name, not by path")
+    return errs
+
+
+def check_language_register(cat: Catalog):
+    """Root AGENTS.md rule 5."""
+    errs = []
+    for agent, text in cat.agents.items():
+        if agent in REGISTER_EXEMPT:
+            if not re.search(r"user's language", text, re.I):
+                errs.append(f"{agent}/AGENTS.md: base agent should stay "
+                            f"register-neutral (respond in the user's language)")
+            continue
+        want = "neutral spanish" if agent in CHARACTER_AGENTS else "rioplatense"
+        if not re.search(re.escape(want), text, re.I):
+            kind = "character archetype" if agent in CHARACTER_AGENTS else "real teammate"
+            errs.append(f"{agent}/AGENTS.md: {kind} must declare "
+                        f"'{want.title()}' (rule 5)")
+    return errs
+
+
+def check_agent_rows(cat: Catalog):
+    """Root AGENTS.md rule 4: every agent gets a row in the index table."""
+    rows = set(re.findall(r"^\| `([a-z-]+)`", (cat.root / "AGENTS.md").read_text(), re.M))
+    errs = [f"AGENTS.md: no index row for agent `{a}`" for a in sorted(set(cat.agents) - rows)]
+    errs += [f"AGENTS.md: index row `{r}` has no agent directory"
+             for r in sorted(rows - set(cat.agents))]
+    return errs
+
+
+def check_readme_counts(cat: Catalog):
+    """The README roster mixes curated prose with counts, so it is validated
+    rather than generated — generation would overwrite the prose."""
+    text = (cat.root / "README.md").read_text()
+    claimed = {m[0]: int(m[1]) for m in
+               re.findall(r"\[`([a-z-]+)`\]\([a-z-]+/AGENTS\.md\).*?\|\s*(\d+)\s*\|", text)}
+    errs = []
+    for agent in sorted(cat.agents):
+        real = sum(1 for a, _p, _t in cat.skills.values() if a == agent)
+        if agent not in claimed:
+            errs.append(f"README.md: agent `{agent}` missing from the roster table")
+        elif claimed[agent] != real:
+            errs.append(f"README.md: `{agent}` claims {claimed[agent]} skills, has {real}")
+    return errs
+
+
+def check_installer(cat: Catalog):
+    """Smoke test: the installer must still discover and render everything."""
+    errs = []
+    runs = [["--list"]] + [["--all", "--tool", t, "--dry-run"]
+                           for t in ("claude", "opencode", "kiro", "codex", "shared")]
+    for args in runs:
+        proc = subprocess.run([sys.executable, str(cat.root / "install.py"), *args],
+                              capture_output=True, text=True)
+        if proc.returncode != 0:
+            errs.append(f"install.py {' '.join(args)} exited {proc.returncode}: "
+                        f"{proc.stderr.strip()[:200]}")
+    return errs
+
+
+# --------------------------------------------------------------------------- #
+# Derived blocks — pure data, safe to generate
+# --------------------------------------------------------------------------- #
+def gen_inheritance(cat: Catalog) -> str:
+    inh = cat.inheritance()
+    peers = sorted(a for a, p in inh.items() if "senior-dev" in p)
+    plain = sorted(a for a, p in inh.items()
+                   if "senior-dev" not in p and a != "senior-dev")
+    out = ["```mermaid", "flowchart TD",
+           '    G["generalist — reasoning loop"]',
+           '    SD["senior-dev — + peer contract"]', "",
+           "    G --> SD"]
+    out += [f"    G --> {a}" for a in plain]
+    out.append("")
+    out += [f"    SD --> {a}" for a in peers]
+    out.append("```")
+    return "\n".join(out)
+
+
+def gen_handoffs(cat: Catalog) -> str:
+    hand = cat.handoffs()
+    out = ["```mermaid", "flowchart LR"]
+    for src in sorted(hand):
+        for tgt in sorted(hand[src]):
+            out.append(f"    {src} --> {tgt}")
+        out.append("")
+    while out and out[-1] == "":
+        out.pop()
+    out.append("```")
+    return "\n".join(out)
+
+
+def _ref_counts(cat: Catalog):
+    refs = cat.skill_refs()
+    inb, outb = {}, {}
+    for (sa, _s), tgts in refs.items():
+        outb[sa] = outb.get(sa, 0) + len(tgts)
+        for ta, _t in tgts:
+            inb[ta] = inb.get(ta, 0) + 1
+    return inb, outb
+
+
+def gen_refcounts(cat: Catalog) -> str:
+    inb, outb = _ref_counts(cat)
+    rows = sorted(cat.agents, key=lambda a: (-inb.get(a, 0), outb.get(a, 0), a))
+    out = ["| Agent | Referenced by others | References others |",
+           "|-------|---------------------:|------------------:|"]
+    for a in rows:
+        i = inb.get(a, 0)
+        cell = f"**{i}**" if i and i == max(inb.values()) else str(i)
+        out.append(f"| `{a}` | {cell} | {outb.get(a, 0)} |")
+    return "\n".join(out)
+
+
+def gen_hubs(cat: Catalog) -> str:
+    refs = cat.skill_refs()
+    consumers = {}
+    for (sa, _s), tgts in refs.items():
+        for ta, t in tgts:
+            consumers.setdefault((ta, t), set()).add(sa)
+    top = sorted(consumers.items(), key=lambda kv: (-len(kv[1]), kv[0]))[:6]
+    out = ["| Skill | Consumed by | Consumers |",
+           "|-------|------------:|-----------|"]
+    for (ta, t), cons in top:
+        link = f"[`{ta}/{t}`]({ta}/skills/{t}/SKILL.md)"
+        out.append(f"| {link} | {len(cons)} agents | {', '.join(sorted(cons))} |")
+    return "\n".join(out)
+
+
+def gen_orphan_skills(cat: Catalog) -> str:
+    refs = cat.skill_refs()
+    consumed = {f"{ta}/{t}" for tgts in refs.values() for ta, t in tgts}
+    orphans = sorted(f"{a}/{s}" for s, (a, _p, _t) in cat.skills.items()
+                     if f"{a}/{s}" not in consumed)
+    by_agent = {}
+    for o in orphans:
+        a, s = o.split("/")
+        by_agent.setdefault(a, []).append(s)
+    width = max(len(a) for a in by_agent) + 1
+    lines = [f"{(a + '/').ljust(width)} {' · '.join(sorted(s))}"
+             for a, s in sorted(by_agent.items())]
+    return "```\n" + "\n".join(lines) + "\n```"
+
+
+GENERATORS = {
+    "inheritance": gen_inheritance,
+    "handoffs": gen_handoffs,
+    "refcounts": gen_refcounts,
+    "hubs": gen_hubs,
+    "orphan-skills": gen_orphan_skills,
+}
+
+
+def apply_blocks(cat: Catalog, write: bool):
+    """Replace every marked block in GRAPH.md. Returns list of stale block names."""
+    path = cat.root / "GRAPH.md"
+    if not path.exists():
+        return ["GRAPH.md: file missing"]
+    text = original = path.read_text()
+    stale = []
+    for name, fn in GENERATORS.items():
+        pattern = re.compile(
+            rf"(<!-- BEGIN:{re.escape(name)} -->\n)(.*?)(\n<!-- END:{re.escape(name)} -->)",
+            re.DOTALL)
+        m = pattern.search(text)
+        if not m:
+            stale.append(f"GRAPH.md: missing markers for block `{name}`")
+            continue
+        fresh = fn(cat)
+        if m.group(2).strip() != fresh.strip():
+            stale.append(f"GRAPH.md: block `{name}` is stale — run ./validate.py --write")
+        text = text[:m.start()] + m.group(1) + fresh + m.group(3) + text[m.end():]
+    if write and text != original:
+        path.write_text(text)
+        return []
+    return [] if write else stale
+
+
+CHECKS = [
+    ("links", "relative markdown links resolve", check_links),
+    ("frontmatter", "YAML parses and required keys present", check_frontmatter),
+    ("skill-names", "frontmatter `name` matches folder", check_skill_names),
+    ("harness-paths", "no tool-specific paths in agent/skill bodies", check_harness_paths),
+    ("language-register", "rule 5 — neutral vs Rioplatense", check_language_register),
+    ("agent-rows", "rule 4 — every agent indexed in AGENTS.md", check_agent_rows),
+    ("readme-counts", "README roster matches reality", check_readme_counts),
+    ("installer", "install.py --list and --dry-run succeed", check_installer),
+]
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--write", action="store_true",
+                    help="regenerate derived blocks in GRAPH.md instead of checking them")
+    ap.add_argument("--list-checks", action="store_true", help="list checks and exit")
+    args = ap.parse_args()
+
+    if args.list_checks:
+        for name, desc, _ in CHECKS:
+            print(f"  {name:19} {desc}")
+        print(f"  {'derived-blocks':19} GRAPH.md generated blocks are current "
+              f"({', '.join(GENERATORS)})")
+        return 0
+
+    cat = Catalog(ROOT)
+    print(f"catalog: {len(cat.agents)} agents, {len(cat.skills)} skills\n")
+
+    failed = 0
+    for name, desc, fn in CHECKS:
+        errs = fn(cat)
+        print(f"{'FAIL' if errs else ' ok '}  {name:19} {desc}")
+        for e in errs:
+            print(f"        {e}")
+        failed += bool(errs)
+
+    errs = apply_blocks(cat, args.write)
+    label = "regenerated" if args.write else "derived-blocks"
+    print(f"{'FAIL' if errs else ' ok '}  {label:19} GRAPH.md data blocks")
+    for e in errs:
+        print(f"        {e}")
+    failed += bool(errs)
+
+    print()
+    if failed:
+        print(f"{failed} check(s) failed")
+        return 1
+    print("all checks passed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
