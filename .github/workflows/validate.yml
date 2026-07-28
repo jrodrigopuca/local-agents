@@ -1,0 +1,29 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Run catalog checks
+        run: ./validate.py
+
+      - name: Derived blocks are current
+        run: |
+          ./validate.py --write
+          git diff --exit-code -- GRAPH.md \
+            || { echo "::error::GRAPH.md is stale — run ./validate.py --write and commit"; exit 1; }
