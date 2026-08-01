@@ -102,6 +102,31 @@ flowchart LR
 Every agent is reachable: each one is either handed work by another or has its skills cited by another. `generalist` and `stark` receive no peer-to-peer handoff but are cited heavily at the skill level — reached through what they teach, not through routing.
 <!-- END:isolated -->
 
+### Terminal agents are not a defect
+
+Several agents route work outward to nobody. That is deliberate, and the reason
+differs per agent:
+
+- **`architect`** is consultative. You bring it a decision, it returns an
+  analysis, and you go back to your own work — *who acts on its findings is the
+  caller's call, not the architect's.* It is also the catalog's most depended-on
+  advisor (15 inbound skill references against 1 outbound), which by rule 4 of
+  its own judgment — *"boundaries are the product; business logic depends on
+  nothing"* — is exactly what an inner ring should look like.
+- **`apple-dev`** is a platform silo. Nothing else in the catalog touches Swift
+  or iOS, so there is no peer to route to at the agent level — but it composes
+  with ten skills across six agents, so it is connected where connection is
+  useful.
+- **`stark`** and **`generalist`** are entered directly rather than delegated
+  to: you reach for stark in a crisis, and every agent already carries the
+  generalist loop by inheritance.
+
+Adding return edges was tried and reverted. The concrete failure was overlapping
+triggers: `security` routes boundary-caused fixes *to* `architect`, so an
+`architect → security` edge for "boundary problems with a trust implication"
+makes the same finding ping-pong between them. A handoff is only worth adding
+when its trigger cannot fire in both directions on one problem.
+
 ---
 
 ## 3. Skill references
