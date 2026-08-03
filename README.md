@@ -12,6 +12,7 @@ a section could be replaced by "just do X", it doesn't belong here.
 git clone https://github.com/jrodrigopuca/local-agents.git
 cd local-agents
 ./install.py --list                        # see what's available
+./install.py --status                      # see what's installed, and if it's current
 ./install.py --all --tool claude --dry-run # preview
 ./install.py --all --tool claude           # install the whole suite
 ```

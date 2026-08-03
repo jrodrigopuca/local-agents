@@ -9,6 +9,7 @@ own directories so they travel with the machine.
 Usage:
   ./install.py                          # interactive
   ./install.py --list                   # show detected agents/skills + tools
+  ./install.py --status                 # show what is installed, and if it is current
   ./install.py --agent architect --tool claude
   ./install.py --skill architect:tradeoffs --tool codex
   ./install.py --agent qa --tool kiro --on-conflict rename --dry-run
@@ -369,6 +370,26 @@ def resolve_deps(agent: Agent, agents: dict, skills_by_name: dict):
     return inherited_order, skills
 
 
+def compose_agent(agent: Agent, inherited: list):
+    """Build the agent body exactly as it gets installed: own body plus the
+    inherited CORE.md sections. Shared with `--status`, which re-renders to
+    detect drift — if the two ever diverged, the staleness report would lie."""
+    meta, body = split_frontmatter(agent.agents_md.read_text())
+    desc = meta.get("description") or agent_description(body)  # before inlining
+    if inherited:
+        parts = [body, "\n\n---\n\n# Inherited context (installed automatically)\n"]
+        for pa in inherited:
+            core = pa.path / "CORE.md"
+            if core.exists():
+                # curated, condensed essence — preferred over a full-file dump
+                parts.append(f"\n{core.read_text().strip()}\n")
+            else:
+                _, pbody = split_frontmatter(pa.agents_md.read_text())
+                parts.append(f"\n## Inherited from `{pa.name}` (full)\n\n{pbody}\n")
+        body = "".join(parts)
+    return meta, desc, body
+
+
 def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
                   dry_run: bool, agents: dict, skills_by_name: dict,
                   with_deps: bool = True, skip_skills: bool = False,
@@ -404,19 +425,7 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
               f"Skills installed above.")
         return
 
-    meta, body = split_frontmatter(agent.agents_md.read_text())
-    desc = meta.get("description") or agent_description(body)  # before inlining
-    if inherited:
-        parts = [body, "\n\n---\n\n# Inherited context (installed automatically)\n"]
-        for pa in inherited:
-            core = pa.path / "CORE.md"
-            if core.exists():
-                # curated, condensed essence — preferred over a full-file dump
-                parts.append(f"\n{core.read_text().strip()}\n")
-            else:
-                _, pbody = split_frontmatter(pa.agents_md.read_text())
-                parts.append(f"\n## Inherited from `{pa.name}` (full)\n\n{pbody}\n")
-        body = "".join(parts)
+    meta, desc, body = compose_agent(agent, inherited)
 
     final = resolve_name(tool.agents_dir, agent.name,
                          ".json" if tool.agent_style == "kiro_json" else ".md",
@@ -583,6 +592,83 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps):
 # --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
+def print_status(agents, skills_by_name):
+    """What is actually installed in each tool, and whether it still matches the
+    catalog. Answers the question `--list` cannot: not "what could I install"
+    but "what is out there, and is it current".
+
+    Staleness is decided by re-rendering: a skill is compared byte-for-byte, an
+    agent is re-composed through the same path the installer uses and compared
+    to the file on disk. Anything the catalog doesn't own is reported as foreign
+    and never touched."""
+    for tool in TOOLS:
+        if not tool.config_root.exists():
+            print(f"\n{tool.label}  ({tool.key})\n  not detected — {tool.config_root} missing")
+            continue
+        print(f"\n{tool.label}  ({tool.key})\n  {tool.config_root}")
+
+        # --- skills: verbatim copies, so a byte comparison is exact ---
+        present, foreign, stale = [], [], []
+        if tool.skills_dir.exists():
+            for d in sorted(p for p in tool.skills_dir.iterdir() if p.is_dir()):
+                src = skills_by_name.get(d.name)
+                if not src:
+                    foreign.append(d.name)
+                    continue
+                present.append(d.name)
+                a, b = src.path / "SKILL.md", d / "SKILL.md"
+                if not b.exists() or a.read_text() != b.read_text():
+                    stale.append(d.name)
+        missing = sorted(set(skills_by_name) - set(present))
+        print(f"    skills   {len(present)}/{len(skills_by_name)} from catalog"
+              f"{f' · {len(stale)} stale' if stale else ''}"
+              f"{f' · {len(missing)} missing' if missing else ''}"
+              f"{f' · {len(foreign)} foreign (untouched)' if foreign else ''}")
+        for label, items in (("stale", stale), ("missing", missing)):
+            if items:
+                print(f"      {label}: {', '.join(items[:8])}"
+                      f"{f' +{len(items) - 8} more' if len(items) > 8 else ''}")
+
+        # --- agents: rendered, so compare against a fresh render ---
+        if tool.agents_dir is None:
+            print("    agents   (this tool has no place for agent bodies)")
+            continue
+        suffix = ".json" if tool.agent_style == "kiro_json" else ".md"
+        on_disk = ({p.stem for p in tool.agents_dir.glob(f"*{suffix}")}
+                   if tool.agents_dir.exists() else set())
+        a_present = sorted(on_disk & set(agents))
+        a_foreign = sorted(on_disk - set(agents))
+        a_missing = sorted(set(agents) - on_disk)
+        a_stale = []
+        for name in a_present:
+            inherited, dep_skills = resolve_deps(agents[name], agents, skills_by_name)
+            meta, desc, body = compose_agent(agents[name], inherited)
+            dest, fresh = render_agent(tool, name, body, desc,
+                                       sorted(s.name for s in dep_skills), meta)
+            if not dest.exists() or dest.read_text() != fresh:
+                a_stale.append(name)
+        print(f"    agents   {len(a_present)}/{len(agents)} from catalog"
+              f"{f' · {len(a_stale)} stale' if a_stale else ''}"
+              f"{f' · {len(a_missing)} missing' if a_missing else ''}"
+              f"{f' · {len(a_foreign)} foreign (untouched)' if a_foreign else ''}")
+        for label, items in (("stale", a_stale), ("missing", a_missing)):
+            if items:
+                print(f"      {label}: {', '.join(items)}")
+
+        if tool.agent_style == "roster_md":
+            roster = tool.config_root / "AGENTS.md"
+            if not roster.exists():
+                print("      roster: MISSING — the bodies above are unreachable "
+                      "without it")
+            else:
+                rows = len(re.findall(r"^\| `[a-z-]+` \|", roster.read_text(), re.M))
+                mark = "" if rows == len(a_present) else f" (≠ {len(a_present)} bodies)"
+                print(f"      roster: {rows} rows in {roster.name}{mark}")
+
+    print(f"\ncatalog: {len(agents)} agents, {len(skills_by_name)} skills — "
+          f"refresh a tool with:  ./install.py --all --tool <key> --on-conflict overwrite")
+
+
 def print_list(agents, all_skills):
     print("\nAgents:")
     for n, a in sorted(agents.items()):
@@ -600,6 +686,8 @@ def main():
     ap.add_argument("--catalog", type=Path, default=Path(__file__).resolve().parent,
                     help="catalog root (default: this script's directory)")
     ap.add_argument("--list", action="store_true", help="list agents, skills, tools and exit")
+    ap.add_argument("--status", action="store_true",
+                    help="show what is installed in each tool and whether it is current")
     ap.add_argument("--all", action="store_true", help="install the whole suite (all agents + skills)")
     ap.add_argument("--agent", action="append", default=[], help="agent name to install (repeatable)")
     ap.add_argument("--skill", action="append", default=[], help="skill as agent:skill or name (repeatable)")
@@ -623,6 +711,10 @@ def main():
 
     if args.list:
         print_list(agents, all_skills)
+        return
+
+    if args.status:
+        print_status(agents, skills_by_name)
         return
 
     if args.dry_run:

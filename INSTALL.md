@@ -89,11 +89,47 @@ renombrar / saltear.
 
 ---
 
+## ¿Qué tengo instalado y está al día?
+
+`--list` te dice qué PODÉS instalar; `--status` te dice qué HAY instalado:
+
+```bash
+./install.py --status
+```
+
+```
+Claude Code  (claude)
+  /Users/you/.claude
+    skills   45/45 from catalog · 14 foreign (untouched)
+    agents   14/14 from catalog
+
+Codex  (codex)
+  /Users/you/.codex
+    skills   45/45 from catalog · 1 foreign (untouched)
+    agents   14/14 from catalog
+      roster: 14 rows in AGENTS.md
+```
+
+Qué significa cada cosa:
+
+| Etiqueta | Qué es |
+|---|---|
+| `N/M from catalog` | Cuántas de las del catálogo están presentes |
+| `stale` | Está instalada pero **difiere** del catálogo — te falta reinstalar |
+| `missing` | Está en el catálogo y no en la herramienta |
+| `foreign (untouched)` | Tuya, ajena al catálogo. El instalador nunca la toca |
+| `roster: N rows` | Sólo Codex y shared: filas en su `AGENTS.md`. Si el número no coincide con los cuerpos, te avisa |
+
+`stale` no se calcula por fecha sino por **contenido**: las skills se comparan byte a byte y los agentes se vuelven a renderizar por el mismo camino que usa la instalación, así que un "al día" es exacto.
+
+---
+
 ## Recetario de comandos
 
 | Qué querés | Comando |
 |-----------|---------|
 | Ver todo lo disponible | `./install.py --list` |
+| **Ver qué hay instalado y si está al día** | `./install.py --status` |
 | Previsualizar (no escribe nada) | agregá `--dry-run` a cualquier comando |
 | **Instalar toda la suite** | `./install.py --all --tool claude` |
 | Instalar un agente + sus skills + herencia | `./install.py --agent architect --tool claude` |
@@ -194,7 +230,8 @@ opencode como Codex — instalás una vez, la ven las dos.
 | `--dry-run` | Muestra qué haría, no escribe nada |
 | `--catalog PATH` | Usar otro catálogo (default: la carpeta donde vive el script) |
 | `--on-conflict {ask,overwrite,rename,skip}` | Política ante colisiones |
-| `--list` | Listar y salir |
+| `--list` | Listar el catálogo y las herramientas detectadas, y salir |
+| `--status` | Listar lo que está INSTALADO en cada herramienta y si sigue al día, y salir |
 
 ---
 
