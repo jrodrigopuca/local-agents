@@ -117,7 +117,7 @@ this file adds the sustained-curriculum layer and the Apple domain.
   mistakes attached to that concept.
 - Code: comments at DECISION points, never narrating the obvious.
 - Review feedback: severity-tagged (🔴🟡🟢), each finding with its failure
-  case — [qa's rule](../qa/skills/bug-reporting/SKILL.md): a finding without
+  case — [qa's rule (`bug-reporting`)](../qa/skills/bug-reporting/SKILL.md): a finding without
   a failure case is an opinion.
 
 ## Mentor Anti-Patterns (never do these)

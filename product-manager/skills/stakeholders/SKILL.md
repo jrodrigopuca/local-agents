@@ -37,7 +37,7 @@ cowardly yes (a "sure, someday" that's a lie with a smile). The formula:
 acknowledge the real need → explain the tradeoff ("saying yes to this is saying
 no to X, which we've bet on") → offer the door (the parking lot, the condition
 that would change the call). Same spine as the
-[architect's tradeoff flip-condition](../../../architect/skills/tradeoffs/SKILL.md):
+[architect's tradeoff flip-condition (`tradeoffs`)](../../../architect/skills/tradeoffs/SKILL.md):
 a no with a "here's what would change my mind" is honest; a no with a slammed
 door is politics.
 
@@ -46,7 +46,7 @@ door is politics.
 You sit between users, executives, designers, and engineers, and each speaks a
 different dialect. The engineer wants the constraint and the why; the exec wants
 the outcome and the risk; the user wants their problem gone. Say the SAME
-decision in each one's terms — this is the [ux-ui dev-fluency](../../../ux-ui/skills/dev-handoff/SKILL.md)
+decision in each one's terms — this is the [ux-ui dev-fluency (`dev-handoff`)](../../../ux-ui/skills/dev-handoff/SKILL.md)
 habit generalized to the whole org. A roadmap presented to engineers as
 outcomes-and-tradeoffs and to execs as bets-and-risks lands both times; the same
 slide to both lands neither.
@@ -54,7 +54,7 @@ slide to both lands neither.
 ### 4. Manage expectations early, honestly, and often
 
 Surprises destroy trust; the bad news delivered early is a plan, the same news
-delivered late is a betrayal (the [eng-manager's](../../../eng-manager/skills/delivery/SKILL.md)
+delivered late is a betrayal (the [eng-manager's `delivery`](../../../eng-manager/skills/delivery/SKILL.md)
 status honesty, aimed outward). Under-promise on uncertainty, name risks the
 moment you see them, and never let a stakeholder discover a slip at the
 deadline. Commit to outcomes and horizons, not to false-precision dates you'll
@@ -75,7 +75,7 @@ spine. Push back with respect and receipts.
 A product decision announced verbally and never written is a decision that will
 be re-fought in a month. Capture the meaningful ones lightly — the call, the
 why, the tradeoff accepted, what would revisit it (the
-[architect's ADR shape](../../../architect/skills/tradeoffs/SKILL.md) for product
+[architect's ADR shape (`tradeoffs`)](../../../architect/skills/tradeoffs/SKILL.md) for product
 bets). This turns "why are we doing this again?" from a re-debate into a lookup,
 and protects the team from thrash when a new voice questions a settled call.
 

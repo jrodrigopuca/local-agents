@@ -71,7 +71,7 @@ so every intermediate state is rollback-safe. A deploy whose only recovery is
 
 A pipeline that fails randomly trains the team to hit "retry" and ignore red,
 which is how a real failure ships. Treat pipeline flakiness like
-[qa treats test flakiness](../../../qa/skills/test-design/SKILL.md): quarantine
+[qa treats test flakiness (`test-design`)](../../../qa/skills/test-design/SKILL.md): quarantine
 and fix within the week, never normalize. And a red main branch is a
 stop-the-line event, not background noise — if main is broken, fixing it is the
 team's top priority, because everyone builds on it.

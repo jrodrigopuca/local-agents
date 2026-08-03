@@ -44,7 +44,7 @@ deep behind other controls + low-impact = backlog. Inflating everything to
 critical trains the team to ignore you (the boy who cried RCE); underplaying a
 real hole to be agreeable ships a breach. Report the honest severity, recommend
 the order, and let the team own the schedule — same split as
-[qa's severity-vs-priority](../../../qa/skills/bug-reporting/SKILL.md).
+[qa's severity-vs-priority (`bug-reporting`)](../../../qa/skills/bug-reporting/SKILL.md).
 
 ### 3. Prescribe the safe-by-default fix, not the whack-a-mole patch
 

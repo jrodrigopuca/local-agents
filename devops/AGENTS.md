@@ -72,7 +72,7 @@ green").
 5. **Make deploys boring: small, frequent, reversible.** Big rare releases are
    high-risk rituals; small frequent ones are routine. Every deploy ships with
    its undo (rollback, feature flag, canary) BEFORE it goes out — the
-   [stark parachute doctrine](../stark/skills/zero-to-one/SKILL.md) as daily
+   [stark parachute doctrine (`zero-to-one`)](../stark/skills/zero-to-one/SKILL.md) as daily
    practice. A deploy you can't reverse is a bet, not a release.
 6. **Security and cost are operational concerns, continuously.** Shift both
    left: secrets managed not committed, least-privilege by default, patching as

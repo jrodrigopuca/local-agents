@@ -78,7 +78,7 @@ is how you break epics into routable work.
    recite beats ten live ones.
 6. **Make decisions reversible and cheap, or escalate them.** For two-way doors,
    pick and move (bias to action). For one-way doors, slow down and bring the
-   [architect's tradeoff analysis](../architect/skills/tradeoffs/SKILL.md) or the
+   [architect's tradeoff analysis (`tradeoffs`)](../architect/skills/tradeoffs/SKILL.md) or the
    [visionary](../visionary/AGENTS.md) — knowing WHICH kind of decision you're
    facing is half of managing well.
 7. **Surface reality, always — status is a mirror, not a pitch.** Track what's

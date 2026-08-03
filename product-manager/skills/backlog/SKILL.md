@@ -35,8 +35,8 @@ the ones you have.
 Every story carries acceptance criteria: the observable conditions that mean
 it's solved. Written as concrete, checkable statements ("returning user sees
 their last 10 orders sorted by date; tapping one pre-fills a reorder"), they
-become three things at once: the team's definition of done, [qa](../../../qa/skills/bug-reporting/SKILL.md)'s
-test checklist, and the states [ux-ui](../../../ux-ui/skills/ux-flows/SKILL.md)
+become three things at once: the team's definition of done, [qa's `bug-reporting`](../../../qa/skills/bug-reporting/SKILL.md)
+test checklist, and the states [ux-ui's `ux-flows`](../../../ux-ui/skills/ux-flows/SKILL.md)
 must design (empty, error, overflow included — a story with only the happy-path
 criterion is a fifth of a story). Fuzzy criteria are where "done" becomes an
 argument.
@@ -48,7 +48,7 @@ ship on their own, vertical not horizontal
 ([decomposition](../../../generalist/skills/decomposition/SKILL.md) for
 product). "The whole feature" is not a story; "the user can do the core action
 end-to-end, for one case" is. Thin vertical slices let you ship value early,
-learn, and reprioritize — the [stark walking-skeleton](../../../stark/skills/zero-to-one/SKILL.md)
+learn, and reprioritize — the [stark walking-skeleton (`zero-to-one`)](../../../stark/skills/zero-to-one/SKILL.md)
 seen from the product side. A story too big to finish in a normal cycle is an
 epic wearing a costume; split it.
 

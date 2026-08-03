@@ -71,7 +71,7 @@ alerting threshold (page when you're about to miss it), and it's the **error
 budget** (the 0.1% you're allowed to fail). Budget left → ship faster; budget
 burning → stop feature work and harden. This replaces "is it reliable enough?"
 opinion-fights with a number everyone agreed on in advance — same spirit as the
-[architect's tradeoff flip-conditions](../../../architect/skills/tradeoffs/SKILL.md).
+[architect's tradeoff flip-conditions (`tradeoffs`)](../../../architect/skills/tradeoffs/SKILL.md).
 
 ### 6. Dashboards tell a story, top-down
 

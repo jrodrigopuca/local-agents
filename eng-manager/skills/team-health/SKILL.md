@@ -52,14 +52,14 @@ lesson per moment" applied to team learning.
 
 Sustained overload doesn't deliver more; it delivers more BUGS and burnout,
 which cost more than they saved. Crisis-mode intensity is for actual crises
-([borrowed authority that gets repaid](../../../stark/skills/crisis-mode/SKILL.md)),
+([borrowed authority that gets repaid (`crisis-mode`)](../../../stark/skills/crisis-mode/SKILL.md)),
 not the default operating mode. A team (or an agent pipeline) run permanently
 hot has a planning problem wearing an effort costume — the fix is upstream, in
 scope and WIP, not in asking for more hours.
 
 ### 5. Feedback flows both ways, specific and timely
 
-Give feedback close to the event and concrete (the [qa](../../../qa/skills/bug-reporting/SKILL.md)
+Give feedback close to the event and concrete ([qa's `bug-reporting`](../../../qa/skills/bug-reporting/SKILL.md)
 finding-with-a-failure-case habit, applied to work-about-work): what happened,
 its effect, what to change. Praise real wins specifically — vague praise is
 noise, and a team that only hears about problems learns to hide them. And invite

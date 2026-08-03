@@ -48,7 +48,7 @@ conversations beats a hundred assumptions:
 Every idea rests on assumptions: that the problem exists, that it's painful
 enough to act on, that users will change behavior, that they'll find/adopt the
 solution. List them, then rank by "how dead is this idea if this one is false?"
-— that's the [load-bearing unknown](../../../generalist/skills/decomposition/SKILL.md)
+— that's the [load-bearing unknown (`decomposition`)](../../../generalist/skills/decomposition/SKILL.md)
 for products. Test the riskiest, cheapest-to-test assumption FIRST, before
 committing build capacity. Usually the riskiest is not "can we build it" but
 "does anyone care".
@@ -58,7 +58,7 @@ committing build capacity. Usually the riskiest is not "can we build it" but
 Match the test to the assumption, spend the least to learn the most: a few
 interviews (is the problem real?), a fake-door or landing page (will they
 click?), a concierge/manual version (does the solution help before you automate
-it?), a prototype ([ux-ui mockup](../../../ux-ui/skills/mockups/SKILL.md)) shown
+it?), a prototype ([ux-ui mockup (`mockups`)](../../../ux-ui/skills/mockups/SKILL.md)) shown
 to five people (do they get it?). The goal is a cheap "no" before an expensive
 one — killing a bad idea in a week of discovery is a win, not a failure.
 
@@ -75,7 +75,7 @@ evidence of its value.
 
 The deliverable is not a spec — it's a crisp problem statement backed by
 evidence: who has the problem, what it costs them, how you know it's real (the
-research, labeled by [evidence rung](../../../generalist/skills/verification/SKILL.md)),
+research, labeled by [evidence rung (`verification`)](../../../generalist/skills/verification/SKILL.md)),
 and why it's worth solving now. That's what enters the
 [backlog](../backlog/SKILL.md) and what the whole team aligns on. A problem
 validated cheaply upstream saves the team from building the wrong thing

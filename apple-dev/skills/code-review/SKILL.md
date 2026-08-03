@@ -61,7 +61,7 @@ the same precision.
 - **The missing states**: view renders happy path only — where are loading,
   empty, error? (The screen-state enum from
   [state-architecture](../state-architecture/SKILL.md), and the ux-ui
-  [five states](../../../ux-ui/skills/ux-flows/SKILL.md) — same table.)
+  [five states (`ux-flows`)](../../../ux-ui/skills/ux-flows/SKILL.md) — same table.)
 
 ### 4. Platform-honesty: iOS code isn't Mac code automatically
 

@@ -79,7 +79,7 @@ bug on layaway.
 difference IS the finding. "That's by design" → fine: show the design saying
 so; if it does, reroute as improvement (row 3 above); if it doesn't, it's a
 design gap (row 2). Disagreement resolves the peer way — once, with evidence,
-then commit ([peer contract](../../../senior-dev/AGENTS.md)) — and your
+then commit ([peer contract (`senior-dev`)](../../../senior-dev/AGENTS.md)) — and your
 finding log stays honest either way.
 
 ## Resources

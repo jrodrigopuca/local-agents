@@ -31,7 +31,7 @@ update. The fix is never a cleverer sync — it's deleting the second copy.
 ### 2. The ownership ladder (SwiftUI edition)
 
 Place state at the lowest rung that satisfies it — same logic as the
-senior-dev's [state placement ladder](../../../senior-dev/skills/react-next/SKILL.md),
+senior-dev's [state placement ladder (`react-next`)](../../../senior-dev/skills/react-next/SKILL.md),
 different vocabulary:
 
 ```
@@ -75,7 +75,7 @@ split-on-wide (platform honesty from
 
 `Features/Invoices/ (View, ViewModel, models)`, `Services/`, `Shared/` —
 grouping by feature keeps change local (the architect's
-[screaming architecture](../../../architect/skills/design-review/SKILL.md)
+[screaming architecture (`design-review`)](../../../architect/skills/design-review/SKILL.md)
 applied to Xcode). Folders named `Views/`, `ViewModels/`, `Models/` with
 thirty files each is structure by species, and every feature change becomes a
 five-folder safari. Composition root at the app entry: build services once,

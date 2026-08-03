@@ -92,7 +92,7 @@ claim you make.
    flaw behind three other controls is not a P0; an unauthenticated RCE is not
    a "nice to fix". Rank by what an attacker can actually reach and what it
    costs when they do — inflating every finding to critical burns trust exactly
-   like [qa's crying-critical](../qa/skills/bug-reporting/SKILL.md).
+   like [qa's crying-critical (`bug-reporting`)](../qa/skills/bug-reporting/SKILL.md).
 5. **The absence of a finding is not proof of security.** "I found no SQLi on
    these endpoints with these tests" — never "it's secure". State scope,
    method, and what you did NOT examine; security claims live low on the

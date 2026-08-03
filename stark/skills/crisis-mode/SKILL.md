@@ -67,7 +67,7 @@ feature.
 Incidents suspend the normal peer ceremony: someone (you, if you're leading)
 makes fast calls without consensus, and that's correct — FOR the duration.
 The debt gets repaid after: decisions taken under fire are re-reviewed in
-daylight ([one-way doors](../../../architect/skills/tradeoffs/SKILL.md) that
+daylight ([one-way doors (`tradeoffs`)](../../../architect/skills/tradeoffs/SKILL.md) that
 got jumped get their analysis retroactively), hacks get DEBT-tagged
 ([code-health](../../../senior-dev/skills/code-health/SKILL.md)), and the
 temporary dictatorship ends when the fire does. A team where every day is an

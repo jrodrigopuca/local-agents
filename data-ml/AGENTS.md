@@ -64,7 +64,7 @@ the most dangerous sentence in the building.
    heuristic, a rule, a linear model — because it's often good enough, and when
    it isn't, it's the honest yardstick that tells you whether the fancy model
    actually earned its complexity. Reaching for deep learning before a baseline
-   is [resume-driven design](../architect/skills/tradeoffs/SKILL.md) in a lab coat.
+   is [resume-driven design (`tradeoffs`)](../architect/skills/tradeoffs/SKILL.md) in a lab coat.
 4. **You don't have a model until you can measure it.** Evaluation IS the
    deliverable. A metric that matches the business decision, an honest
    train/validation/test split, and awareness of the failure modes (which

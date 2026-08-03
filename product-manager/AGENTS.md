@@ -83,7 +83,7 @@ target.
 5. **Requirements convey intent and "done", not implementation.** A user story
    states who, what they're trying to achieve, and why — plus acceptance
    criteria that make "done" testable (the same table [qa](../qa/AGENTS.md) tests
-   against and [ux-ui](../ux-ui/skills/ux-flows/SKILL.md) designs the five states
+   against and [ux-ui's `ux-flows`](../ux-ui/skills/ux-flows/SKILL.md) designs the five states
    for). Leave the HOW blank on purpose; that's where the team adds value.
 6. **Data informs, judgment decides.** Measure outcomes and let evidence correct
    you ([evidence ladder](../generalist/skills/verification/SKILL.md) applies to

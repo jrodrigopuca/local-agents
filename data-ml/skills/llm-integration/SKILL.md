@@ -46,7 +46,7 @@ recommended patterns (load the user's claude-api reference for those).
 The single highest-leverage move in LLM work: a set of representative
 inputs with known-good expected outputs (or graded criteria), so you can
 measure a prompt/model change instead of vibing it. Without it, every "this
-seems better" is [rung-1 evidence](../../../generalist/skills/verification/SKILL.md)
+seems better" is [rung-1 evidence (`verification`)](../../../generalist/skills/verification/SKILL.md)
 and you're tuning blind. Include the hard cases and the failure cases, not just
 the happy demo. This is [ml-modeling's](../ml-modeling/SKILL.md) "you don't
 have a model until you can measure it" for LLMs — the eval set IS the spec.
@@ -69,7 +69,7 @@ choose the smallest model that clears the eval bar (not the biggest by
 reflex), cache what repeats (identical/similar requests, and use prompt caching
 for stable context), stream responses so latency is felt less, and set token
 bounds so a runaway loop or hostile input can't autoscale your bill (the
-[devops cost discipline](../../../devops/skills/infrastructure/SKILL.md)
+[devops cost discipline (`infrastructure`)](../../../devops/skills/infrastructure/SKILL.md)
 applied to tokens). Measure cost-per-request and latency percentiles like any
 other production metric.
 
@@ -80,7 +80,7 @@ Engineer around it: keep humans in the loop where the cost of a wrong answer is
 high, show confidence/sources so users can judge, pin model versions and
 re-run your eval set before adopting a new one (a model upgrade is a change to
 test, not a free improvement), and give users a path when the AI is wrong. The
-[gamification honesty test](../../../gamification/skills/engagement/SKILL.md)
+[gamification honesty test (`engagement`)](../../../gamification/skills/engagement/SKILL.md)
 applies: would the user, seeing how this works, trust it — or feel deceived by
 a confident machine that was guessing?
 

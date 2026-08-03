@@ -238,6 +238,45 @@ def check_section_scope(cat: Catalog):
     return errs
 
 
+def check_link_identity(cat: Catalog):
+    """Every internal link must name its target somewhere a reader can recover.
+
+    Relative paths do not survive installation: the catalog is a tree, an
+    installed copy is flat, so `../qa/AGENTS.md` resolves to nothing once
+    copied. The link TEXT is what carries the meaning across, so it has to
+    identify the target — by name, or by a phrase the target's own description
+    contains (which is how a host's skill discovery finds it)."""
+    errs = []
+    descriptions = {}
+    for skill, (_a, _p, text) in cat.skills.items():
+        data, _err = frontmatter(text)
+        descriptions[skill] = str((data or {}).get("description", "")).lower()
+
+    targets = [(f"{a}/AGENTS.md", t) for a, t in cat.agents.items()]
+    targets += [(str(p.relative_to(cat.root)), t) for _a, p, t in cat.skills.values()]
+    for rel, body in targets:
+        for m in re.finditer(r"\[([^\]]+)\]\(((?:\.\./)+[^)]+?)\)", body):
+            text, path = m.group(1), m.group(2)
+            agent = re.search(r"\.\./([a-z][a-z-]*)/AGENTS\.md$", path)
+            skill = re.search(r"([a-z][a-z-]*)/SKILL\.md$", path)
+            target = agent.group(1) if agent else (skill.group(1) if skill else None)
+            if not target:
+                continue
+            # Sibling skill links keep working: installed skills are siblings too.
+            if rel.endswith("SKILL.md") and re.fullmatch(r"\.\./[a-z][a-z-]*/SKILL\.md", path):
+                continue
+            low = text.lower()
+            if target in low or target.replace("-", " ") in low:
+                continue
+            if skill and low in descriptions.get(target, ""):
+                continue
+            line = body[:m.start()].count("\n") + 1
+            errs.append(f"{rel}:{line}: link text \"{text}\" does not name its target "
+                        f"`{target}` — the path dies on install, so add the name "
+                        f"(e.g. \"{text} (`{target}`)\")")
+    return errs
+
+
 def check_readme_counts(cat: Catalog):
     """The README roster mixes curated prose with counts, so it is validated
     rather than generated — generation would overwrite the prose."""
@@ -457,6 +496,7 @@ CHECKS = [
     ("language-register", "rule 5 — neutral vs Rioplatense", check_language_register),
     ("agent-rows", "rule 4 — every agent indexed in AGENTS.md", check_agent_rows),
     ("section-scope", "rule 10 — External skills holds no agent routing", check_section_scope),
+    ("link-identity", "link text names its target (paths die on install)", check_link_identity),
     ("readme-counts", "README roster matches reality", check_readme_counts),
     ("installer", "install.py --list and --dry-run succeed", check_installer),
 ]

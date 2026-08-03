@@ -77,7 +77,7 @@ Each entitlement/permission is user trust spent. Sandbox file access beyond
 user-selected files, network server, camera — request only what the feature
 in front of the user justifies, at the MOMENT it's justified (permission
 prompts at first launch, before any value delivered, are the
-[gamification](../../../gamification/skills/flow-analysis/SKILL.md)
+[gamification's `flow-analysis`](../../../gamification/skills/flow-analysis/SKILL.md)
 "premature ask" anti-pattern with an OS dialog). On macOS, test the sandboxed
 build specifically — code that worked unsandboxed and dies sandboxed is a
 classic day-before-release surprise.
@@ -88,7 +88,7 @@ Build numbers increment monotonically (automate — rejected-for-duplicate-build
 is a self-inflicted wound); version bumps follow semver-ish user expectations;
 release notes written for users, not commit logs. Phased release ON for
 anything risky (halt-able mid-rollout — the closest the App Store gets to the
-[stark parachute](../../../stark/skills/zero-to-one/SKILL.md) doctrine), and
+[stark parachute (`zero-to-one`)](../../../stark/skills/zero-to-one/SKILL.md) doctrine), and
 a rollback story thought through BEFORE shipping: you can't pull a build
 back, only ship a fix forward — so the fix-forward path (hotfix branch,
 expedited review request) is part of the release plan, not an improvisation.

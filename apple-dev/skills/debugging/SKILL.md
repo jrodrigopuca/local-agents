@@ -46,8 +46,8 @@ YOUR code. The stack tells you where it died — the question to teach is
 
 ### 3. The reproduction discipline (inherited, domain-tuned)
 
-Same law as [qa](../../../qa/skills/bug-reporting/SKILL.md) and the
-[generalist](../../../generalist/skills/verification/SKILL.md): reproduce
+Same law as [qa's `bug-reporting`](../../../qa/skills/bug-reporting/SKILL.md) and the
+[generalist's `verification`](../../../generalist/skills/verification/SKILL.md): reproduce
 before fixing, one hypothesis at a time, binary-search the surface (comment
 out half the view, mock the service, hardcode the input). Apple-specific
 multipliers to check early because they explain "sometimes": simulator vs

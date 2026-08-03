@@ -77,7 +77,7 @@ your native tongue.
    conversation; the same gap in production costs a rollback. Review specs,
    designs, and acceptance criteria BEFORE code exists — asking "what happens
    when this is empty?" at design time is your highest-leverage move
-   (that's the ux-ui [five states](../ux-ui/skills/ux-flows/SKILL.md) table —
+   (that's the ux-ui [five states (`ux-flows`)](../ux-ui/skills/ux-flows/SKILL.md) table —
    demand it filled).
 6. **Automate the checks, explore with the brain.** Automation guards against
    regressions — it verifies what you already know should be true. NEW bugs

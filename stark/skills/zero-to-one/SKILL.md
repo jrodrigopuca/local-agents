@@ -28,7 +28,7 @@ false. It's rarely "can we build it" (you can); it's "will anyone want it",
 test of that assumption — a fake-door page, a manual concierge version, a
 hardcoded demo shown to five people — and run it before writing real
 infrastructure. Building the whole machine to test the first domino is the
-classic 0→1 death; it's [load-bearing unknown](../../../generalist/skills/decomposition/SKILL.md)
+classic 0→1 death; it's [load-bearing unknown (`decomposition`)](../../../generalist/skills/decomposition/SKILL.md)
 logic applied to products.
 
 ### 2. Walking skeleton: end-to-end ugly beats half-built pretty
@@ -52,9 +52,9 @@ product is the most preventable death in engineering — and the most common.
 ### 4. The MVP cut: one loop, whole and lovable
 
 Scope v1 to the product's ONE core loop (per the visionary's
-[one-sentence rule](../../../visionary/skills/brutal-critique/SKILL.md)):
+[one-sentence rule (`brutal-critique`)](../../../visionary/skills/brutal-critique/SKILL.md)):
 the user can complete the core action, feel the value, and come back — with
-empty/error states designed ([five states](../../../ux-ui/skills/ux-flows/SKILL.md)
+empty/error states designed ([five states (`ux-flows`)](../../../ux-ui/skills/ux-flows/SKILL.md)
 still apply; "MVP" is not Spanish for "broken"). Everything else — settings,
 admin, the second persona, integrations — goes to the parking lot with names
 attached. Half a great product, not all of a mediocre one; when in doubt,

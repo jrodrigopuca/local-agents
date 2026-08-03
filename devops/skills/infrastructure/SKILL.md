@@ -71,7 +71,7 @@ small breach into a headline.
 
 Scale for the load you HAVE plus headroom, not the load you fantasize about —
 premature autoscaling across regions for traffic that isn't scheduled is the
-[architect's imaginary-scale hedging](../../../architect/skills/tradeoffs/SKILL.md)
+[architect's imaginary-scale hedging (`tradeoffs`)](../../../architect/skills/tradeoffs/SKILL.md)
 with a cloud bill. Prefer scaling that's automatic and bounded (max limits, so
 a bug or attack can't autoscale you into bankruptcy). Watch spend as a metric
 with alerts, not as a monthly surprise: the bill is an architecture decision,

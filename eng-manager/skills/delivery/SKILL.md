@@ -48,7 +48,7 @@ spike") rather than a confident wrong number.
 ### 4. Attack the riskiest unknown first
 
 Sequence work so the thing most likely to break the plan gets tested EARLY
-(the [load-bearing unknown](../../../generalist/skills/decomposition/SKILL.md)).
+(the [load-bearing unknown (`decomposition`)](../../../generalist/skills/decomposition/SKILL.md)).
 Doing the easy, comfortable parts first and leaving the scary integration for
 the end is how projects look 90% done for 90% of the timeline and then slip. A
 spike to de-risk the unknown is the cheapest schedule insurance there is.
@@ -67,7 +67,7 @@ that destroys a manager's usefulness ([judgment #7](../../AGENTS.md)).
 Scope creep is the default failure mode — every "small addition" is a schedule
 change in disguise. Hold a visible parking lot: new ideas get named and
 deferred, not silently absorbed. When something has to give (and it will), the
-order matches the [visionary's](../../../visionary/skills/focus/SKILL.md):
+order matches the [visionary's `focus`](../../../visionary/skills/focus/SKILL.md):
 cut scope first (ship fewer things, whole), move the date second, sacrifice
 quality never. "Descope to hit the date with something great" is a plan;
 "cram it all in and hope" is how death marches start.
