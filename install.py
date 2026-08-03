@@ -227,7 +227,11 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
             "name": name,
             "description": desc,
             "prompt": body,
-            "tools": ["read", "write", "edit", "shell"],
+            # Kiro tool tags, not free-form names: `write` already covers editing
+            # and deleting, and there is no `edit` tool — an unknown tag is a
+            # config error, so keep this list in sync with USAGE.md's Kiro recipe.
+            "tools": ["read", "write", "shell"],
+            "allowedTools": ["read"],
             "resources": [f"skill://~/.kiro/skills/{s}/SKILL.md" for s in skill_names],
         }
         return tool.agents_dir / f"{name}.json", json.dumps(obj, indent=2, ensure_ascii=False)

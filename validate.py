@@ -277,6 +277,32 @@ def check_link_identity(cat: Catalog):
     return errs
 
 
+def check_kiro_contract(cat: Catalog):
+    """The Kiro agent JSON the installer emits must match the recipe in USAGE.md.
+
+    These drifted once: USAGE.md documented `["read","write","shell"]` while the
+    installer emitted an `edit` tag that does not exist in Kiro, and nothing
+    compared them. Kiro's tool tags are a closed set — an unknown one is a config
+    error, not a no-op — so doc and code have to agree."""
+    errs = []
+    usage = (cat.root / "USAGE.md").read_text()
+    install = (cat.root / "install.py").read_text()
+
+    def tools_of(text, label):
+        m = re.search(r'"tools":\s*(\[[^\]]*\])', text)
+        if not m:
+            errs.append(f"{label}: no `tools` array found for the Kiro agent config")
+            return None
+        return [t.strip().strip('"') for t in m.group(1).strip("[]").split(",") if t.strip()]
+
+    documented = tools_of(usage, "USAGE.md")
+    emitted = tools_of(install, "install.py")
+    if documented and emitted and documented != emitted:
+        errs.append(f"install.py emits Kiro tools {emitted} but USAGE.md documents "
+                    f"{documented} — they must agree; an unknown tag is a Kiro config error")
+    return errs
+
+
 def check_readme_counts(cat: Catalog):
     """The README roster mixes curated prose with counts, so it is validated
     rather than generated — generation would overwrite the prose."""
@@ -497,6 +523,7 @@ CHECKS = [
     ("agent-rows", "rule 4 — every agent indexed in AGENTS.md", check_agent_rows),
     ("section-scope", "rule 10 — External skills holds no agent routing", check_section_scope),
     ("link-identity", "link text names its target (paths die on install)", check_link_identity),
+    ("kiro-contract", "Kiro agent JSON matches the recipe in USAGE.md", check_kiro_contract),
     ("readme-counts", "README roster matches reality", check_readme_counts),
     ("installer", "install.py --list and --dry-run succeed", check_installer),
 ]
