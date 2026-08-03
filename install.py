@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """install.py — install catalog agents (with their skills) or standalone skills
-into a coding tool's GLOBAL config.
+into a coding tool's config, globally or inside a project checkout.
 
 This automates Pattern B ("vendor/copy") from INTEGRATION.md: instead of the
 tool config REFERENCING the catalog, we COPY the agent + skills into the tool's
@@ -13,6 +13,7 @@ Usage:
   ./install.py --agent architect --tool claude
   ./install.py --skill architect:tradeoffs --tool codex
   ./install.py --agent qa --tool kiro --on-conflict rename --dry-run
+  ./install.py --all --tool claude --project ~/code/repo   # vendor into a repo
 
 No external dependencies — Python 3.9+ stdlib only.
 """
@@ -23,7 +24,7 @@ import json
 import re
 import shutil
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Optional
 
@@ -47,6 +48,12 @@ class Tool:
     skills_dir: Path
     agents_dir: Optional[Path]   # None => no place to put agent bodies at all
     agent_style: Optional[str]   # "claude_md" | "opencode_md" | "kiro_json" | "roster_md"
+    project_dir: str             # per-repo config dir, relative to the project root
+    roster_file: Optional[Path] = None   # roster destination; defaults to config_root/AGENTS.md
+
+    @property
+    def roster(self) -> Path:
+        return self.roster_file or (self.config_root / "AGENTS.md")
 
 
 # `roster_md` is for tools with no named-agent concept (Codex, and the shared
@@ -57,20 +64,38 @@ class Tool:
 TOOLS = [
     Tool("claude", "Claude Code",
          HOME / ".claude", HOME / ".claude/skills",
-         HOME / ".claude/agents", "claude_md"),
+         HOME / ".claude/agents", "claude_md", ".claude"),
     Tool("opencode", "opencode",
          HOME / ".config/opencode", HOME / ".config/opencode/skills",
-         HOME / ".config/opencode/agents", "opencode_md"),
+         HOME / ".config/opencode/agents", "opencode_md", ".opencode"),
     Tool("kiro", "Kiro CLI",
          HOME / ".kiro", HOME / ".kiro/skills",
-         HOME / ".kiro/agents", "kiro_json"),
+         HOME / ".kiro/agents", "kiro_json", ".kiro"),
     Tool("codex", "Codex",
          HOME / ".codex", HOME / ".codex/skills",
-         HOME / ".codex/agents", "roster_md"),
+         HOME / ".codex/agents", "roster_md", ".codex"),
     Tool("shared", "Shared (~/.agents — read by opencode + Codex)",
          HOME / ".agents", HOME / ".agents/skills",
-         HOME / ".agents/agents", "roster_md"),
+         HOME / ".agents/agents", "roster_md", ".agents"),
 ]
+
+
+def project_tool(tool: Tool, root: Path) -> Tool:
+    """Retarget a tool at a project checkout instead of the user's home.
+
+    Every supported tool reads a per-repo config dir, so the same rendering
+    works — only the destination moves. Codex is the exception worth knowing:
+    per-project it reads `AGENTS.md` from the REPO ROOT, not from inside
+    `.codex/`, so the roster goes there."""
+    base = root / tool.project_dir
+    return replace(
+        tool,
+        label=f"{tool.label} — project {root.name}/",
+        config_root=base,
+        skills_dir=base / "skills",
+        agents_dir=(base / "agents") if tool.agents_dir else None,
+        roster_file=(root / "AGENTS.md") if tool.agent_style == "roster_md" else None,
+    )
 
 ROSTER_BEGIN = "<!-- BEGIN:local-agents -->"
 ROSTER_END = "<!-- END:local-agents -->"
@@ -467,7 +492,7 @@ def write_roster(tool: Tool, agents: dict, just_installed: list, dry_run: bool):
     installed in this run — otherwise installing one agent would drop the rows
     for the thirteen already there. (In `--dry-run` nothing is on disk yet, so
     this run's names are unioned in to show what the result would look like.)"""
-    dest = tool.config_root / "AGENTS.md"
+    dest = tool.roster
     on_disk = {p.stem for p in tool.agents_dir.glob("*.md")} if tool.agents_dir.exists() else set()
     listed = sorted((on_disk | set(just_installed)) & set(agents))
     rows = "\n".join(
@@ -550,7 +575,7 @@ def tool_menu_label(t: Tool) -> str:
     return f"[{mark}] {t.label}  ({t.key})"
 
 
-def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps):
+def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, project=None):
     print("\nWhat do you want to install?")
     mode = choose("select", ["The WHOLE suite (all agents + skills)",
                              "One agent (with its skills + inherited deps)",
@@ -562,6 +587,8 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps):
     if tool_idx is None:
         return
     tool = TOOLS[tool_idx]
+    if project:
+        tool = project_tool(tool, project)
     if not tool.config_root.exists():
         ans = input(f"  {tool.label} doesn't look installed ({tool.config_root} "
                     f"missing). Install anyway? [y/N] ").strip().lower()
@@ -592,7 +619,7 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps):
 # --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
-def print_status(agents, skills_by_name):
+def print_status(agents, skills_by_name, project=None):
     """What is actually installed in each tool, and whether it still matches the
     catalog. Answers the question `--list` cannot: not "what could I install"
     but "what is out there, and is it current".
@@ -601,9 +628,14 @@ def print_status(agents, skills_by_name):
     agent is re-composed through the same path the installer uses and compared
     to the file on disk. Anything the catalog doesn't own is reported as foreign
     and never touched."""
+    if project:
+        print(f"scope: project {project}")
     for tool in TOOLS:
+        if project:
+            tool = project_tool(tool, project)
         if not tool.config_root.exists():
-            print(f"\n{tool.label}  ({tool.key})\n  not detected — {tool.config_root} missing")
+            state = "not set up here" if project else "not detected"
+            print(f"\n{tool.label}  ({tool.key})\n  {state} — {tool.config_root} missing")
             continue
         print(f"\n{tool.label}  ({tool.key})\n  {tool.config_root}")
 
@@ -656,7 +688,7 @@ def print_status(agents, skills_by_name):
                 print(f"      {label}: {', '.join(items)}")
 
         if tool.agent_style == "roster_md":
-            roster = tool.config_root / "AGENTS.md"
+            roster = tool.roster
             if not roster.exists():
                 print("      roster: MISSING — the bodies above are unreachable "
                       "without it")
@@ -665,8 +697,9 @@ def print_status(agents, skills_by_name):
                 mark = "" if rows == len(a_present) else f" (≠ {len(a_present)} bodies)"
                 print(f"      roster: {rows} rows in {roster.name}{mark}")
 
-    print(f"\ncatalog: {len(agents)} agents, {len(skills_by_name)} skills — "
-          f"refresh a tool with:  ./install.py --all --tool <key> --on-conflict overwrite")
+    scope = f" --project {project}" if project else ""
+    print(f"\ncatalog: {len(agents)} agents, {len(skills_by_name)} skills — refresh with:"
+          f"  ./install.py --all --tool <key>{scope} --on-conflict overwrite")
 
 
 def print_list(agents, all_skills):
@@ -686,6 +719,10 @@ def main():
     ap.add_argument("--catalog", type=Path, default=Path(__file__).resolve().parent,
                     help="catalog root (default: this script's directory)")
     ap.add_argument("--list", action="store_true", help="list agents, skills, tools and exit")
+    ap.add_argument("--project", type=Path, nargs="?", const=Path("."), default=None,
+                    metavar="PATH",
+                    help="install into a project checkout (default: cwd) instead of "
+                         "your home config, so the setup travels with the repo")
     ap.add_argument("--status", action="store_true",
                     help="show what is installed in each tool and whether it is current")
     ap.add_argument("--all", action="store_true", help="install the whole suite (all agents + skills)")
@@ -709,12 +746,24 @@ def main():
     for s in all_skills:
         skills_by_name.setdefault(s.name, s)
 
+    project = None
+    if args.project is not None:
+        project = args.project.resolve()
+        if not project.is_dir():
+            sys.exit(f"project path is not a directory: {project}")
+        if project == catalog.resolve():
+            sys.exit("refusing to install into the catalog itself — pass the path of "
+                     "the project that should receive the agents")
+
+    def target(tool: Tool) -> Tool:
+        return project_tool(tool, project) if project else tool
+
     if args.list:
         print_list(agents, all_skills)
         return
 
     if args.status:
-        print_status(agents, skills_by_name)
+        print_status(agents, skills_by_name, project)
         return
 
     if args.dry_run:
@@ -726,7 +775,7 @@ def main():
             sys.exit("--tool is required with --all")
         if args.tool not in TOOLS_BY_KEY:
             sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
-        install_suite(TOOLS_BY_KEY[args.tool], args.on_conflict, False, args.dry_run,
+        install_suite(target(TOOLS_BY_KEY[args.tool]), args.on_conflict, False, args.dry_run,
                       agents, skills_by_name)
         return
 
@@ -736,7 +785,7 @@ def main():
             sys.exit("--tool is required with --agent/--skill")
         if args.tool not in TOOLS_BY_KEY:
             sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
-        tool = TOOLS_BY_KEY[args.tool]
+        tool = target(TOOLS_BY_KEY[args.tool])
 
         for name in args.agent:
             if name not in agents:
@@ -755,7 +804,7 @@ def main():
 
     # Interactive path
     interactive(agents, all_skills, skills_by_name, args.on_conflict,
-                args.dry_run, with_deps=not args.no_deps)
+                args.dry_run, with_deps=not args.no_deps, project=project)
 
 
 if __name__ == "__main__":

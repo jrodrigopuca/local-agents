@@ -89,6 +89,42 @@ renombrar / saltear.
 
 ---
 
+## Instalar en un proyecto (para compartir con el equipo)
+
+Por defecto todo va a tu config global (`~/`). Con `--project` va **dentro del
+repo**, así la config viaja con el código: tu compañero clona y ya la tiene, y
+en CI también existe.
+
+```bash
+./install.py --all --tool claude --project ~/code/mi-repo
+./install.py --all --tool claude --project          # sin ruta = directorio actual
+```
+
+Dónde aterriza cada herramienta:
+
+| Herramienta | Global | Proyecto |
+|---|---|---|
+| Claude Code | `~/.claude/` | `.claude/agents/` y `.claude/skills/` |
+| opencode | `~/.config/opencode/` | `.opencode/agents/` y `.opencode/skills/` |
+| Kiro CLI | `~/.kiro/` | `.kiro/agents/` y `.kiro/skills/` |
+| Codex | `~/.codex/` | `.codex/` **+ el roster en el `AGENTS.md` de la RAÍZ** |
+
+Codex es el caso especial: por proyecto lee el `AGENTS.md` de la raíz del repo,
+no uno adentro de `.codex/`. El roster se escribe ahí, entre marcadores — todo
+lo que el equipo ya tenga en ese archivo se preserva.
+
+**El de proyecto pisa al global** si comparten nombre, así que un repo puede
+tener su propia versión de un agente sin afectar tu setup personal.
+
+Dos guardarraíles: se niega a instalar sobre el catálogo mismo, y falla si la
+ruta no existe.
+
+> **Commiteá lo instalado.** El punto de `--project` es que viaje con el repo;
+> si lo ignorás en `.gitignore` no compartís nada. Y `--status --project`
+> te dice si lo commiteado sigue al día con el catálogo.
+
+---
+
 ## ¿Qué tengo instalado y está al día?
 
 `--list` te dice qué PODÉS instalar; `--status` te dice qué HAY instalado:
@@ -130,6 +166,7 @@ Qué significa cada cosa:
 |-----------|---------|
 | Ver todo lo disponible | `./install.py --list` |
 | **Ver qué hay instalado y si está al día** | `./install.py --status` |
+| **Instalar dentro de un repo (para el equipo)** | `./install.py --all --tool claude --project ~/code/repo` |
 | Previsualizar (no escribe nada) | agregá `--dry-run` a cualquier comando |
 | **Instalar toda la suite** | `./install.py --all --tool claude` |
 | Instalar un agente + sus skills + herencia | `./install.py --agent architect --tool claude` |
@@ -231,6 +268,7 @@ opencode como Codex — instalás una vez, la ven las dos.
 | `--catalog PATH` | Usar otro catálogo (default: la carpeta donde vive el script) |
 | `--on-conflict {ask,overwrite,rename,skip}` | Política ante colisiones |
 | `--list` | Listar el catálogo y las herramientas detectadas, y salir |
+| `--project [RUTA]` | Instalar dentro de un repo en vez de tu home (sin ruta = directorio actual) |
 | `--status` | Listar lo que está INSTALADO en cada herramienta y si sigue al día, y salir |
 
 ---

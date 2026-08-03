@@ -14,7 +14,8 @@ cd local-agents
 ./install.py --list                        # see what's available
 ./install.py --status                      # see what's installed, and if it's current
 ./install.py --all --tool claude --dry-run # preview
-./install.py --all --tool claude           # install the whole suite
+./install.py --all --tool claude           # install the whole suite (global)
+./install.py --all --tool claude --project ~/code/repo   # or vendor it into a repo
 ```
 
 ---
@@ -97,6 +98,12 @@ catalog installs into five tools with five different layouts, so a hardcoded
 Codex has no named-agent concept, so the installer writes the bodies plus a
 short roster into its `AGENTS.md` — the identities stay discoverable without
 putting 14 full prompts (~100 KB) into every session's context.
+
+Add `--project PATH` to install into a repo instead of your home config
+(`.claude/`, `.opencode/`, `.kiro/`, `.codex/` + the root `AGENTS.md`), so the
+setup travels with the code and works for teammates and CI. Commit what it
+writes — that is the point — and `--status --project` tells you whether the
+committed copy still matches the catalog.
 
 `install.py` needs Python 3.9+ and has zero external dependencies. Adding a tool
 means appending one `Tool(...)` to the `TOOLS` list.
