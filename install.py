@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import sys
@@ -29,6 +30,21 @@ from pathlib import Path
 from typing import Optional
 
 HOME = Path.home()
+
+
+def env_dir(var: str, default: Path) -> Path:
+    """Honour a tool's own config-dir override when it defines one.
+
+    Only two of the five do: Claude Code reads CLAUDE_CONFIG_DIR (multi-account
+    setups) and Codex reads CODEX_HOME. opencode's docs prescribe a literal
+    `~/.config/opencode` with no env override — it is NOT XDG-aware, so do not
+    "fix" it to use XDG_CONFIG_HOME. Kiro publishes no such variable."""
+    value = os.environ.get(var)
+    return Path(value).expanduser() if value else default
+
+
+CLAUDE_ROOT = env_dir("CLAUDE_CONFIG_DIR", HOME / ".claude")
+CODEX_ROOT = env_dir("CODEX_HOME", HOME / ".codex")
 
 
 # --------------------------------------------------------------------------- #
@@ -63,8 +79,8 @@ class Tool:
 # every session.
 TOOLS = [
     Tool("claude", "Claude Code",
-         HOME / ".claude", HOME / ".claude/skills",
-         HOME / ".claude/agents", "claude_md", ".claude"),
+         CLAUDE_ROOT, CLAUDE_ROOT / "skills",
+         CLAUDE_ROOT / "agents", "claude_md", ".claude"),
     Tool("opencode", "opencode",
          HOME / ".config/opencode", HOME / ".config/opencode/skills",
          HOME / ".config/opencode/agents", "opencode_md", ".opencode"),
@@ -72,8 +88,8 @@ TOOLS = [
          HOME / ".kiro", HOME / ".kiro/skills",
          HOME / ".kiro/agents", "kiro_json", ".kiro"),
     Tool("codex", "Codex",
-         HOME / ".codex", HOME / ".codex/skills",
-         HOME / ".codex/agents", "roster_md", ".codex"),
+         CODEX_ROOT, CODEX_ROOT / "skills",
+         CODEX_ROOT / "agents", "roster_md", ".codex"),
     Tool("shared", "Shared (~/.agents — read by opencode + Codex)",
          HOME / ".agents", HOME / ".agents/skills",
          HOME / ".agents/agents", "roster_md", ".agents"),

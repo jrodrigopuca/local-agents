@@ -89,6 +89,31 @@ renombrar / saltear.
 
 ---
 
+## Rutas no estándar (multi-cuenta, contenedores, CI)
+
+Dos de las cinco herramientas publican una variable para mover su directorio de
+config, y el instalador las respeta:
+
+| Herramienta | Variable | Default |
+|---|---|---|
+| Claude Code | `CLAUDE_CONFIG_DIR` | `~/.claude` |
+| Codex | `CODEX_HOME` | `~/.codex` |
+
+```bash
+CLAUDE_CONFIG_DIR=~/.claude-trabajo ./install.py --all --tool claude
+```
+
+Sirve para el caso típico de dos cuentas (personal y trabajo) y para
+contenedores o CI donde el `HOME` no es el tuyo. `--status` respeta las mismas
+variables, así que reporta el directorio que estés usando.
+
+Las otras tres **no** tienen override y es a propósito: opencode documenta un
+`~/.config/opencode` literal y **no lee `XDG_CONFIG_HOME`** (no lo "arregles"
+para que lo lea, rompe); Kiro no publica ninguna variable; y `~/.agents` es
+convención de este catálogo.
+
+---
+
 ## Instalar en un proyecto (para compartir con el equipo)
 
 Por defecto todo va a tu config global (`~/`). Con `--project` va **dentro del
