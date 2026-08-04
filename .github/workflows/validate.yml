@@ -27,3 +27,41 @@ jobs:
           ./validate.py --write
           git diff --exit-code -- GRAPH.md \
             || { echo "::error::GRAPH.md is stale — run ./validate.py --write and commit"; exit 1; }
+
+  # Conformance against the Agent Skills spec, checked by the spec authors' own
+  # reference implementation rather than our reading of it. Separate job because
+  # skills-ref needs Python 3.11+ while the job above deliberately pins 3.9 —
+  # that is the floor install.py promises users, and it has to keep being tested.
+  spec:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install skills-ref
+        run: |
+          # Pinned: skills-ref is published only as source and describes itself
+          # as a reference implementation, so an unpinned clone would make our
+          # build depend on someone else's main branch. Bump deliberately.
+          git clone --filter=blob:none --no-checkout \
+            https://github.com/agentskills/agentskills.git /tmp/agentskills
+          git -C /tmp/agentskills checkout -q 27a9f0c075e876ad632fc2e88b8866c5dc8ca15c
+          pip install /tmp/agentskills/skills-ref
+
+      - name: Validate every skill against the spec
+        run: |
+          failed=0
+          for skill in */skills/*/; do
+            if ! out=$(skills-ref validate "$skill" 2>&1); then
+              failed=1
+              echo "::error file=${skill}SKILL.md::$(echo "$out" | tr '\n' ' ')"
+            fi
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::skills failed Agent Skills spec validation (see above)"
+            exit 1
+          fi
+          echo "all $(ls -d */skills/*/ | wc -l) skills conform to the spec"
