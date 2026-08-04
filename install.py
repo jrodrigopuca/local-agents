@@ -418,6 +418,42 @@ def resolve_deps(agent: Agent, agents: dict, skills_by_name: dict):
     return inherited_order, skills
 
 
+def deref_skill_links(body: str) -> str:
+    """Turn skill links into skill NAMES for the installed copy.
+
+    In the catalog `[visual-craft](skills/visual-craft/SKILL.md)` is navigable.
+    Installed, the agent is a flat file and skills live in a sibling directory,
+    so that path resolves to nothing. Observed consequence, from a real trace:
+    an agent searched for its own skills, failed, and answered "no pude leer los
+    skills de mi catálogo — voy con criterio propio". It worked without them.
+
+    Rewriting to the tool's real layout was rejected in favour of this: five
+    targets have five layouts, and every host already discovers skills by NAME
+    from their description. A name works everywhere; a path works in one place."""
+    def sub(m):
+        text, name = m.group(1), m.group(2)
+        if "SKILL.md" in text or "/" in text:
+            return f"`{name}`"          # the label was the path itself
+        if name.lower() in text.lower():
+            return text                 # already names its target
+        return f"{text} (`{name}`)"
+    body = re.sub(r"\[([^\]]+)\]\((?:\.\./)*(?:[a-z][a-z-]*/)*skills/([a-z][a-z-]*)/SKILL\.md\)",
+                  sub, body)
+
+    # The skills table's third column was the path. With the path gone it just
+    # repeats the first column under a header that now says "File" about
+    # nothing, so drop it rather than ship a column that lies.
+    out = []
+    for line in body.split("\n"):
+        cells = [c.strip() for c in line.split("|")[1:-1]] if line.startswith("|") and line.rstrip().endswith("|") else []
+        if len(cells) == 3 and (cells[2] == cells[0] or cells[2] == "File"
+                                or set(cells[2]) <= set("-: ")):
+            out.append("| " + " | ".join(cells[:2]) + " |")
+        else:
+            out.append(line)
+    return "\n".join(out)
+
+
 def compose_agent(agent: Agent, inherited: list):
     """Build the agent body exactly as it gets installed: own body plus the
     inherited CORE.md sections. Shared with `--status`, which re-renders to
@@ -435,7 +471,7 @@ def compose_agent(agent: Agent, inherited: list):
                 _, pbody = split_frontmatter(pa.agents_md.read_text())
                 parts.append(f"\n## Inherited from `{pa.name}` (full)\n\n{pbody}\n")
         body = "".join(parts)
-    return meta, desc, body
+    return meta, desc, deref_skill_links(body)
 
 
 def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,

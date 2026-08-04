@@ -150,6 +150,34 @@ ruta no existe.
 
 ---
 
+## Qué le pasa al agente al instalarse
+
+La copia instalada no es idéntica al archivo del catálogo, y las dos diferencias
+son deliberadas:
+
+1. **La herencia se incrusta.** El `CORE.md` del padre entra en el cuerpo, así el
+   agente copiado es autocontenido (ver más abajo).
+2. **Las rutas a skills se convierten en NOMBRES.** En el catálogo, la tabla de
+   skills enlaza a `skills/{nombre}/SKILL.md` y eso es navegable. Instalado, el
+   agente es un archivo plano y las skills viven en un directorio hermano, así
+   que esa ruta relativa no resuelve a nada.
+
+Lo segundo salió de una traza real: un agente buscó sus propias skills, no las
+encontró, y respondió *"no pude leer los skills de mi catálogo — voy con criterio
+propio"*. **Trabajó sin ellas.** La alternativa —reescribir las rutas al layout
+de cada herramienta— se descartó: son cinco destinos con cinco layouts, y todos
+los hosts ya descubren skills **por nombre** desde su description. Un nombre
+funciona en los cinco; una ruta funciona en uno.
+
+El agente igual termina sabiendo dónde están: las **busca** en runtime y las
+encuentra donde su host las ponga. La diferencia es que ahora lo averigua en vez
+de creerle a una ruta que solo era cierta en la máquina donde se escribió.
+
+Efecto colateral: la columna "File" de la tabla de skills desaparece en la copia
+instalada, porque sin ruta solo repetía el nombre bajo un encabezado que mentía.
+
+---
+
 ## ¿De qué versión del catálogo salió lo instalado?
 
 Al instalar, el script deja un `.local-agents.json` en la config de la
