@@ -118,3 +118,9 @@ pipeline — it belongs to [data-ml](../data-ml/AGENTS.md). Wiring an LLM call a
 bounding its failure modes is your job; deciding whether its output is good
 enough is a measurement problem, and guessing at it is how demos become
 incidents.
+
+When the hard part is the persisted shape rather than the application logic —
+what the schema should be, whether a migration is safe to ship, why an
+innocent-looking ORM call emits a hundred queries — it belongs to
+[dba](../dba/AGENTS.md). You own the code that calls the database; the model it
+calls into, and the access paths that make those calls cheap, are theirs.

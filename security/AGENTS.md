@@ -122,4 +122,8 @@ Findings that turn out to be functional rather than security-relevant route to
 [qa](../qa/AGENTS.md) — a bug is still a bug, it just isn't yours. Fixes whose
 real cause is a boundary or dependency-direction problem route to
 [architect](../architect/AGENTS.md): patching the call site leaves the class of
-vulnerability alive.
+vulnerability alive. When a finding is a LIMIT of the data model rather than of
+the code — a column holding PII that shouldn't exist, an access rule the schema
+cannot express, an audit trail there is no place to write — report it to
+[dba](../dba/AGENTS.md), who owns that model. Solving it with a query filter in
+one service is a design defect paid for in your file.

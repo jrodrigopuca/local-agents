@@ -101,3 +101,13 @@ When writing actual test code, load a `playwright` (E2E patterns) or `pytest`
 (Python testing) skill if the host exposes one — they ship outside this catalog,
 so treat them as optional and fall back to the framework's own docs when absent.
 This agent's skills carry the judgment; those carry the APIs.
+
+## Handoffs
+
+Fixtures, seeded data and test isolation are yours to build against the model
+that exists. But when a test can't be made independent because the DATA has no
+boundary to isolate on — shared rows nothing owns, no way to roll back what a
+test wrote, a state you can only reach by mutating something global — that is a
+limit of the model, and it goes to [dba](../dba/AGENTS.md) as a finding. Working
+around it with ordering tricks or cleanup scripts buys a green suite and pays
+for it with flakiness later.

@@ -6,9 +6,9 @@ was extracted from the files themselves — none of it is aspirational.
 <!-- BEGIN:summary -->
 | Layer | Edges | What it means |
 |-------|------:|---------------|
-| [Inheritance](#1-inheritance) | 21 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
-| [Agent handoffs](#2-agent-handoffs) | 29 | Editorial. An agent names who takes over when a problem stops being its own. |
-| [Skill references](#3-skill-references) | 90 | Compositional. A skill points at another skill instead of duplicating it. |
+| [Inheritance](#1-inheritance) | 23 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
+| [Agent handoffs](#2-agent-handoffs) | 39 | Editorial. An agent names who takes over when a problem stops being its own. |
+| [Skill references](#3-skill-references) | 99 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
 ---
@@ -33,6 +33,7 @@ flowchart TD
     G --> visionary
 
     SD --> data-ml
+    SD --> dba
     SD --> devops
     SD --> gamification
     SD --> product-manager
@@ -60,6 +61,14 @@ flowchart LR
     data-ml --> security
     data-ml --> visionary
 
+    dba --> architect
+    dba --> data-ml
+    dba --> devops
+    dba --> product-manager
+    dba --> qa
+    dba --> security
+    dba --> senior-dev
+
     devops --> security
     devops --> senior-dev
 
@@ -74,13 +83,16 @@ flowchart LR
     product-manager --> ux-ui
     product-manager --> visionary
 
+    qa --> dba
     qa --> ux-ui
 
     security --> architect
+    security --> dba
     security --> qa
 
     senior-dev --> architect
     senior-dev --> data-ml
+    senior-dev --> dba
 
     stark --> architect
     stark --> qa
@@ -157,18 +169,19 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 <!-- BEGIN:refcounts -->
 | Agent | Referenced by others | References others |
 |-------|---------------------:|------------------:|
-| `generalist` | **21** | 0 |
-| `architect` | 13 | 1 |
-| `senior-dev` | 13 | 4 |
+| `generalist` | **23** | 0 |
+| `senior-dev` | 15 | 4 |
+| `architect` | 14 | 1 |
 | `ux-ui` | 9 | 2 |
 | `qa` | 9 | 3 |
 | `stark` | 8 | 13 |
 | `gamification` | 6 | 4 |
+| `devops` | 5 | 6 |
 | `visionary` | 4 | 4 |
-| `devops` | 3 | 6 |
+| `security` | 3 | 9 |
 | `eng-manager` | 2 | 7 |
-| `security` | 2 | 9 |
-| `data-ml` | 0 | 9 |
+| `data-ml` | 1 | 9 |
+| `dba` | 0 | 9 |
 | `apple-dev` | 0 | 13 |
 | `product-manager` | 0 | 15 |
 <!-- END:refcounts -->
@@ -181,12 +194,12 @@ wide — they're the catalog's shared vocabulary.
 <!-- BEGIN:hubs -->
 | Skill | Consumed by | Consumers |
 |-------|------------:|-----------|
-| [`generalist/verification`](generalist/skills/verification/SKILL.md) | 8 agents | apple-dev, architect, data-ml, gamification, product-manager, qa, security, senior-dev |
+| [`generalist/verification`](generalist/skills/verification/SKILL.md) | 9 agents | apple-dev, architect, data-ml, dba, gamification, product-manager, qa, security, senior-dev |
 | [`architect/tradeoffs`](architect/skills/tradeoffs/SKILL.md) | 6 agents | data-ml, devops, gamification, product-manager, senior-dev, stark |
 | [`ux-ui/ux-flows`](ux-ui/skills/ux-flows/SKILL.md) | 6 agents | apple-dev, gamification, product-manager, qa, stark, visionary |
+| [`senior-dev/fullstack-boundaries`](senior-dev/skills/fullstack-boundaries/SKILL.md) | 5 agents | data-ml, dba, qa, security, ux-ui |
 | [`generalist/decomposition`](generalist/skills/decomposition/SKILL.md) | 4 agents | eng-manager, product-manager, stark, visionary |
 | [`qa/bug-reporting`](qa/skills/bug-reporting/SKILL.md) | 4 agents | apple-dev, eng-manager, product-manager, security |
-| [`senior-dev/fullstack-boundaries`](senior-dev/skills/fullstack-boundaries/SKILL.md) | 4 agents | data-ml, qa, security, ux-ui |
 <!-- END:hubs -->
 
 Why each one carries weight:
@@ -238,12 +251,12 @@ genuinely domain-bound. But `security/threat-modeling` and
 <!-- BEGIN:orphan-skills -->
 ```
 apple-dev/       code-review · debugging · shipping · state-architecture
-data-ml/         data-pipelines · llm-integration · ml-modeling
-devops/          ci-cd
+data-ml/         llm-integration · ml-modeling
+dba/             data-modeling · migrations · query-performance
 eng-manager/     orchestration · team-health
 gamification/    game-mechanics
 product-manager/ backlog · discovery · stakeholders
-security/        remediation · threat-modeling
+security/        threat-modeling
 ux-ui/           visual-craft
 visionary/       inspire
 ```

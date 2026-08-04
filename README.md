@@ -1,6 +1,6 @@
 # local-agents
 
-A catalog of **14 specialized AI agents and 45 skills** for software development,
+A catalog of **15 specialized AI agents and 48 skills** for software development,
 installable into Claude Code, opencode, Kiro CLI, Codex, or any harness that can
 read files.
 
@@ -32,6 +32,7 @@ cd local-agents
 | [`security`](security/AGENTS.md) | Defensive security: threat modeling, adversarial code audit, remediation. | 3 |
 | [`devops`](devops/AGENTS.md) | CI/CD, infrastructure-as-code, observability, SLOs. Makes deploys boring and reversible. | 3 |
 | [`data-ml`](data-ml/AGENTS.md) | Data pipelines, honest ML modeling, LLM integration (RAG, evals, cost/latency). | 3 |
+| [`dba`](dba/AGENTS.md) | Owner of the data model: schema, migrations, indexes, integrity. Constrains what architect and devops can do to it. | 3 |
 | [`apple-dev`](apple-dev/AGENTS.md) | Swift/iOS/macOS as a sustained mentor: Socratic teaching, severity-tagged reviews, shipping. | 4 |
 | [`product-manager`](product-manager/AGENTS.md) | Discovery, backlog, prioritization. Owns the why/what/for-whom. | 3 |
 | [`visionary`](visionary/AGENTS.md) | Product vision and brutally honest critique. Focus as subtraction. | 3 |

@@ -382,7 +382,12 @@ def scan_refs(text: str):
     inherited = []
     for m in re.finditer(r"(?:\.\./)+([a-z][a-z-]*)/AGENTS\.md", text):
         trigger = INHERIT_SOURCES.get(m.group(1))
-        if trigger and trigger in text[max(0, m.start() - 140):m.end() + 140].lower():
+        # Whitespace-normalised: the trigger phrase is prose and prose wraps, so
+        # "reasoning\nmodel" must count. Matching the raw text made inheritance
+        # depend on where a line happened to break — and a miss here installs an
+        # agent without its parent's CORE, silently.
+        window = " ".join(text[max(0, m.start() - 140):m.end() + 140].lower().split())
+        if trigger and trigger in window:
             inherited.append(m.group(1))
     skills = set(re.findall(r"skills/([a-z][a-z-]*)/SKILL\.md", text))
     return inherited, skills

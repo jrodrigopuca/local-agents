@@ -56,6 +56,17 @@ HARNESS_PATTERNS = [
 # --------------------------------------------------------------------------- #
 # Catalog model
 # --------------------------------------------------------------------------- #
+def _window(text: str, m) -> str:
+    """Whitespace-normalised context around a link, for trigger matching.
+
+    The trigger phrases are prose ("reasoning model"), and prose wraps: matching
+    the raw text made inheritance detection depend on where a line happened to
+    break. This mirrors install.py's scan_refs — they must agree, or the graph
+    and the installer disagree about what an agent inherits."""
+    lo, hi = max(0, m.start() - PROXIMITY), m.end() + PROXIMITY
+    return " ".join(text[lo:hi].lower().split())
+
+
 class Catalog:
     def __init__(self, root: Path):
         self.root = root
@@ -76,8 +87,7 @@ class Catalog:
             for m in re.finditer(r"(?:\.\./)+([a-z][a-z-]*)/AGENTS\.md", text):
                 tgt = m.group(1)
                 trig = INHERIT_SOURCES.get(tgt)
-                lo, hi = max(0, m.start() - PROXIMITY), m.end() + PROXIMITY
-                if trig and trig in text[lo:hi].lower():
+                if trig and trig in _window(text, m):
                     out.setdefault(name, set()).add(tgt)
         return out
 
@@ -88,8 +98,7 @@ class Catalog:
             for m in re.finditer(r"(?:\.\./)+([a-z][a-z-]*)/AGENTS\.md", text):
                 tgt = m.group(1)
                 trig = INHERIT_SOURCES.get(tgt)
-                lo, hi = max(0, m.start() - PROXIMITY), m.end() + PROXIMITY
-                if trig and trig in text[lo:hi].lower():
+                if trig and trig in _window(text, m):
                     continue
                 out.setdefault(name, set()).add(tgt)
         return out
@@ -312,6 +321,74 @@ def check_kiro_contract(cat: Catalog):
     return errs
 
 
+def check_inheritance(cat: Catalog):
+    """Every agent but `generalist` must declare that it inherits the reasoning
+    model, and detection must actually see it.
+
+    This exists because the failure is silent: the trigger phrase is prose, and
+    when a line wrapped mid-phrase the link stopped counting as inheritance.
+    Nothing broke loudly — `install.py` just produced an agent without its
+    parent's CORE inlined. A missing base loop is not something to discover in
+    conversation with a lobotomised agent."""
+    errs = []
+    inh = cat.inheritance()
+    for name in sorted(cat.agents):
+        if name == "generalist":
+            continue
+        if "generalist" not in inh.get(name, set()):
+            errs.append(f"{name}/AGENTS.md: does not declare inheritance from "
+                        f"`generalist` — link ../generalist/AGENTS.md with the "
+                        f"phrase \"reasoning model\" beside it")
+    return errs
+
+
+def check_orchestration_roster(cat: Catalog):
+    """`eng-manager`'s orchestration skill routes to every agent.
+
+    It is the only place that knows the whole roster, so an agent missing from
+    its table is unreachable by the one component whose job is routing —
+    including agents nothing else hands off to."""
+    text = cat.skills["orchestration"][2] if "orchestration" in cat.skills else ""
+    rows = set(re.findall(r"^\|[^|]+\|\s*`([a-z-]+)`", text, re.M))
+    missing = sorted(set(cat.agents) - rows)
+    return [f"eng-manager/skills/orchestration/SKILL.md: no routing row for "
+            f"`{a}` — the orchestrator must know every agent" for a in missing]
+
+
+# Prose that assumes the host can *invoke* another agent. Handoffs are written
+# as ownership ("belongs to X", "goes to X") because that reads correctly
+# everywhere: Claude Code and Kiro have named agents, Codex has none and reaches
+# identities through a roster file. "Delegate to the X agent" describes a button
+# that does not exist in every target.
+INVOCATION_PATTERNS = [
+    r"\buse the [a-z-]+ agent\b",
+    r"\bdelegate to\b",
+    r"\b(invoke|spawn|launch) (the )?[a-z-]+ agent\b",
+    r"\bswitch to the [a-z-]+ agent\b",
+    r"\bcall the [a-z-]+ agent\b",
+]
+
+
+def check_agent_invocation(cat: Catalog):
+    """No BODY may assume a mechanism for running another agent.
+
+    Frontmatter `<example>` blocks are exempt on purpose: there, "I'll use the
+    qa agent" is the delegation signal the description exists to teach, and
+    install.py strips those examples for hosts that have no named agents."""
+    errs = []
+    targets = [(f"{a}/AGENTS.md", t) for a, t in cat.agents.items()]
+    targets += [(str(p.relative_to(cat.root)), t) for _a, p, t in cat.skills.values()]
+    for rel, text in targets:
+        body = re.sub(r"^---\n.*?\n---\n", "", text, flags=re.DOTALL)
+        for pattern in INVOCATION_PATTERNS:
+            for m in re.finditer(pattern, body, re.I):
+                line = body[:m.start()].count("\n") + 1
+                errs.append(f"{rel}:~{line}: \"{m.group(0)}\" assumes the host can "
+                            f"invoke an agent — say where work BELONGS instead "
+                            f"(\"belongs to X\", \"goes to X\")")
+    return errs
+
+
 def check_readme_counts(cat: Catalog):
     """The README roster mixes curated prose with counts, so it is validated
     rather than generated — generation would overwrite the prose."""
@@ -530,6 +607,9 @@ CHECKS = [
     ("harness-paths", "no tool-specific paths in agent/skill bodies", check_harness_paths),
     ("language-register", "rule 5 — neutral vs Rioplatense", check_language_register),
     ("agent-rows", "rule 4 — every agent indexed in AGENTS.md", check_agent_rows),
+    ("inheritance", "every agent declares the generalist reasoning model", check_inheritance),
+    ("orchestration-roster", "the orchestrator routes to every agent", check_orchestration_roster),
+    ("agent-invocation", "no body assumes a way to invoke another agent", check_agent_invocation),
     ("section-scope", "rule 10 — External skills holds no agent routing", check_section_scope),
     ("link-identity", "link text names its target (paths die on install)", check_link_identity),
     ("kiro-contract", "Kiro agent JSON matches the recipe in USAGE.md", check_kiro_contract),

@@ -34,6 +34,7 @@ metadata:
 | Product vision, brutal critique, focus, inspiration | `visionary` |
 | Quality: flow hunting, test design, bug reporting | `qa` |
 | Security: threat model, code audit, remediation (defensive) | `security` |
+| Schema design, migrations, query cost, data integrity | `dba` |
 | Complex problems, 0→1 products, crises | `stark` |
 | CI/CD, infra, observability, deploy & operate | `devops` |
 | Data pipelines, ML models, LLM integration | `data-ml` |
