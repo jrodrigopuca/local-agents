@@ -66,6 +66,11 @@ Rules for this catalog:
     skills` boundary; the rest is review.
 11. `validate.py` checks these conventions and regenerates the derived blocks in
     [GRAPH.md](GRAPH.md). Run it before committing; CI runs it on every PR.
+    CI also runs `skills-ref validate` — the Agent Skills authors' own reference
+    implementation — over all 45 skills, so conformance is judged by the spec
+    rather than by our reading of it. It is pinned to a commit on purpose: it
+    ships as source only and calls itself a reference implementation, so an
+    unpinned clone would put someone else's main branch in our build.
 12. Docs that describe the catalog as a whole — [README.md](README.md) (front
     door), [GRAPH.md](GRAPH.md) (how everything is wired), [LICENSE](LICENSE) —
     live at the root. Adding one means adding it to this list.
