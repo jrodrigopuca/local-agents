@@ -1,7 +1,7 @@
 ---
 name: fullstack-boundaries
 description: >
-  Judgment for full-stack work in the TS ecosystem: API contracts, runtime
+  Judgment for work that crosses the wire, in any stack: API contracts, runtime
   validation at edges, where logic lives, errors end-to-end. Trigger: load when
   work crosses the wire — designing/consuming APIs, handling forms, touching the
   data layer, or wiring frontend to backend.
@@ -22,11 +22,15 @@ metadata:
 
 ### 1. The wire is a trust boundary — validate everything that crosses it
 
-TypeScript types are erased at runtime; anything arriving over the wire is
-`unknown` until proven otherwise. Every entry point — request bodies, query
-params, form data, env vars, webhook payloads, third-party API responses — gets
-a schema (Zod) at the edge. Parse, don't validate-and-cast: the schema's output
-type IS the interior type.
+A static type is a claim your compiler checked about your own code — it says
+nothing about the bytes arriving from outside it. TypeScript erases types at
+runtime, Python's hints are annotations, Java erases generics: in every case,
+data crossing the wire is untyped until something at the edge proves otherwise.
+Every entry point — request bodies, query params, form data, env vars, webhook
+payloads, third-party API responses — gets a schema there. Parse, don't
+validate-and-cast: the parser's output IS the interior type, so the check
+happens once instead of defensively forever (Zod in TS, Pydantic in Python,
+serde in Rust — same move, different spelling).
 
 ```
 unknown → schema.parse() → typed domain value → interior code trusts it

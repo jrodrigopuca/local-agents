@@ -27,7 +27,7 @@ metadata:
 | Any task, no specialist fits | `generalist` |
 | Product: problem discovery, backlog, prioritization, requirements | `product-manager` |
 | Architecture, tradeoffs, design review, mentoring | `architect` |
-| Build web/full-stack (JS/TS/React/Next), clean code | `senior-dev` |
+| Build or modify application code, clean code, peer review | `senior-dev` |
 | Swift / iOS / macOS, taught as mentorship | `apple-dev` |
 | UX/UI design, mockups, dev handoff | `ux-ui` |
 | Engagement, flows, game mechanics, retention | `gamification` |

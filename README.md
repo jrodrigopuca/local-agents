@@ -26,7 +26,7 @@ cd local-agents
 |-------|---------------|--------|
 | [`generalist`](generalist/AGENTS.md) | Base reasoning loop: verification habits, decomposition, next-step decisions. Every other agent inherits this. | 3 |
 | [`architect`](architect/AGENTS.md) | Architecture, expensive-to-reverse decisions, design review, mentoring. Helpful first, challenging when it counts. | 3 |
-| [`senior-dev`](senior-dev/AGENTS.md) | Web/full-stack build work (JS/TS/React/Next) as a work peer. Defines the Peer Contract the team inherits. | 4 |
+| [`senior-dev`](senior-dev/AGENTS.md) | Building and modifying application code as a work peer. Stack-agnostic judgment; the ecosystem arrives as skills. Defines the Peer Contract the team inherits. | 4 |
 | [`ux-ui`](ux-ui/AGENTS.md) | Screen and flow design, mockups, design-to-dev handoff. Dev-fluent: speaks tokens, states, constraints. | 4 |
 | [`qa`](qa/AGENTS.md) | Hunts unconsidered flows and edge cases. Writes test code, never fixes product code. | 3 |
 | [`security`](security/AGENTS.md) | Defensive security: threat modeling, adversarial code audit, remediation. | 3 |
