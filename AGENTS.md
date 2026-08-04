@@ -32,8 +32,22 @@ Rules for this catalog:
    blocks that show WHEN to delegate to it. `install.py` reads this to generate
    each tool's agent-file description; without it, it falls back to the first
    sentence (a weaker delegation signal). Keep the body below the frontmatter.
-4. Every new agent gets a row in the table below.
-5. **Language register convention.** Character-archetype agents (modeled on a
+4. Every new agent gets a row in the table below, and a routing row in
+   `eng-manager`'s [orchestration](eng-manager/skills/orchestration/SKILL.md)
+   skill — the only component that knows the whole roster.
+5. **Identity is stack-agnostic; skills carry the stack.** An agent is defined
+   by how it thinks and decides, never by a language or vendor tool: the same
+   judgment has to survive the project switching from TypeScript to Go, or from
+   Figma to Penpot. Naming a technology is fine in an `<example>` (that is how
+   the delegation signal is taught) and in body prose as a concrete
+   illustration — but not in the sentence that says what the agent IS. Deep
+   stack knowledge lives in a skill (`react-next`, `dev-handoff`), which is
+   swappable per project and is the pattern to copy when adding another.
+   The exception is a PLATFORM agent whose name states its scope — `apple-dev`
+   is Apple platforms and says so; the failure mode is a generic NAME hiding a
+   specific agent, which is what `senior-dev` used to be. `validate.py` enforces
+   this on the description; the allowlist is `PLATFORM_AGENTS`.
+6. **Language register convention.** Character-archetype agents (modeled on a
    real or fictional person — e.g. `visionary`/Jobs, `stark`/Stark,
    `security`/Elliot Alderson) speak **Neutral Spanish** — the film-dub cadence
    that makes a character feel real. Real-teammate agents (`architect`,
@@ -41,15 +55,15 @@ Rules for this catalog:
    Spanish (voseo)** — an actual colleague. The `generalist` base stays
    register-neutral ("respond in the user's language"). Pick the register by
    asking: is this a PERSON being portrayed, or a peer at the next desk?
-6. To wire an agent into a tool config (opencode, SDK, etc.) see
+7. To wire an agent into a tool config (opencode, SDK, etc.) see
    [INTEGRATION.md](INTEGRATION.md) — reference the file, never copy the prompt.
-7. Human-facing quick guide in Spanish: [REFERENCE_.md](REFERENCE_.md) — a
+8. Human-facing quick guide in Spanish: [REFERENCE_.md](REFERENCE_.md) — a
    summary for fast orientation; the English files remain the source of truth.
-8. Tool-specific setup recipes (Claude Code, opencode, Kiro CLI, Codex), global
+9. Tool-specific setup recipes (Claude Code, opencode, Kiro CLI, Codex), global
    and per-project: [USAGE.md](USAGE.md).
-9. To COPY an agent/skills into a tool's global config automatically, use
+10. To COPY an agent/skills into a tool's global config automatically, use
    `install.py` — see [INSTALL.md](INSTALL.md) for the how-to.
-10. **Section scope.** Three optional `##` sections carry relationship content,
+11. **Section scope.** Three optional `##` sections carry relationship content,
     and each answers a different question. Keep them apart:
     - `## Handoffs` — *where does work go when it stops being mine?* The routing
       summary. Required once an agent routes work to another; links to
@@ -64,14 +78,14 @@ Rules for this catalog:
     of conduct ("if it turns technical, hand it to senior-dev") stays put — it's
     behaviour, not a routing table. `validate.py` enforces the `## External
     skills` boundary; the rest is review.
-11. `validate.py` checks these conventions and regenerates the derived blocks in
+12. `validate.py` checks these conventions and regenerates the derived blocks in
     [GRAPH.md](GRAPH.md). Run it before committing; CI runs it on every PR.
     CI also runs `skills-ref validate` — the Agent Skills authors' own reference
     implementation — over all 45 skills, so conformance is judged by the spec
     rather than by our reading of it. It is pinned to a commit on purpose: it
     ships as source only and calls itself a reference implementation, so an
     unpinned clone would put someone else's main branch in our build.
-12. Docs that describe the catalog as a whole — [README.md](README.md) (front
+13. Docs that describe the catalog as a whole — [README.md](README.md) (front
     door), [GRAPH.md](GRAPH.md) (how everything is wired), [LICENSE](LICENSE) —
     live at the root. Adding one means adding it to this list.
 

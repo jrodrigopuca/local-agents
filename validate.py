@@ -38,7 +38,7 @@ ROOT = Path(__file__).resolve().parent
 INHERIT_SOURCES = {"generalist": "reasoning model", "senior-dev": "peer contract"}
 PROXIMITY = 140
 
-# Root AGENTS.md rule 5. Character-archetype agents speak Neutral Spanish;
+# Root AGENTS.md rule 6. Character-archetype agents speak Neutral Spanish;
 # real-teammate agents speak Rioplatense; the generalist base stays neutral.
 CHARACTER_AGENTS = {"visionary", "stark", "security"}
 REGISTER_EXEMPT = {"generalist"}
@@ -212,7 +212,7 @@ def check_harness_paths(cat: Catalog):
 
 
 def check_language_register(cat: Catalog):
-    """Root AGENTS.md rule 5."""
+    """Root AGENTS.md rule 6."""
     errs = []
     for agent, text in cat.agents.items():
         if agent in REGISTER_EXEMPT:
@@ -224,7 +224,7 @@ def check_language_register(cat: Catalog):
         if not re.search(re.escape(want), text, re.I):
             kind = "character archetype" if agent in CHARACTER_AGENTS else "real teammate"
             errs.append(f"{agent}/AGENTS.md: {kind} must declare "
-                        f"'{want.title()}' (rule 5)")
+                        f"'{want.title()}' (rule 6)")
     return errs
 
 
@@ -238,7 +238,7 @@ def check_agent_rows(cat: Catalog):
 
 
 def check_section_scope(cat: Catalog):
-    """Root AGENTS.md rule 10. `## External skills` is about skills that ship
+    """Root AGENTS.md rule 11. `## External skills` is about skills that ship
     outside the catalog; routing between agents belongs in `## Handoffs`. The
     two drifted together once already."""
     errs = []
@@ -252,7 +252,7 @@ def check_section_scope(cat: Catalog):
             line = text[:m.end() + link.start()].count("\n") + 1
             errs.append(f"{agent}/AGENTS.md:{line}: `## External skills` links to "
                         f"agent `{link.group(1)}` — agent routing belongs in "
-                        f"`## Handoffs` (rule 10)")
+                        f"`## Handoffs` (rule 11)")
     return errs
 
 
@@ -386,6 +386,45 @@ def check_agent_invocation(cat: Catalog):
                 errs.append(f"{rel}:~{line}: \"{m.group(0)}\" assumes the host can "
                             f"invoke an agent — say where work BELONGS instead "
                             f"(\"belongs to X\", \"goes to X\")")
+    return errs
+
+
+# Vendor technology names. Not exhaustive and doesn't need to be — it exists to
+# catch an agent scoping ITSELF to a stack, which is a small, deliberate act.
+VENDOR_TECH = (r"\b(TypeScript|JavaScript|React|Next\.?js|Vue|Angular|Svelte|"
+               r"Python|Django|Flask|Rails|Golang|Rust|Kotlin|Swift|SwiftUI|"
+               r"UIKit|Objective-C|Xcode|iOS|macOS|Android|Flutter|Docker|"
+               r"Kubernetes|Terraform|AWS|GCP|Azure|Postgres|MySQL|MongoDB|"
+               r"Redis|Figma|Sketch|Tailwind|Zod|Playwright|Pytest|Jest)\b")
+
+# Agents whose whole reason to exist IS a platform. The distinction that matters
+# is name-vs-scope: `senior-dev` was a generic name hiding a JS-only agent, which
+# is the failure. `apple-dev` says what it is, so its description should name the
+# platform — that is the routing signal working, not a leak.
+PLATFORM_AGENTS = {"apple-dev"}
+
+
+def check_identity_neutrality(cat: Catalog):
+    """An agent's routing description must not scope it to a technology.
+
+    Judged on the description with `<example>` blocks stripped: inside an
+    example, naming a stack is how the delegation signal is taught ("I started
+    JavaScript yesterday..."), and in the body a concrete illustration beats an
+    abstract one. What must stay clean is the sentence that says what the agent
+    IS — the stack belongs in its skills, which can be swapped per project."""
+    errs = []
+    for name in sorted(cat.agents):
+        if name in PLATFORM_AGENTS:
+            continue
+        data, err = frontmatter(cat.agents[name])
+        if err:
+            continue
+        desc = re.sub(r"<example>.*?</example>", "",
+                      str(data.get("description", "")), flags=re.DOTALL)
+        for hit in sorted({m.group(0) for m in re.finditer(VENDOR_TECH, desc, re.I)}):
+            errs.append(f"{name}/AGENTS.md: description scopes the agent to "
+                        f"`{hit}` — identity is stack-agnostic, the stack comes "
+                        f"from skills (add to PLATFORM_AGENTS if that is wrong)")
     return errs
 
 
@@ -605,12 +644,13 @@ CHECKS = [
     ("frontmatter", "YAML parses and required keys present", check_frontmatter),
     ("skill-names", "frontmatter `name` matches folder", check_skill_names),
     ("harness-paths", "no tool-specific paths in agent/skill bodies", check_harness_paths),
-    ("language-register", "rule 5 — neutral vs Rioplatense", check_language_register),
+    ("language-register", "rule 6 — neutral vs Rioplatense", check_language_register),
     ("agent-rows", "rule 4 — every agent indexed in AGENTS.md", check_agent_rows),
     ("inheritance", "every agent declares the generalist reasoning model", check_inheritance),
     ("orchestration-roster", "the orchestrator routes to every agent", check_orchestration_roster),
     ("agent-invocation", "no body assumes a way to invoke another agent", check_agent_invocation),
-    ("section-scope", "rule 10 — External skills holds no agent routing", check_section_scope),
+    ("identity-neutrality", "agent identity is stack-agnostic (skills carry the stack)", check_identity_neutrality),
+    ("section-scope", "rule 11 — External skills holds no agent routing", check_section_scope),
     ("link-identity", "link text names its target (paths die on install)", check_link_identity),
     ("kiro-contract", "Kiro agent JSON matches the recipe in USAGE.md", check_kiro_contract),
     ("readme-counts", "README roster matches reality", check_readme_counts),

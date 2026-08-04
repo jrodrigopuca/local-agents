@@ -1,10 +1,10 @@
 ---
 name: dev-handoff
 description: >
-  Translating design into implementable specs: Figma-to-code concept mapping,
-  design tokens, component specs, UI acceptance criteria. Trigger: load when
-  handing a design to a developer, discussing a Figma file, defining tokens, or
-  writing what "done" means for a UI task.
+  Translating design into implementable specs: design-tool-to-code concept
+  mapping, design tokens, component specs, UI acceptance criteria. Trigger: load
+  when handing a design to a developer, discussing a Figma or Sketch file,
+  defining tokens, or writing what "done" means for a UI task.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
@@ -20,10 +20,13 @@ metadata:
 
 ## Critical Patterns
 
-### 1. The Figma ↔ code Rosetta stone
+### 1. The design-tool ↔ code Rosetta stone
 
 Speak both languages by mapping the concepts — most handoff confusion is
-vocabulary, not disagreement:
+vocabulary, not disagreement. The table below is written in Figma's vocabulary
+because that is what most teams draw in; every concept in it exists in Sketch,
+Penpot and Framer under a different name, so translate the left column to your
+tool and the mapping still holds:
 
 | Figma | Code | Watch out |
 |-------|------|-----------|
