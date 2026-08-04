@@ -22,7 +22,7 @@ junto** — así se garantiza que todas las interacciones resuelven:
 ./install.py --all --tool claude            # previsualizá con --dry-run primero
 ```
 
-Instala los 14 agentes (cada uno con su herencia incrustada) + las 45 skills,
+Instala los 15 agentes (cada uno con su herencia incrustada) + las 48 skills,
 cada skill una sola vez. Es el modo recomendado para dejar la oficina completa
 en una herramienta.
 
@@ -159,8 +159,8 @@ pregunta a git el resto:
 ```
 Claude Code  (claude)
   /Users/you/.claude
-    skills   45/45 from catalog
-    agents   14/14 from catalog
+    skills   48/48 from catalog
+    agents   15/15 from catalog
     installed from 0035df7 — 2 commit(s) behind ed7c442
       skills changed: mockups, tradeoffs, verification
       agents changed: qa
@@ -195,14 +195,14 @@ equipo de qué commit del catálogo salió lo que están usando.
 ```
 Claude Code  (claude)
   /Users/you/.claude
-    skills   45/45 from catalog · 14 foreign (untouched)
-    agents   14/14 from catalog
+    skills   48/48 from catalog · 14 foreign (untouched)
+    agents   15/15 from catalog
 
 Codex  (codex)
   /Users/you/.codex
-    skills   45/45 from catalog · 1 foreign (untouched)
-    agents   14/14 from catalog
-      roster: 14 rows in AGENTS.md
+    skills   48/48 from catalog · 1 foreign (untouched)
+    agents   15/15 from catalog
+      roster: 15 rows in AGENTS.md
 ```
 
 Qué significa cada cosa:
@@ -304,8 +304,8 @@ a mano.
 script resuelve el hueco en dos partes: copia los cuerpos a
 `~/.codex/agents/{nombre}.md` y escribe un **roster** (una tabla de una línea por
 agente) dentro de `~/.codex/AGENTS.md`, que Codex carga solo. El modelo ve el
-roster siempre y abre el cuerpo del agente que corresponde. Inlinear los 14
-cuerpos serían ~100 KB en contexto en cada sesión; el roster son ~3 KB.
+roster siempre y abre el cuerpo del agente que corresponde. Inlinear los 15
+cuerpos serían ~110 KB en contexto en cada sesión; el roster son ~3 KB.
 
 El roster va entre marcadores `<!-- BEGIN:local-agents -->` / `<!-- END: -->`:
 todo lo que tengas fuera de ellos se preserva tal cual, y reinstalar reemplaza
@@ -321,7 +321,7 @@ opencode como Codex — instalás una vez, la ven las dos.
 
 | Flag | Para qué |
 |------|----------|
-| `--all` | Instalar toda la suite (14 agentes + 45 skills) |
+| `--all` | Instalar toda la suite (15 agentes + 48 skills) |
 | `--no-deps` | Instalar solo las skills propias del agente, sin herencia ni skills cruzadas |
 | `--dry-run` | Muestra qué haría, no escribe nada |
 | `--catalog PATH` | Usar otro catálogo (default: la carpeta donde vive el script) |

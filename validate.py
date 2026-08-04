@@ -428,6 +428,30 @@ def check_identity_neutrality(cat: Catalog):
     return errs
 
 
+def check_reference_roster(cat: Catalog):
+    """The Spanish quick guide lists every agent, with the right skill count.
+
+    Its previous incarnation summarised every agent and skill in prose — 729
+    lines duplicating the catalog — and nothing tied it to reality, so it drifted
+    into describing agents that no longer existed. The rewrite keeps only what
+    can't be derived (the criollo one-liner) and this check keeps the roster
+    honest: the deep content lives in the agent files, where it maintains
+    itself."""
+    text = (cat.root / "REFERENCE_.md").read_text()
+    rows = {m[0]: int(m[1]) for m in
+            re.findall(r"\[`([a-z-]+)`\]\([a-z-]+/AGENTS\.md\).*?\|\s*(\d+)\s*\|", text)}
+    errs = []
+    for name in sorted(cat.agents):
+        real = sum(1 for a, _p, _t in cat.skills.values() if a == name)
+        if name not in rows:
+            errs.append(f"REFERENCE_.md: agent `{name}` missing from the roster table")
+        elif rows[name] != real:
+            errs.append(f"REFERENCE_.md: `{name}` claims {rows[name]} skills, has {real}")
+    for extra in sorted(set(rows) - set(cat.agents)):
+        errs.append(f"REFERENCE_.md: roster lists `{extra}`, which is not an agent")
+    return errs
+
+
 def check_readme_counts(cat: Catalog):
     """The README roster mixes curated prose with counts, so it is validated
     rather than generated — generation would overwrite the prose."""
@@ -654,6 +678,7 @@ CHECKS = [
     ("link-identity", "link text names its target (paths die on install)", check_link_identity),
     ("kiro-contract", "Kiro agent JSON matches the recipe in USAGE.md", check_kiro_contract),
     ("readme-counts", "README roster matches reality", check_readme_counts),
+    ("reference-roster", "REFERENCE_.md lists every agent (Spanish guide)", check_reference_roster),
     ("installer", "install.py --list and --dry-run succeed", check_installer),
 ]
 
