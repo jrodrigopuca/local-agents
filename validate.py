@@ -156,6 +156,15 @@ def check_frontmatter(cat: Catalog):
                 errs.append(f"{rel}: missing `{key}` in frontmatter")
         if not str(data.get("description", "")).strip():
             errs.append(f"{rel}: empty description")
+        # The Agent Skills spec puts author/version inside `metadata` in its
+        # canonical example. Presence is checked, never the value: bumping is
+        # nobody's chore here — provenance comes from the catalog's git history
+        # (see install.py), and this only keeps new skills spec-shaped.
+        meta = data.get("metadata") or {}
+        for key in ("author", "version"):
+            if not isinstance(meta, dict) or key not in meta:
+                errs.append(f"{rel}: `metadata.{key}` missing — keep the spec's "
+                            f"canonical metadata shape")
     for agent, text in cat.agents.items():
         data, err = frontmatter(text)
         if err:

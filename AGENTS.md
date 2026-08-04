@@ -21,7 +21,12 @@ Rules for this catalog:
 1. An agent definition encodes **decision criteria**, not task lists. If a section
    could be replaced by "just do X", it doesn't belong here.
 2. Skills follow the Agent Skills spec: `skills/{name}/SKILL.md` with frontmatter
-   (`name`, `description` with trigger, `license`, `metadata`).
+   (`name`, `description` with trigger, `license`, `metadata`). `metadata` keeps
+   the spec's canonical `author` + `version` shape, and **`version` is not a
+   chore**: don't bump it per edit. Which catalog commit a copy came from — and
+   what moved since — is answered by the provenance stamp `install.py` writes
+   (`--status`), because git already knows it exactly and a hand-kept number
+   does not. Bump only for a deliberate release marker.
 3. Each agent's `AGENTS.md` opens with YAML frontmatter holding a curated
    `description:` — one paragraph of "use this agent for X" plus `<example>`
    blocks that show WHEN to delegate to it. `install.py` reads this to generate

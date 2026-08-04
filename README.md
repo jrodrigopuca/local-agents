@@ -99,6 +99,10 @@ Codex has no named-agent concept, so the installer writes the bodies plus a
 short roster into its `AGENTS.md` — the identities stay discoverable without
 putting 14 full prompts (~100 KB) into every session's context.
 
+Each install stamps a `.local-agents.json` with the catalog commit it copied
+from, so `--status` can report how far behind an installed copy is and which
+skills moved. Nothing is versioned by hand — git history is the changelog.
+
 Add `--project PATH` to install into a repo instead of your home config
 (`.claude/`, `.opencode/`, `.kiro/`, `.codex/` + the root `AGENTS.md`), so the
 setup travels with the code and works for teammates and CI. Commit what it

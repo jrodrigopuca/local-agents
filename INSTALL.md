@@ -150,6 +150,40 @@ ruta no existe.
 
 ---
 
+## ¿De qué versión del catálogo salió lo instalado?
+
+Al instalar, el script deja un `.local-agents.json` en la config de la
+herramienta con el commit del catálogo del que copió. `--status` lo lee y le
+pregunta a git el resto:
+
+```
+Claude Code  (claude)
+  /Users/you/.claude
+    skills   45/45 from catalog
+    agents   14/14 from catalog
+    installed from 0035df7 — 2 commit(s) behind ed7c442
+      skills changed: mockups, tradeoffs, verification
+      agents changed: qa
+```
+
+No hay números de versión que mantener a mano: **la historia de git es el
+changelog**. El manifiesto solo guarda de dónde salió la copia; el diff se
+calcula al momento.
+
+Degrada con honestidad en vez de inventar un número:
+
+| Situación | Qué dice |
+|---|---|
+| Instalado antes de que existiera el estampado | `provenance: unknown` |
+| Instalaste con cambios sin commitear | `installed from abc1234 + uncommitted changes` |
+| Ese commit ya no está en la historia (rebase, otro clone) | `that commit is not in this history; reinstall to resync` |
+| El catálogo no es un checkout de git (zip) | `catalog is not a git checkout here` — instala igual |
+
+Con `--project`, el manifiesto queda dentro del repo. **Commitealo**: le dice al
+equipo de qué commit del catálogo salió lo que están usando.
+
+---
+
 ## ¿Qué tengo instalado y está al día?
 
 `--list` te dice qué PODÉS instalar; `--status` te dice qué HAY instalado:

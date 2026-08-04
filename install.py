@@ -24,8 +24,10 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 from dataclasses import dataclass, replace
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
@@ -543,8 +545,108 @@ def write_roster(tool: Tool, agents: dict, just_installed: list, dry_run: bool):
         dest.write_text(contents)
 
 
+# --------------------------------------------------------------------------- #
+# Provenance
+#
+# An installed copy is a snapshot, and the only question that matters later is
+# "how far behind is it, and what moved". Git already knows both exactly, so
+# nothing here is maintained by hand: the installer records WHICH catalog commit
+# it copied from, and `--status` asks git for the rest. A per-file version field
+# would be a worse copy of information the repository already holds.
+# --------------------------------------------------------------------------- #
+MANIFEST = ".local-agents.json"
+
+
+def git(catalog: Path, *args):
+    """Run a read-only git command in the catalog. Returns stripped stdout, or
+    None if this isn't a repo / git isn't installed — provenance is a nicety,
+    never a reason to fail an install."""
+    try:
+        proc = subprocess.run(["git", "-C", str(catalog), *args],
+                              capture_output=True, text=True, timeout=10)
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return proc.stdout.strip() if proc.returncode == 0 else None
+
+
+def catalog_state(catalog: Path):
+    """(commit, dirty) for the catalog as it is being installed FROM."""
+    commit = git(catalog, "rev-parse", "HEAD")
+    if not commit:
+        return None, False
+    return commit, bool(git(catalog, "status", "--porcelain") or "")
+
+
+def write_manifest(tool: Tool, catalog: Path, dry_run: bool):
+    commit, dirty = catalog_state(catalog)
+    if not commit:
+        return  # not a git checkout — silently skip, nothing to record
+    dest = tool.config_root / MANIFEST
+    print(f"    stamp  → {dest.name} @ {commit[:7]}{' (dirty tree)' if dirty else ''}")
+    if dry_run:
+        return
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    dest.write_text(json.dumps({
+        "catalog_commit": commit,
+        "catalog_dirty": dirty,
+        "catalog_path": str(catalog.resolve()),
+        "installed_at": datetime.now().astimezone().isoformat(timespec="seconds"),
+    }, indent=2) + "\n")
+
+
+def read_manifest(tool: Tool):
+    path = tool.config_root / MANIFEST
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text())
+    except (ValueError, OSError):
+        return None
+
+
+def provenance_line(tool: Tool, catalog: Path, installed_names: set):
+    """One or two lines describing how far behind this install is.
+
+    Degrades honestly at every step: no manifest, no git, or a commit that is no
+    longer in history (rebase, force-push, fresh clone) each get a specific
+    message rather than a wrong number."""
+    man = read_manifest(tool)
+    if not man:
+        return ["provenance: unknown — installed before stamping, or by hand"]
+    was = man.get("catalog_commit", "")
+    now = git(catalog, "rev-parse", "HEAD")
+    if not now:
+        return [f"installed from {was[:7]} (catalog is not a git checkout here)"]
+    stamp = f"installed from {was[:7]}"
+    if man.get("catalog_dirty"):
+        stamp += " + uncommitted changes"
+    if was == now:
+        return [f"{stamp} — up to date with the catalog"]
+    if git(catalog, "cat-file", "-e", f"{was}^{{commit}}") is None:
+        return [f"{stamp} — that commit is not in this history "
+                f"(rebased, or a different clone); reinstall to resync"]
+    behind = git(catalog, "rev-list", "--count", f"{was}..{now}") or "?"
+    out = [f"{stamp} — {behind} commit(s) behind {now[:7]}"]
+    diff = git(catalog, "diff", "--name-only", was, now) or ""
+    moved = sorted({
+        m.group(1) for line in diff.splitlines()
+        for m in [re.search(r"skills/([a-z][a-z-]*)/SKILL\.md$", line)]
+        if m and m.group(1) in installed_names
+    })
+    agents_moved = sorted({
+        m.group(1) for line in diff.splitlines()
+        for m in [re.match(r"([a-z][a-z-]*)/AGENTS\.md$", line)]
+        if m and m.group(1) in installed_names
+    })
+    for label, items in (("skills changed", moved), ("agents changed", agents_moved)):
+        if items:
+            out.append(f"  {label}: {', '.join(items[:8])}"
+                       f"{f' +{len(items) - 8} more' if len(items) > 8 else ''}")
+    return out
+
+
 def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
-                  agents: dict, skills_by_name: dict):
+                  agents: dict, skills_by_name: dict, catalog: Path = None):
     """Install the WHOLE catalog — every skill once, then every agent file with
     its inheritance inlined. This guarantees all cross-agent handoffs, shared
     skills, and orchestration references resolve, because everything is present."""
@@ -570,6 +672,8 @@ def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
               f"above are indexed by hand) —")
         write_roster(tool, agents, sorted(agents), dry_run)
 
+    write_manifest(tool, catalog, dry_run)
+
 
 # --------------------------------------------------------------------------- #
 # Interactive menu
@@ -591,7 +695,7 @@ def tool_menu_label(t: Tool) -> str:
     return f"[{mark}] {t.label}  ({t.key})"
 
 
-def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, project=None):
+def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, project=None, catalog=None):
     print("\nWhat do you want to install?")
     mode = choose("select", ["The WHOLE suite (all agents + skills)",
                              "One agent (with its skills + inherited deps)",
@@ -612,7 +716,7 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, 
             return
 
     if mode == 0:
-        install_suite(tool, policy, True, dry_run, agents, skills_by_name)
+        install_suite(tool, policy, True, dry_run, agents, skills_by_name, catalog)
     elif mode == 1:
         names = sorted(agents)
         idx = choose("which agent", [f"{n}  ({len(agents[n].skills)} skills)" for n in names])
@@ -635,7 +739,7 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, 
 # --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
-def print_status(agents, skills_by_name, project=None):
+def print_status(agents, skills_by_name, project=None, catalog=None):
     """What is actually installed in each tool, and whether it still matches the
     catalog. Answers the question `--list` cannot: not "what could I install"
     but "what is out there, and is it current".
@@ -702,6 +806,10 @@ def print_status(agents, skills_by_name, project=None):
         for label, items in (("stale", a_stale), ("missing", a_missing)):
             if items:
                 print(f"      {label}: {', '.join(items)}")
+
+        if catalog:
+            for line in provenance_line(tool, catalog, set(present) | set(a_present)):
+                print(f"    {line}")
 
         if tool.agent_style == "roster_md":
             roster = tool.roster
@@ -779,7 +887,7 @@ def main():
         return
 
     if args.status:
-        print_status(agents, skills_by_name, project)
+        print_status(agents, skills_by_name, project, catalog)
         return
 
     if args.dry_run:
@@ -792,7 +900,7 @@ def main():
         if args.tool not in TOOLS_BY_KEY:
             sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
         install_suite(target(TOOLS_BY_KEY[args.tool]), args.on_conflict, False, args.dry_run,
-                      agents, skills_by_name)
+                      agents, skills_by_name, catalog)
         return
 
     # Non-interactive path
@@ -809,6 +917,9 @@ def main():
             install_agent(agents[name], tool, args.on_conflict, False, args.dry_run,
                           agents, skills_by_name, with_deps=not args.no_deps)
 
+        if args.agent:
+            write_manifest(tool, catalog, args.dry_run)
+
         skills_by_q = {s.qualified: s for s in all_skills}
         for ref in args.skill:
             sk = skills_by_q.get(ref) or skills_by_name.get(ref)
@@ -820,7 +931,7 @@ def main():
 
     # Interactive path
     interactive(agents, all_skills, skills_by_name, args.on_conflict,
-                args.dry_run, with_deps=not args.no_deps, project=project)
+                args.dry_run, with_deps=not args.no_deps, project=project, catalog=catalog)
 
 
 if __name__ == "__main__":
