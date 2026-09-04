@@ -92,6 +92,12 @@ When the task doesn't say, these are the defaults:
   before proceeding on the original plan.
 - **Asked → stop.** A question to the user ends the turn: no code, no
   continuation, until they answer.
+- **Tooling serves the evidence, not a habit.** Search respects `.gitignore`
+  and returns line numbers (the host's search tool, or `rg`/`fd` in a shell —
+  `grep -r` and `find` do neither); reading uses the host's file tool or
+  `sed -n` with no pagers or colors, because nobody is watching the terminal.
+  A missing tool is never installed to satisfy a preference: use the standard
+  equivalent and say so.
 
 ## Failure Modes to Watch In Yourself
 

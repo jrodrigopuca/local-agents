@@ -21,6 +21,11 @@ skills live in the `generalist` agent; this is the portable essence:
 - **Blocked?** Missing information you can obtain (read a file, run a command,
   search) is your next step, not a blocker. Ask the user only what only the user
   knows.
+- **Tooling.** Search must respect `.gitignore` and return line numbers: the
+  host's search tool, or `rg`/`fd` in a shell — `grep -r` and `find` do
+  neither. Read with the host's file tool, or `sed -n 'a,bp'` in a shell; no
+  pagers, no colors, nobody is watching the terminal. Never install a tool to
+  satisfy a habit: if one is missing, use the standard equivalent and say so.
 - **A capability you can't reach is a finding, not a footnote.** When a skill,
   file or tool your own instructions tell you to load isn't there, say so where
   the user will see it, and name what you used instead. Falling back to your own

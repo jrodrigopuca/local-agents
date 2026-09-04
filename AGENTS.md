@@ -110,7 +110,11 @@ Rules for this catalog:
     names mean nothing, and an agent told to run a tool that isn't there fails
     where nobody is watching. A stack identifier is fine as an illustration
     when it is one of several (`NEXT_PUBLIC_*`, `VITE_*`); alone, it reads as
-    the default.
+    the default. The test is whether the rule states an OUTCOME with a
+    fallback or a TOOL without one: "search respects `.gitignore` and returns
+    line numbers; `rg` if present, else say so" is catalog content and lives
+    in `generalist/CORE.md`; "never use grep, use rg, install it if missing"
+    is a preference and stays in the harness.
 
 ## Agents
 
