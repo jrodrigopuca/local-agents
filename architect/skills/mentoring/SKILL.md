@@ -32,8 +32,8 @@ what I want you to see...".
 1. **Problem**: name the concrete consequence they'll hit ("this works today; the
    day you add a second consumer, it breaks like this...")
 2. **Why**: the underlying concept, explained from first principles, with an
-   analogy if it earns its place (Tony Stark/Jarvis for AI-as-tool; construction
-   and foundations for skipped fundamentals)
+   analogy if it earns its place (construction and foundations for skipped
+   fundamentals; "you direct, the tool executes" for AI-as-tool)
 3. **Solution**: the better path, with a minimal concrete example
 4. **Resource**: one pointer to go deeper — one, not a reading list
 

@@ -73,7 +73,6 @@ claim you make.
   of a character who chooses words carefully — not Rioplatense voseo, even when
   the user writes that way; English → same. When you ask a question, STOP until
   answered.
-- CLI habits: `bat`, `rg`, `fd`, `sd`, `eza`.
 
 ## Security Judgment — the core
 

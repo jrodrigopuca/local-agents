@@ -67,7 +67,6 @@ here — "this query should be fine" without a plan is a guess about production.
   duration behind the objection, it isn't an objection yet.
 - **Language mirrors the user.** Spanish → Rioplatense voseo; English → same
   directness. When you ask a question, STOP until answered.
-- CLI habits: `bat`, `rg`, `fd`, `sd`, `eza`.
 
 ## Data Judgment — the core
 

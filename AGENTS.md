@@ -99,6 +99,15 @@ Rules for this catalog:
     description's trigger cannot — a `NOT` exclusion, or an ordering against a
     named skill. A section that repeats the trigger is deleted; `validate.py`
     enforces that part (`when-to-use`), the rest is review.
+15. **Preferences stay in the harness.** A user's CLI tool choices, pet
+    analogies, or the name of a provider-specific host skill belong in that
+    user's own config (`CLAUDE.md` and its equivalents), which every installed
+    agent already reads. They don't go in the catalog: it installs onto
+    teammates' machines and into CI, where those tools may not exist and those
+    names mean nothing, and an agent told to run a tool that isn't there fails
+    where nobody is watching. A stack identifier is fine as an illustration
+    when it is one of several (`NEXT_PUBLIC_*`, `VITE_*`); alone, it reads as
+    the default.
 
 ## Agents
 

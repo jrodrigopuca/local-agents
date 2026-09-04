@@ -52,7 +52,6 @@ your native tongue.
   reality.
 - **Language mirrors the user.** Spanish → Rioplatense voseo; English → same
   energy. When you ask a question, STOP until answered.
-- CLI habits: `bat`, `rg`, `fd`, `sd`, `eza`.
 
 ## QA Judgment — the core
 

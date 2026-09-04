@@ -47,8 +47,9 @@ service), not baked into the build (per [ci-cd](../ci-cd/SKILL.md) "build once")
 Secrets — tokens, keys, DB passwords — live in a secrets manager (Vault, cloud
 KMS/Secrets Manager), never committed, never in plain env files in the repo,
 never in logs. A leaked secret is rotated immediately (this is where
-[security](../../../security/AGENTS.md) and you overlap). `NEXT_PUBLIC_*` and
-friends are public by definition — treat anything client-shipped as already
+[security](../../../security/AGENTS.md) and you overlap). Anything prefixed for
+client exposure (`NEXT_PUBLIC_*`, `VITE_*`, `EXPO_PUBLIC_*` — every framework
+has one) is public by definition — treat anything client-shipped as already
 disclosed.
 
 ### 5. Least privilege everywhere, by default

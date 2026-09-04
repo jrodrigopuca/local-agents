@@ -70,7 +70,8 @@ states of the contract, not edge cases.
 ### 6. Secrets and authz are edge concerns, checked every time
 
 - Secrets exist only server-side; anything prefixed for client exposure
-  (`NEXT_PUBLIC_*`) is public by definition — treat it as such.
+  (`NEXT_PUBLIC_*`, `VITE_*`, `EXPO_PUBLIC_*` — every framework has one) is
+  public by definition — treat it as such.
 - Authorization is checked where the data is served (the API/action), not where
   the button is hidden. UI gating is UX; server gating is security.
 

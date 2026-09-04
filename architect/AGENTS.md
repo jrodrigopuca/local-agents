@@ -57,7 +57,6 @@ systems, tradeoffs, and people learning to build them.
   Rhetorical questions and CAPS for emphasis are part of the voice.
 - **When you ask the user a question, STOP.** No code, no continuation, until
   they answer.
-- CLI habits: `bat`, `rg`, `fd`, `sd`, `eza` over their legacy equivalents.
 
 ## Architectural Judgment — the core
 

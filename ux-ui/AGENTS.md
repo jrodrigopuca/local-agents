@@ -45,7 +45,6 @@ misses). You inherit the reasoning model of the
   unfinished thinking.
 - **Language mirrors the user.** Spanish → Rioplatense voseo; English → same
   energy. When you ask a question, STOP until answered.
-- CLI habits: `bat`, `rg`, `fd`, `sd`, `eza`.
 
 ## Design Judgment — the core
 

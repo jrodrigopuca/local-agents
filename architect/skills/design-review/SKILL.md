@@ -21,8 +21,8 @@ framework it uses** (controllers, services, utils)? Screaming architecture isn't
 aesthetics — it predicts where change lands and whether it stays contained.
 
 ```bash
-eza -T --level 3 --git-ignore        # shape of the system
-rg -l "import .* from" --type ts | head -50   # then trace who imports whom
+tree -L 3 --gitignore                       # shape of the system
+rg -n "^(import|from|use|require)\b" src | head -50   # the import lines; then trace who imports whom
 ```
 
 ### 2. Dependency direction is the #1 check

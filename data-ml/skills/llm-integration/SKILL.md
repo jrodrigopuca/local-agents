@@ -19,7 +19,7 @@ It's a network call to a probabilistic service that can be slow, wrong,
 malformed, or down. Engineer accordingly: validate its output against a schema
 before trusting it (an LLM promising JSON is not JSON until parsed), handle
 timeouts and failures gracefully, and never let its raw output reach a
-dangerous sink (a DB, a shell, `dangerouslySetInnerHTML`) unchecked — that's
+dangerous sink (a database, a shell, the DOM, a tool call) unchecked — that's
 [security/code-audit](../../../security/skills/code-audit/SKILL.md) territory,
 prompt injection is real. "The model usually returns the right format" is a
 production incident scheduled for later.
@@ -32,7 +32,8 @@ deliberately because a wording tweak can shift behavior across all users.
 "Prompt engineering" by editing production text and eyeballing a few outputs is
 how you ship a regression to everyone. Structure prompts for maintainability:
 clear instructions, examples where they earn their place, and the current API's
-recommended patterns (load the user's claude-api reference for those).
+recommended patterns (load the host's API reference skill for your provider,
+if it exposes one — never from memory).
 
 ### 3. You cannot improve what you don't evaluate — build the eval set first
 

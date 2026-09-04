@@ -19,7 +19,7 @@ Don't read the code the way it runs — read the way data ENTERS and chase it.
 Trace every input from its source (the door) to its sinks (query, command,
 HTML, filesystem, response). A vulnerability is tainted data reaching a
 dangerous sink without a sanitizing gate in between. `rg` the sinks first
-(query builders, `exec`, `dangerouslySetInnerHTML`, `eval`, file ops,
+(query builders, `exec`, `innerHTML`/`dangerouslySetInnerHTML`, `eval`, file ops,
 deserializers), then walk backwards to see if attacker-controlled data can
 reach them. Where an LLM sits in the flow, its output is tainted by
 everything it read, so treat it as a SOURCE, and treat every tool or query
@@ -35,7 +35,7 @@ bounds the call; you audit what it can reach).
 | Broken authorization (IDOR/authz) | Can user A act on user B's object? | Endpoints that take an ID and skip the "is it YOURS?" check |
 | Injection (SQL/NoSQL/cmd/LDAP) | Does input reach an interpreter unparameterized? | String-built queries, shelled-out commands, dynamic eval |
 | Broken authentication | Can I skip/forge/replay the identity check? | Token validation, session fixation, weak reset flows, missing rate limits |
-| Secrets exposure | What's committed, logged, or shipped to the client? | Repos, env in errors, `NEXT_PUBLIC_*`, verbose logs, source maps |
+| Secrets exposure | What's committed, logged, or shipped to the client? | Repos, env in errors, client-exposed env prefixes (`NEXT_PUBLIC_*`, `VITE_*`), verbose logs, source maps |
 | XSS / output injection | Does untrusted data render unescaped? | Templates bypassing auto-escape, `innerHTML`, unsanitized markdown |
 | Insecure deserialization / SSRF / XXE | Does the app fetch/parse attacker input? | URL fetchers, XML parsers, object deserializers |
 | Sensitive-data / crypto misuse | Rolled-own crypto, weak hashing, data at rest | Custom "encryption", `md5(password)`, plaintext PII |
