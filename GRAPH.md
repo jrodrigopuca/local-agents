@@ -17,7 +17,7 @@ was extracted from the files themselves — none of it is aspirational.
 
 `generalist` carries the reasoning loop — evidence ladder, verify-before-agreeing,
 reproduce-before-fixing. `senior-dev` adds the **Peer Contract** (disagree once
-with evidence then commit, pull your weight, flag scope creep), which eight
+with evidence then commit, pull your weight, flag scope creep), which <!--n:peers-->9<!--/n-->
 agents adopt on top.
 
 <!-- BEGIN:inheritance -->
@@ -44,7 +44,7 @@ flowchart TD
 ```
 <!-- END:inheritance -->
 
-The eight peer agents declare **both** parents directly (21 edges in the files);
+The <!--n:peers-->9<!--/n--> peer agents declare **both** parents directly (<!--n:inheritance-edges-->23<!--/n--> edges in the files);
 the graph draws the layering instead. `install.py` walks it transitively, so each
 one gets both `CORE.md` files inlined and stays self-contained after install.
 
@@ -128,7 +128,7 @@ differs per agent:
 - **`architect`** is consultative. You bring it a decision, it returns an
   analysis, and you go back to your own work — *who acts on its findings is the
   caller's call, not the architect's.* It is also the catalog's most depended-on
-  advisor (15 inbound skill references against 1 outbound), which by rule 4 of
+  advisor (<!--n:architect-inbound-->14<!--/n--> inbound skill references against <!--n:architect-outbound-->1<!--/n--> outbound), which by rule 4 of
   its own judgment — *"boundaries are the product; business logic depends on
   nothing"* — is exactly what an inner ring should look like.
 - **`apple-dev`** is a platform silo. Nothing else in the catalog touches Swift
@@ -149,7 +149,7 @@ when its trigger cannot fire in both directions on one problem.
 
 ## 3. Skill references
 
-The densest layer: **90 cross-agent references** between skills (plus 92 sibling
+The densest layer: **<!--n:skill-cross-refs-->102<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->127<!--/n--> sibling
 references inside each agent). This is where "compose, don't duplicate" actually
 lives — `security/remediation` doesn't re-explain how to write a bug report, it
 points at `qa/bug-reporting`.
@@ -163,13 +163,13 @@ flowchart LR
     C["<b>Consumers</b><br/>out only<br/><br/>product-manager<br/>apple-dev<br/>data-ml"]
     N["<b>Connectors</b><br/>both ways<br/><br/>stark · security · devops<br/>eng-manager · gamification<br/>visionary"]
     P["<b>Providers</b><br/>shared vocabulary<br/><br/>architect · senior-dev<br/>ux-ui · qa"]
-    F["<b>generalist</b><br/>foundation<br/><br/>referenced 21×<br/>references nobody"]
+    F["<b>generalist</b><br/>foundation<br/><br/>references nobody"]
 
     C --> N --> P --> F
 ```
 
 That direction is the catalog practising what `architect` preaches: dependencies
-point inward toward stable things. `generalist` is referenced 21 times and
+point inward toward stable things. `generalist` is referenced <!--n:generalist-inbound-->22<!--/n--> times and
 references nothing — it's the innermost ring. The three consumers are leaves.
 
 <!-- BEGIN:refcounts -->
@@ -213,7 +213,7 @@ Why each one carries weight:
 - **`verification`** — the evidence ladder every agent stands on before claiming
   anything is done. The single most reused idea in the catalog.
 - **`tradeoffs`** — the shared method for decisions that are expensive to
-  reverse. Six agents defer to it rather than improvising their own.
+  reverse. <!--n:tradeoffs-consumers-->6<!--/n--> agents defer to it rather than improvising their own.
 - **`ux-flows`** — flows and states: the common language for what a product
   *does*, borrowed even by agents that never draw a screen.
 - **`decomposition`** — breaking work into independently verifiable steps.
@@ -249,7 +249,7 @@ flowchart LR
 
 ### Skills with no cross-agent consumers
 
-Eighteen of 45 are referenced only inside their own agent. That is not
+<!--n:orphan-skills-->15<!--/n--> of the <!--n:skills-->48<!--/n--> skills are referenced only inside their own agent. That is not
 automatically a defect — `apple-dev/shipping` (App Store, notarization) is
 genuinely domain-bound. But `security/threat-modeling` and
 `ux-ui/visual-craft` are general enough that nobody citing them is worth a look.
@@ -272,7 +272,10 @@ visionary/       inspire
 
 ## Reproducing these numbers
 
-Every figure here comes from parsing the markdown links in the catalog. The
+Every figure here comes from parsing the markdown links in the catalog — the
+tables and graphs between `BEGIN`/`END` markers AND the counts inside the
+sentences around them, which sit in `<!--n:key-->` markers so `validate.py`
+can regenerate the number without touching the wording. The
 edges are `../{agent}/AGENTS.md` references (inheritance vs. handoff decided by
 whether the trigger phrase `reasoning model` / `peer contract` sits within 140
 characters of the link — the same rule `install.py` uses in `scan_refs`) and

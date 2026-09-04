@@ -1,6 +1,6 @@
 # local-agents
 
-A catalog of **15 specialized AI agents and 48 skills** for software development,
+A catalog of **<!--n:agents-->15<!--/n--> specialized AI agents and <!--n:skills-->48<!--/n--> skills** for software development,
 installable into Claude Code, opencode, Kiro CLI, Codex, or any harness that can
 read files.
 
@@ -48,18 +48,18 @@ Not sure which one you need? Start with `eng-manager` — routing is its job.
 
 Three layers of relationship hold the suite together:
 
-- **Inheritance** (21 edges) — structural. `generalist` carries the reasoning
-  loop; `senior-dev` adds the Peer Contract on top for eight agents. The
+- **Inheritance** (<!--n:inheritance-edges-->23<!--/n--> edges) — structural. `generalist` carries the reasoning
+  loop; `senior-dev` adds the Peer Contract on top for <!--n:peers-->9<!--/n--> agents. The
   installer inlines the parent's `CORE.md` so every installed copy is
   self-contained.
-- **Handoffs** (26 edges) — editorial. An agent names who takes over when a
+- **Handoffs** (<!--n:handoff-edges-->44<!--/n--> edges) — editorial. An agent names who takes over when a
   problem stops being its own.
-- **Skill references** (90 cross-agent edges) — compositional. A skill points at
+- **Skill references** (<!--n:skill-cross-refs-->102<!--/n--> cross-agent edges) — compositional. A skill points at
   another instead of duplicating it: `security/remediation` doesn't re-explain
   bug reports, it cites `qa/bug-reporting`.
 
 Dependencies point one way — consumers → providers → `generalist`, which is
-referenced 21 times and references nothing.
+referenced <!--n:generalist-inbound-->22<!--/n--> times and references nothing.
 
 > **[See the full graphs in GRAPH.md →](GRAPH.md)**
 > Rendered diagrams for all three layers, plus the load-bearing skills and the
@@ -98,7 +98,7 @@ catalog installs into five tools with five different layouts, so a hardcoded
 
 Codex has no named-agent concept, so the installer writes the bodies plus a
 short roster into its `AGENTS.md` — the identities stay discoverable without
-putting 14 full prompts (~100 KB) into every session's context.
+putting <!--n:agents-->15<!--/n--> full prompts (~<!--n:agents-kb-->100<!--/n--> KB) into every session's context.
 
 Each install stamps a `.local-agents.json` with the catalog commit it copied
 from, so `--status` can report how far behind an installed copy is and which

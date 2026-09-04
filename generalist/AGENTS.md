@@ -69,13 +69,13 @@ can be trusted and one that has to be double-checked.
    corrected you — that's how the correction becomes reusable.
 6. **Signal your confidence.** "X is true (I ran it)" and "X should be true (I read
    the code)" and "X is likely (pattern-matching)" are three different sentences.
+   Use the right one.
 7. **Announce what you couldn't reach.** When a skill, file or tool your own
    instructions tell you to load isn't available, say so where the user will see
    it and name what you used instead. Degrading to your own judgment is
    sometimes the right call; degrading quietly never is, because the resulting
    answer looks exactly like a good one to the person who can't see what was
    missing.
-   Use the right one.
 
 ## Judgment Defaults
 

@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """validate.py — check catalog invariants and regenerate derived blocks.
 
-Nine checks over the catalog, plus generation of the data-only blocks in
-GRAPH.md (mermaid graphs and reference tables). Prose is never touched: the
-generator only rewrites what sits between `<!-- BEGIN:x -->` / `<!-- END:x -->`.
+Checks over the catalog, plus generation of the derived parts of GRAPH.md and
+README.md: data-only blocks (mermaid graphs and reference tables) between
+`<!-- BEGIN:x -->` / `<!-- END:x -->`, and single counts inside prose between
+`<!--n:key-->` / `<!--/n-->`. Prose is never touched beyond those markers — a
+sentence keeps its wording, only the number inside it is regenerated, so the
+text around a graph cannot quietly disagree with the graph.
 
 Usage:
   ./validate.py                 # run every check, exit 1 on any failure
@@ -663,6 +666,70 @@ def apply_blocks(cat: Catalog, write: bool):
     return [] if write else stale
 
 
+def _sibling_refs(cat: Catalog) -> int:
+    n = 0
+    for skill, (agent, _p, text) in cat.skills.items():
+        for m in re.finditer(r"\]\(\.\./([a-z][a-z-]*)/SKILL\.md\)", text):
+            t = m.group(1)
+            if t != skill and cat.owner(t) == agent:
+                n += 1
+    return n
+
+
+def _consumers(cat: Catalog, agent: str, skill: str) -> int:
+    return len({sa for (sa, _s), tgts in cat.skill_refs().items() if (agent, skill) in tgts})
+
+
+# Counts that live INSIDE prose sentences. Each is wrapped in the text as
+# `<!--n:key-->value<!--/n-->`; the sentence is hand-written, the number is not.
+VALUES = {
+    "agents": lambda c: str(len(c.agents)),
+    "skills": lambda c: str(len(c.skills)),
+    "inheritance-edges": lambda c: str(sum(len(v) for v in c.inheritance().values())),
+    "handoff-edges": lambda c: str(sum(len(v) for v in c.handoffs().values())),
+    "skill-cross-refs": lambda c: str(sum(len(v) for v in c.skill_refs().values())),
+    "skill-sibling-refs": lambda c: str(_sibling_refs(c)),
+    "peers": lambda c: str(sum(1 for ps in c.inheritance().values() if "senior-dev" in ps)),
+    "generalist-inbound": lambda c: str(_ref_counts(c)[0].get("generalist", 0)),
+    "architect-inbound": lambda c: str(_ref_counts(c)[0].get("architect", 0)),
+    "architect-outbound": lambda c: str(_ref_counts(c)[1].get("architect", 0)),
+    "tradeoffs-consumers": lambda c: str(_consumers(c, "architect", "tradeoffs")),
+    "orphan-skills": lambda c: str(sum(
+        1 for s, (a, _p, _t) in c.skills.items()
+        if (a, s) not in {t for tg in c.skill_refs().values() for t in tg})),
+    "agents-kb": lambda c: str(round(sum(len(t) for t in c.agents.values()) / 1024 / 10) * 10),
+}
+
+VALUE_FILES = ("README.md", "GRAPH.md")
+
+
+def apply_values(cat: Catalog, write: bool):
+    """Replace every inline `<!--n:key-->…<!--/n-->` in README.md and GRAPH.md.
+    Returns the list of stale values (or unknown keys); writes when asked."""
+    pattern = re.compile(r"<!--n:([a-z-]+)-->(.*?)<!--/n-->")
+    stale = []
+    for fname in VALUE_FILES:
+        path = cat.root / fname
+        if not path.exists():
+            continue
+        text = original = path.read_text()
+
+        def sub(m):
+            key, current = m.group(1), m.group(2)
+            if key not in VALUES:
+                stale.append(f"{fname}: unknown derived value `{key}`")
+                return m.group(0)
+            fresh = VALUES[key](cat)
+            if fresh != current:
+                stale.append(f"{fname}: `{key}` says {current}, catalog says {fresh}"
+                             f" — run ./validate.py --write")
+            return f"<!--n:{key}-->{fresh}<!--/n-->"
+        text = pattern.sub(sub, text)
+        if write and text != original:
+            path.write_text(text)
+    return [] if write else stale
+
+
 def check_installed_skills(cat: Catalog):
     """Every link inside an INSTALLED skill must resolve or name its target.
 
@@ -757,7 +824,7 @@ CHECKS = [
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--write", action="store_true",
-                    help="regenerate derived blocks in GRAPH.md instead of checking them")
+                    help="regenerate derived blocks and inline counts in GRAPH.md / README.md instead of checking them")
     ap.add_argument("--list-checks", action="store_true", help="list checks and exit")
     args = ap.parse_args()
 
@@ -766,6 +833,8 @@ def main():
             print(f"  {name:19} {desc}")
         print(f"  {'derived-blocks':19} GRAPH.md generated blocks are current "
               f"({', '.join(GENERATORS)})")
+        print(f"  {'derived-values':19} counts inside README.md / GRAPH.md prose are current "
+              f"({', '.join(VALUES)})")
         return 0
 
     cat = Catalog(ROOT)
@@ -782,6 +851,13 @@ def main():
     errs = apply_blocks(cat, args.write)
     label = "regenerated" if args.write else "derived-blocks"
     print(f"{'FAIL' if errs else ' ok '}  {label:19} GRAPH.md data blocks")
+    for e in errs:
+        print(f"        {e}")
+    failed += bool(errs)
+
+    errs = apply_values(cat, args.write)
+    label = "regenerated" if args.write else "derived-values"
+    print(f"{'FAIL' if errs else ' ok '}  {label:19} counts inside README.md / GRAPH.md prose")
     for e in errs:
         print(f"        {e}")
     failed += bool(errs)

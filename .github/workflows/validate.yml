@@ -25,8 +25,8 @@ jobs:
       - name: Derived blocks are current
         run: |
           ./validate.py --write
-          git diff --exit-code -- GRAPH.md \
-            || { echo "::error::GRAPH.md is stale — run ./validate.py --write and commit"; exit 1; }
+          git diff --exit-code -- GRAPH.md README.md \
+            || { echo "::error::GRAPH.md or README.md derived content is stale — run ./validate.py --write and commit"; exit 1; }
 
   # Conformance against the Agent Skills spec, checked by the spec authors' own
   # reference implementation rather than our reading of it. Separate job because
