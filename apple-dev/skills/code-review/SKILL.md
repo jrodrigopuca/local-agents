@@ -11,6 +11,9 @@ metadata:
   version: "1.1"
 ---
 
+_Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves
+these facts yearly — if the year has changed, re-check a claim before teaching it._
+
 ## Critical Patterns
 
 ### 1. Review in three passes, report by severity
@@ -27,16 +30,23 @@ the same precision.
 ### 2. The Swift-specific 🔴 checklist
 
 - **Retain cycles**: `self` captured strongly in escaping closures stored by
-  `self` (handlers, subscriptions, timers); delegates declared strong;
-  `Task { }` retaining self in long-lived objects → `[weak self]` and prove
-  the ownership graph.
+  `self` (handlers, subscriptions, timers); delegates declared strong. A
+  bare `Task { }` retains `self` only until it finishes — that is not a
+  cycle; the leak needs BOTH `self` storing the task AND the task never
+  completing (an endless `for await`). `[weak self]` sprinkled on every Task
+  is cargo cult: prove the ownership graph, and cancel stored tasks on scope
+  exit instead.
 - **Force unwraps** (`!`, `try!`, `as!`): each one is a crash with a date TBD.
   Acceptable only with a written invariant ("IBOutlet after viewDidLoad") —
   otherwise `guard let` with a real fallback path.
 - **Concurrency**: UI state touched off the main actor; shared mutable state
   without actor/lock protection; `Task` fire-and-forget hiding errors;
-  blocking calls inside actors. In Swift 6 strict mode most of these become
-  compile errors — teach the compiler as the ally it now is.
+  blocking calls inside actors. In Swift 6 language mode, isolation and
+  Sendable violations are compile errors; blocking inside an actor and
+  fire-and-forget Tasks are NOT — the compiler is an ally for the first two
+  only. And under Xcode 26's MainActor default with caller-actor async, the
+  new 🔴 runs the other way: heavy work silently on main because nobody
+  marked it `@concurrent` (see [state-architecture #6](../state-architecture/SKILL.md)).
 - **Error swallowing**: `try?` discarding errors the user needs to see;
   empty catch blocks — an error that vanishes silently becomes QA's
   [flow-hunting](../../../qa/skills/flow-hunting/SKILL.md) finding later.
@@ -49,9 +59,22 @@ the same precision.
 - **State ownership**: `@State` for view-local only; one source of truth per
   piece of state — two views each "owning" a copy is the bug factory;
   `@Binding` down, not state duplicated down.
-- **Observation hygiene**: `@Observable` (or `ObservableObject`) classes doing
-  too much → screens re-render on unrelated changes; massive body → split
-  into subviews (SwiftUI diffing works at view granularity).
+- **Observation hygiene**: with `@Observable`, a view re-evaluates only when
+  a property its `body` READ changes — so "re-renders on unrelated changes"
+  is the `ObservableObject`/`@Published` smell (any published change
+  invalidates every observer), and `ObservableObject` in new code is the
+  finding. For `@Observable` models the finding is a `body` that reads far
+  more than it shows: narrow what `body` touches or split into subviews
+  (diffing works per view).
+- **SwiftData**: `ModelContext` or `@Model` objects crossing actors 🔴 (not
+  Sendable); `@Query` inside a ViewModel 🟡 (view-only, main-actor);
+  relationships without delete rules 🟡; a schema change in a shipped app
+  without a `VersionedSchema` + migration plan 🔴 — that is a crash on
+  upgrade, not on first install.
+- **Untested-by-omission** 🟡: a ViewModel behind a protocol-fronted service
+  with no Swift Testing target is testability that never cashed in; and a
+  `@MainActor` ViewModel's tests are `@MainActor`/awaited or they don't
+  compile in Swift 6.
 - **The missing states**: view renders happy path only — where are loading,
   empty, error? (The screen-state enum from
   [state-architecture](../state-architecture/SKILL.md), and the ux-ui

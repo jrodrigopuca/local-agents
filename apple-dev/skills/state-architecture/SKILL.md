@@ -11,6 +11,9 @@ metadata:
   version: "1.1"
 ---
 
+_Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves
+these facts yearly — if the year has changed, re-check a claim before teaching it._
+
 ## Critical Patterns
 
 ### 1. Every piece of state has exactly one owner — find it first
@@ -29,27 +32,43 @@ different vocabulary:
 
 ```
 1. Derived      — computed property; don't store what you can compute
-2. @State       — view-local, transient (toggle, text field, sheet visibility)
-3. @Binding     — owned above, mutated here
-4. @Observable  — screen/feature state, owned by a ViewModel
-5. Environment  — cross-cutting reads (theme, session) — injection, not a junk drawer
+2. @State       — owned HERE: transient value state (toggle, text, sheet
+                  visibility) AND the view's own @Observable model —
+                  `@State private var vm = ViewModel()` is how a view owns
+                  a ViewModel under Observation (it replaced @StateObject)
+3. @Binding     — owned above, mutated here; @Bindable when the owner is an
+                  @Observable object and you need `$`
+4. Passed model — an @Observable owned by a parent, read here with no wrapper
+                  at all (that is @ObservedObject's replacement)
+5. Environment  — cross-cutting reads (theme, session):
+                  `@Environment(Session.self)` for @Observable objects —
+                  injection, not a junk drawer
 6. App-level    — one composition root owning shared services/models
 ```
 
-`@State` holding what a ViewModel should own, and Environment used as a
-global variable, are the two chronic misplacements.
+A view creating a model a parent already owns (rung 2 where rung 4 was
+right), and Environment used as a global variable, are the two chronic
+misplacements. Reaching for `@StateObject`/`@ObservedObject` in new code is
+the third: they are the pre-Observation API and teach the old update model.
 
 ### 3. MVVM, the honest version
 
 - **View**: declares UI as a function of state; forwards intent
   (`vm.didTapSave()`); computes nothing business-y.
 - **ViewModel** (`@Observable`, `@MainActor`): screen state as an enum
-  (`loading / loaded(Data) / empty / error(String)` — make illegal
-  combinations unrepresentable, per the senior-dev's types-as-design rule),
-  intent methods, zero `import SwiftUI`.
+  (`loading / loaded(Data) / empty / error(Error)` — keep the `Error`, a
+  `String` is a screenshot of a failure; make illegal combinations
+  unrepresentable, per the senior-dev's types-as-design rule), intent
+  methods, zero `import SwiftUI`.
 - **Services**: protocol-fronted (`protocol InvoiceRepository`), injected by
   init, async APIs. The protocol is what makes the ViewModel testable with a
   fake — that's dependency injection earning rent, not ceremony.
+- **SwiftData in this shape**: `@Query` is a View-layer read — main-actor,
+  view-only — so it never lives in a ViewModel. Simple list screens use
+  `@Query` in the view and skip the VM; screens with logic put a
+  `ModelContext` behind a repository protocol the VM is injected with;
+  background imports run in a `@ModelActor` and hand back Sendable
+  snapshots, because `@Model` objects and `ModelContext` do not cross actors.
 - Anti-pattern to name when seen: ViewModels that are just pass-throughs to
   services with no state to manage (not every view needs one) — and god
   ViewModels owning three screens' state (split by screen).
@@ -74,16 +93,25 @@ thirty files each is structure by species, and every feature change becomes a
 five-folder safari. Composition root at the app entry: build services once,
 inject down.
 
-### 6. Concurrency placement rules
+### 6. Concurrency placement rules — read the build settings first
 
-UI state mutations on `@MainActor` (annotate the ViewModel, not individual
-hops); services do their work off-main and return values (no
-`DispatchQueue.main.async` — crossing back is the caller's actor, expressed
-in types); long work in structured `Task`s tied to view lifetime
-(`.task {}` modifier auto-cancels — teach it over manual Task storage);
-shared mutable caches behind an `actor`. When the compiler complains about
-Sendable, the design is usually telling you ownership is unclear — fix the
-ownership, not the warning.
+Where code runs now depends on two target settings, and Xcode 26 sets them
+differently for new and existing projects: **Default Actor Isolation** is
+`MainActor` for NEW projects and `nonisolated` for existing ones, and
+**Approachable Concurrency** (SE-0461, `NonisolatedNonsendingByDefault`) is an
+opt-in that makes `nonisolated async` functions run on the CALLER's actor.
+Check both before teaching where anything executes.
+
+- Under MainActor default + caller-actor async: the ViewModel is main-actor
+  with no annotation, and a service it calls does its work ON main unless the
+  method is `@concurrent` or the service is an `actor`. "Async means
+  background" is the old mental model, and it is now wrong.
+- Under the classic settings: annotate the ViewModel `@MainActor`; services
+  return values, and the hop back is the caller's actor, expressed in types.
+- In both worlds: no `DispatchQueue.main.async`; long work in `.task {}` (it
+  cancels with the view — teach it over manual Task storage); shared mutable
+  caches behind an `actor`. A Sendable complaint usually means ownership is
+  unclear — fix the ownership, not the warning.
 
 ## Resources
 

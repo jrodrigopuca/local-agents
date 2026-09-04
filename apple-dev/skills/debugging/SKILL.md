@@ -11,6 +11,9 @@ metadata:
   version: "1.1"
 ---
 
+_Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves
+these facts yearly — if the year has changed, re-check a claim before teaching it._
+
 ## Critical Patterns
 
 ### 1. Debugging is the mentorship's best classroom — guide, don't grab
@@ -33,6 +36,8 @@ Every crash diagnosis starts with the artifact, not the vibes:
 | `EXC_BREAKPOINT` on a Swift runtime line | Failed precondition: array index, force cast, arithmetic |
 | Main-thread checker / purple warnings | UI touched off main — actor isolation hole |
 | Watchdog kill (`0x8badf00d`) | Main thread blocked too long at launch/foreground |
+| `EXC_CRASH (SIGABRT)` + `NSException` ("unrecognized selector", `NSInvalidArgumentException`) | ObjC-side throw: bridging, KVC key, a selector that isn't there — read the exception REASON line, not the frame |
+| `dispatch_assert_queue` / "Incorrect actor executor assumption" | Swift 6 isolation check: `@MainActor` code entered from a non-main thread through a C/ObjC callback — the CALLER is wrong, not the annotation |
 
 Symbolicate first if it's from the field; then find the LAST frame that's
 YOUR code. The stack tells you where it died — the question to teach is
@@ -46,8 +51,9 @@ before fixing, one hypothesis at a time, binary-search the surface (comment
 out half the view, mock the service, hardcode the input). Apple-specific
 multipliers to check early because they explain "sometimes": simulator vs
 device, debug vs release (optimization changes timing), first-install vs
-upgrade (migration state), airplane mode, low-power mode, different OS
-versions.
+upgrade (migration state — for SwiftData the store from the OLD build is the
+repro, a fresh install proves nothing), airplane mode, low-power mode,
+different OS versions.
 
 ### 4. Memory leaks: prove the graph
 
@@ -65,10 +71,11 @@ closures, strong delegates, long-lived `Task`s. Fix = ownership decision
 Main-thread stalls have three usual causes: synchronous I/O on main (disk,
 network, big decode), massive view recomputation (a `body` doing work — see
 [state-architecture](../state-architecture/SKILL.md)), or layout thrash.
-Don't guess between them: Time Profiler shows where main-thread time
-actually goes ("performance is measured, not guessed" — the
-[senior-dev rule](../../../senior-dev/AGENTS.md), same religion). Teach
-reading the heaviest stack trace before touching any code.
+Don't guess between them: the Hangs instrument (and Organizer's hang
+reports from the field) says WHEN the main thread stalled, then Time
+Profiler says where that time went ("performance is measured, not guessed"
+— the [senior-dev rule](../../../senior-dev/AGENTS.md), same religion).
+Teach reading the heaviest stack trace before touching any code.
 
 ### 6. Weird SwiftUI behavior: it's almost always identity or ownership
 
@@ -78,7 +85,10 @@ coarse, body too big. State resetting mysteriously → view IDENTITY changed
 (position in the tree, `.id()`, conditional branches) so SwiftUI built a new
 view with fresh `@State`. Animation glitches → same identity story. Teach
 the mental model — SwiftUI diffs a tree of descriptions; identity decides
-what survives — and these bugs become predictable instead of spooky.
+what survives — and these bugs become predictable instead of spooky. First
+tool, before theory: `Self._printChanges()` in `body` names the property
+that triggered the re-evaluation, and Xcode 26's SwiftUI instrument shows
+the update's cause and effect across the tree.
 
 ## Resources
 

@@ -91,10 +91,15 @@ this file adds the sustained-curriculum layer and the Apple domain.
 
 ## Stack Defaults (the conventions taught unless context says otherwise)
 
-- **Swift modern (5.9+/6)**: `async/await` by default; completion handlers
+Verified against Xcode 26 (September 2026). The skills carry the same anchor;
+when the year changes, the anchor is the reminder to re-check before teaching.
+
+- **Swift 6 language mode**: `async/await` by default; completion handlers
   only for interop, labeled as such. Strict concurrency mindset: `Sendable`
   awareness, `@MainActor` for UI-touching state, actors for shared mutable
-  state.
+  state — and read the target's Default Actor Isolation and Approachable
+  Concurrency settings before saying where code runs, because Xcode 26 sets
+  them differently for new and existing projects.
 - **SwiftUI first**; UIKit/AppKit when asked or when legacy/interop demands it
   — and macOS is a first-class citizen, not "iOS but bigger" (see
   [shipping](skills/shipping/SKILL.md) and platform notes in each skill).
