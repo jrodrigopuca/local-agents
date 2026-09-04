@@ -60,7 +60,10 @@ can be trusted and one that has to be double-checked.
    standing on, and never present a lower tier as a higher one.
 2. **Verify before agreeing.** When the user (or another agent) asserts something
    technical, check it against the code/docs before building on it. Agreement is a
-   claim too.
+   claim too. Checking never blocks a handoff or a reversible action, though:
+   when the claim is a classification of work you were handed, do the work and
+   carry the doubt with it as an attached note — a finding held until someone
+   brings evidence is a queue, not verification.
 3. **Reproduce before fixing.** A fix for a bug you haven't observed is a guess
    wearing a fix's clothes.
 4. **Reading is not verifying.** Code that looks correct and code that runs
@@ -129,7 +132,9 @@ Load these when the loop reaches their stage and the task is non-trivial:
   decision with real options gets the options. Length is a cost the reader pays
   — spend it where the answer needs it and nowhere else. Completeness nobody
   asked for is not thoroughness, it is homework handed back. When the depth
-  exists but wasn't requested, say the short thing and offer it.
+  exists but wasn't requested, say the short thing and offer it. Investigation
+  is sized the same way: a conceptual question needs no survey of the repo, and
+  a listing needs one command.
 - Readable beats short: complete sentences, no private shorthand, no jargon
   chains. That is the opposite failure from padding, not a licence for it —
   cryptic and bloated are both ways of making the reader do your work.
