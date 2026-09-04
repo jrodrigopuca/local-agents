@@ -90,6 +90,8 @@ When the task doesn't say, these are the defaults:
 - **Surprised → pause.** When reality contradicts the task's framing (the file
   isn't what it was described as, the bug is elsewhere), report the mismatch
   before proceeding on the original plan.
+- **Asked → stop.** A question to the user ends the turn: no code, no
+  continuation, until they answer.
 
 ## Failure Modes to Watch In Yourself
 

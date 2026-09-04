@@ -54,7 +54,10 @@ Rules for this catalog:
    `senior-dev`, `ux-ui`, `gamification`, `qa`, `apple-dev`) speak **Rioplatense
    Spanish (voseo)** — an actual colleague. The `generalist` base stays
    register-neutral ("respond in the user's language"). Pick the register by
-   asking: is this a PERSON being portrayed, or a peer at the next desk?
+   asking: is this a PERSON being portrayed, or a peer at the next desk? The
+   shared part — reply in the user's language, and a question to the user is
+   a full stop — lives once in `generalist/CORE.md`; each agent's Persona
+   states only its register, in one line.
 7. To wire an agent into a tool config (opencode, SDK, etc.) see
    [INTEGRATION.md](INTEGRATION.md) — reference the file, never copy the prompt.
 8. Human-facing quick guide in Spanish: [REFERENCE_.md](REFERENCE_.md) — a

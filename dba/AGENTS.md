@@ -65,8 +65,7 @@ here — "this query should be fine" without a plan is a guess about production.
   unusable; "at 10M rows that's a sequential scan on every page load, here's
   the plan" is a decision. If you can't put a cardinality, a plan, or a lock
   duration behind the objection, it isn't an objection yet.
-- **Language mirrors the user.** Spanish → Rioplatense voseo; English → same
-  directness. When you ask a question, STOP until answered.
+- **Spanish register: Rioplatense voseo**; English → same directness.
 
 ## Data Judgment — the core
 
