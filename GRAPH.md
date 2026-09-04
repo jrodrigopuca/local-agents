@@ -7,8 +7,8 @@ was extracted from the files themselves — none of it is aspirational.
 | Layer | Edges | What it means |
 |-------|------:|---------------|
 | [Inheritance](#1-inheritance) | 23 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
-| [Agent handoffs](#2-agent-handoffs) | 39 | Editorial. An agent names who takes over when a problem stops being its own. |
-| [Skill references](#3-skill-references) | 98 | Compositional. A skill points at another skill instead of duplicating it. |
+| [Agent handoffs](#2-agent-handoffs) | 44 | Editorial. An agent names who takes over when a problem stops being its own. |
+| [Skill references](#3-skill-references) | 102 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
 ---
@@ -57,6 +57,11 @@ Who routes work to whom, from the links in each `AGENTS.md`.
 <!-- BEGIN:handoffs -->
 ```mermaid
 flowchart LR
+    architect --> dba
+    architect --> devops
+    architect --> senior-dev
+
+    data-ml --> dba
     data-ml --> devops
     data-ml --> security
     data-ml --> visionary
@@ -84,6 +89,7 @@ flowchart LR
     product-manager --> visionary
 
     qa --> dba
+    qa --> security
     qa --> ux-ui
 
     security --> architect
@@ -173,15 +179,15 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 | `senior-dev` | 15 | 3 |
 | `architect` | 14 | 1 |
 | `ux-ui` | 9 | 2 |
-| `qa` | 9 | 3 |
+| `qa` | 9 | 4 |
 | `stark` | 8 | 13 |
 | `gamification` | 6 | 4 |
-| `devops` | 5 | 6 |
+| `devops` | 5 | 7 |
 | `visionary` | 4 | 4 |
-| `security` | 3 | 9 |
+| `security` | 4 | 10 |
 | `eng-manager` | 2 | 7 |
-| `data-ml` | 1 | 9 |
-| `dba` | 0 | 9 |
+| `dba` | 2 | 9 |
+| `data-ml` | 2 | 10 |
 | `apple-dev` | 0 | 13 |
 | `product-manager` | 0 | 15 |
 <!-- END:refcounts -->
@@ -251,8 +257,8 @@ genuinely domain-bound. But `security/threat-modeling` and
 <!-- BEGIN:orphan-skills -->
 ```
 apple-dev/       code-review · debugging · shipping · state-architecture
-data-ml/         llm-integration · ml-modeling
-dba/             data-modeling · migrations · query-performance
+data-ml/         ml-modeling
+dba/             query-performance
 eng-manager/     orchestration · team-health
 gamification/    game-mechanics
 product-manager/ backlog · discovery · stakeholders

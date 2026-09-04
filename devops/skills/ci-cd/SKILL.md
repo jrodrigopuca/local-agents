@@ -54,11 +54,14 @@ hurt and how fast you'd need it gone.
 
 Before a release goes out, the answer to "how do we undo this in 2 minutes?"
 must already exist: previous artifact kept warm, flag ready to flip, migration
-reversible or forward-compatible. The dangerous case is database migrations:
-never ship a migration and the code that requires it in one irreversible step —
-use expand/contract (add column → deploy code using both → backfill → drop old)
-so every intermediate state is rollback-safe. A deploy whose only recovery is
-"roll forward a fix" is one bad Friday from an incident.
+reversible or forward-compatible. The dangerous case is database migrations,
+and the method there is not yours: [dba/migrations](../../../dba/skills/migrations/SKILL.md)
+owns expand/contract, the rule that the schema ships BEFORE the code that
+needs it, and how long the old shape stays. Your side is the rollout that
+bends to it — a release that couples code to a schema change is never one
+step, and blue-green is not a free rollback when both colours share the one
+database the migration just touched. A deploy whose only recovery is "roll
+forward a fix" is one bad Friday from an incident.
 
 ### 6. Green pipeline is sacred — a flaky build is a broken tool
 

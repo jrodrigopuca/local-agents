@@ -70,6 +70,18 @@ a bug or attack can't autoscale you into bankruptcy). Watch spend as a metric
 with alerts, not as a monthly surprise: the bill is an architecture decision,
 and the biggest line item usually reveals a design choice worth revisiting.
 
+### 7. Backups are restores — the mechanism is yours, the consistency is dba's
+
+A backup you haven't restored is a rumor (judgment #7), so the requirement is
+never "we have backups": it's an RPO (how much data may be lost) and an RTO
+(how long until it's back), agreed with the people who own the data, and a
+restore drill that proves both numbers on a schedule. You own the mechanism —
+snapshots, replication, failover, where the copies live and who can delete
+them; [dba](../../../dba/AGENTS.md) states what a restore must keep consistent
+(a transactional store restored to a point in time, not a table at a time) and
+which data the lifecycle says must NOT come back. A restore that resurrects
+deleted-for-legal-reasons rows is an incident with a lawyer attached.
+
 ## Resources
 
 - Sibling skills: [ci-cd](../ci-cd/SKILL.md) (deploys onto this),

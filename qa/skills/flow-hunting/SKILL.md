@@ -56,7 +56,12 @@ params, webhooks — the same map as
 test the crossing: what if it's malformed, missing fields, the wrong type,
 stale, replayed? And the authorization cut: take every URL/action from a
 privileged session and replay it as an unprivileged one — UI hiding a button
-is not the same as the server refusing the action.
+is not the same as the server refusing the action. What that replay finds is a
+security finding, not a bug like the others: report it to
+[security](../../../security/AGENTS.md) with the reproduction, and let
+[code-audit](../../../security/skills/code-audit/SKILL.md) hunt the rest of
+the class by reading — you found one instance by walking; they find the
+pattern.
 
 ### 6. Timebox, charter, report the coverage honestly
 

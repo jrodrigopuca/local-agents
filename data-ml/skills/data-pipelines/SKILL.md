@@ -3,7 +3,8 @@ name: data-pipelines
 description: >
   Moving data reliably: ingestion, transformation, quality validation, storage,
   and pipeline design. Trigger: load when building or fixing data pipelines,
-  ETL/ELT, data quality issues, or deciding how to store and model data.
+  ETL/ELT, data quality issues, or deciding how to store and model DERIVED data
+  (warehouse, lake, feature store) — the transactional source of truth is dba's.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
@@ -50,8 +51,10 @@ truth.
 
 ### 5. Model storage for how it's read, name it for humans
 
-Choose storage by access pattern: OLTP database for transactional app reads,
-columnar warehouse for analytics/aggregation, object storage for big/raw/blobs.
+Choose storage by access pattern: OLTP database for transactional app reads
+(that model belongs to [dba/data-modeling](../../../dba/skills/data-modeling/SKILL.md)
+— you read from it, you don't reshape it), columnar warehouse for
+analytics/aggregation, object storage for big/raw/blobs.
 Don't run analytics queries against the production OLTP database — you'll hurt
 the app and the query. Model the analytical layer for the questions asked
 (star-ish schemas, sensible grain) and name tables/columns so an analyst

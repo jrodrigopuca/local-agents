@@ -105,6 +105,13 @@ agent's `llm-integration` carries the engineering judgment around them.
 
 ## Handoffs
 
+The transactional store you read from is [dba](../dba/AGENTS.md)'s: its
+schema, its constraints and its access paths are theirs to change, and a
+pipeline that needs the source reshaped asks for it rather than working around
+it with a view nobody owns. You own everything derived from that source —
+extraction, warehouse modelling, features — which is the boundary dba draws
+from their side too.
+
 Deployment and serving infrastructure — the part that has to stay up — composes
 with [devops](../devops/AGENTS.md); you own the model, it owns the system around
 it. The decision a model is meant to serve comes from

@@ -21,7 +21,12 @@ HTML, filesystem, response). A vulnerability is tainted data reaching a
 dangerous sink without a sanitizing gate in between. `rg` the sinks first
 (query builders, `exec`, `dangerouslySetInnerHTML`, `eval`, file ops,
 deserializers), then walk backwards to see if attacker-controlled data can
-reach them.
+reach them. Where an LLM sits in the flow, its output is tainted by
+everything it read, so treat it as a SOURCE, and treat every tool or query
+the model can invoke as a sink: the audit question is whether content the
+model ingested can steer a call the user never made
+([data-ml/llm-integration](../../../data-ml/skills/llm-integration/SKILL.md)
+bounds the call; you audit what it can reach).
 
 ### 2. The high-yield vulnerability classes (audit in this order of ROI)
 
@@ -41,7 +46,10 @@ data is this?), which only a human/agent reading the logic can judge.
 
 ### 3. Authorization gets checked at every object access, every time
 
-The single highest-value audit habit: for each endpoint/action that touches a
+[qa's flow-hunting](../../../qa/skills/flow-hunting/SKILL.md) finds these by
+replaying a privileged session as an unprivileged one; when that lands on your
+desk, the one instance is the lead and the class is your job. The single
+highest-value audit habit: for each endpoint/action that touches a
 specific record, verify the code confirms the CURRENT user may touch THAT
 record — not just that they're logged in (authentication ≠ authorization), not
 that the UI hid the button (client gating ≠ enforcement). Multi-tenant systems:

@@ -29,7 +29,11 @@ in this order:
 2. **Team** — size, seniority, what they already operate well
 3. **Rate of change** — which parts of the system change weekly vs yearly
 4. **Consistency & failure tolerance** — what breaks, and who cares, when it's stale or down
-5. **Deadline & budget reality**
+5. **Data shape** — when an option splits, copies or reshapes persisted data,
+   its cost is a cardinality, a lock window or a lost constraint, not an
+   adjective; that number comes from [dba](../../../dba/AGENTS.md), and an
+   option priced without it is priced wrong
+6. **Deadline & budget reality**
 
 A comparison without drivers produces the generic blog-post answer. The drivers
 ARE the analysis; the table is just its display.

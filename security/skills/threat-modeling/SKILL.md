@@ -25,9 +25,12 @@ The first deliverable is the attack surface map, not a bug. List every way data
 or control ENTERS the system: public endpoints, authenticated endpoints, forms,
 file uploads, webhooks, message queues, URL params, headers, cookies, env,
 third-party callbacks, admin panels, CLI, and every dependency (their code runs
-as yours). The vulnerability you miss is almost always on a door that wasn't on
-anyone's diagram — the forgotten legacy endpoint, the internal API assumed
-private, the debug route left in.
+as yours). An LLM in the system is a door too, and a strange one: anything the
+model reads (a document, a web page, a ticket, another user's message) is
+input from whoever wrote it, and anything the model can call (tools, queries,
+shell) is a sink that input can now aim at. The vulnerability you miss is
+almost always on a door that wasn't on anyone's diagram — the forgotten legacy
+endpoint, the internal API assumed private, the debug route left in.
 
 ### 2. Draw the trust boundaries — value lives at the crossings
 
@@ -49,6 +52,7 @@ for THIS system:
 | Authenticated user | OTHER users' data, privilege escalation | IDOR/authz gaps, mass assignment, tenant isolation holes |
 | Malicious insider / stolen token | Reach beyond their role | Over-broad permissions, missing audit, secret sprawl |
 | Supply chain | Run code inside your trust | Compromised deps, typosquats, poisoned build |
+| Content author (prompt injection) | Make YOUR model act for them | Instructions hidden in data the LLM reads; tool calls the model can make; secrets in its context |
 
 The most under-tested actor in most apps is the authenticated user attacking
 OTHER authenticated users — because "they're logged in" gets mistaken for

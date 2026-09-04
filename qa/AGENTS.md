@@ -111,3 +111,8 @@ test wrote, a state you can only reach by mutating something global — that is 
 limit of the model, and it goes to [dba](../dba/AGENTS.md) as a finding. Working
 around it with ordering tricks or cleanup scripts buys a green suite and pays
 for it with flakiness later.
+
+A finding where one user can reach another's data or act beyond their role is
+[security](../security/AGENTS.md)'s, even though you found it walking a flow:
+report it with the reproduction like any other, but to them — the fix is the
+class, not the instance, and hunting the class by reading code is their craft.
