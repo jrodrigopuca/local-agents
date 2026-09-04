@@ -176,6 +176,22 @@ de creerle a una ruta que solo era cierta en la máquina donde se escribió.
 Efecto colateral: la columna "File" de la tabla de skills desaparece en la copia
 instalada, porque sin ruta solo repetía el nombre bajo un encabezado que mentía.
 
+## Qué le pasa a la skill al instalarse
+
+Las skills tampoco se copian tal cual. En el catálogo una skill enlaza a otras
+de tres formas, y cada una corre distinta suerte instalada:
+
+| En el catálogo | Instalada | Por qué |
+|----------------|-----------|---------|
+| `../x/SKILL.md` (hermana, mismo agente) | igual | Todas las herramientas instalan las skills planas en un solo directorio, así que ya resuelve |
+| `../../../agente/skills/x/SKILL.md` (de otro agente) | `../x/SKILL.md` | Instalada, TODA skill es hermana de todas las demás, en los cinco layouts |
+| `../../AGENTS.md` o `../../../agente/AGENTS.md` | el NOMBRE del agente | Los agentes viven en otro directorio con otro nombre de archivo según la herramienta; ninguna ruta es cierta en los cinco |
+
+La etiqueta del enlace siempre conserva el nombre del destino, así que si un host
+muestra el archivo sin resolver rutas, el modelo igual puede buscar la skill por
+nombre. `validate.py` renderiza cada skill como la escribiría el instalador y
+falla si queda un enlace muerto (`installed-skills`).
+
 ---
 
 ## ¿De qué versión del catálogo salió lo instalado?
@@ -243,7 +259,7 @@ Qué significa cada cosa:
 | `foreign (untouched)` | Tuya, ajena al catálogo. El instalador nunca la toca |
 | `roster: N rows` | Sólo Codex y shared: filas en su `AGENTS.md`. Si el número no coincide con los cuerpos, te avisa |
 
-`stale` no se calcula por fecha sino por **contenido**: las skills se comparan byte a byte y los agentes se vuelven a renderizar por el mismo camino que usa la instalación, así que un "al día" es exacto.
+`stale` no se calcula por fecha sino por **contenido**: skills y agentes se vuelven a renderizar por el mismo camino que usa la instalación y se comparan con lo que hay en disco, así que un "al día" es exacto.
 
 ---
 

@@ -348,10 +348,9 @@ def copy_skill(skill: Skill, tool: Tool, name: str, dry_run: bool):
     if dest.exists():
         shutil.rmtree(dest)
     shutil.copytree(skill.path, dest)
-    # keep frontmatter name in sync with the (possibly renamed) folder
     md = dest / "SKILL.md"
     if md.exists():
-        md.write_text(rewrite_skill_name(md.read_text(), name))
+        md.write_text(render_skill(md.read_text(), skill.agent, name))
     return name
 
 
@@ -452,6 +451,48 @@ def deref_skill_links(body: str) -> str:
         else:
             out.append(line)
     return "\n".join(out)
+
+
+def render_skill(text: str, owner: Optional[str], name: str) -> str:
+    """Build SKILL.md exactly as it gets installed. Shared with `--status`, so
+    the staleness report compares against what the installer would write.
+
+    The catalog is a tree; every tool installs skills FLAT, one folder per skill
+    under a single directory. That decides what happens to each link shape:
+
+    - `../x/SKILL.md` (sibling) already resolves installed — untouched.
+    - `../../../agent/skills/x/SKILL.md` (cross-agent) becomes `../x/SKILL.md`:
+      installed, every skill is a sibling of every other, in all five layouts.
+      The label keeps naming the target so name-based discovery still works
+      if a host renders the file without resolving links.
+    - `../../AGENTS.md` / `../../../agent/AGENTS.md` become the agent's NAME:
+      agent files land in another directory with a per-tool filename, so no
+      relative path is true everywhere (same reasoning as deref_skill_links)."""
+    text = rewrite_skill_name(text, name)
+
+    def skill_sub(m):
+        label, target = m.group(1), m.group(2)
+        if "SKILL.md" in label or "/" in label:
+            label = f"`{target}`"           # the label was the path itself
+        elif target.lower() not in label.lower():
+            label = f"{label} (`{target}`)"
+        return f"[{label}](../{target}/SKILL.md)"
+    text = re.sub(r"\[([^\]]+)\]\((?:\.\./){2,}[a-z][a-z-]*/skills/([a-z][a-z-]*)/SKILL\.md\)",
+                  skill_sub, text)
+
+    def agent_sub(m):
+        label, ups, agent = m.group(1), m.group(2).count("../"), m.group(3)
+        if agent is None:
+            # two levels up from skills/x/ is the owning agent; three is the catalog root
+            agent = owner if ups == 2 else None
+        if agent is None:
+            return "the catalog's root `AGENTS.md`" if "AGENTS.md" in label else label
+        if "AGENTS.md" in label or "/" in label:
+            return f"the `{agent}` agent"
+        if agent.lower() in label.lower():
+            return label
+        return f"{label} (`{agent}` agent)"
+    return re.sub(r"\[([^\]]+)\]\(((?:\.\./)+)(?:([a-z][a-z-]*)/)?AGENTS\.md\)", agent_sub, text)
 
 
 def compose_agent(agent: Agent, inherited: list):
@@ -800,7 +841,7 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
             continue
         print(f"\n{tool.label}  ({tool.key})\n  {tool.config_root}")
 
-        # --- skills: verbatim copies, so a byte comparison is exact ---
+        # --- skills: re-rendered by the same path the installer writes ---
         present, foreign, stale = [], [], []
         if tool.skills_dir.exists():
             for d in sorted(p for p in tool.skills_dir.iterdir() if p.is_dir()):
@@ -810,7 +851,8 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
                     continue
                 present.append(d.name)
                 a, b = src.path / "SKILL.md", d / "SKILL.md"
-                if not b.exists() or a.read_text() != b.read_text():
+                fresh = render_skill(a.read_text(), src.agent, d.name)
+                if not b.exists() or fresh != b.read_text():
                     stale.append(d.name)
         missing = sorted(set(skills_by_name) - set(present))
         print(f"    skills   {len(present)}/{len(skills_by_name)} from catalog"

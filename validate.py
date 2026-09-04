@@ -663,8 +663,49 @@ def apply_blocks(cat: Catalog, write: bool):
     return [] if write else stale
 
 
+def check_installed_skills(cat: Catalog):
+    """Every link inside an INSTALLED skill must resolve or name its target.
+
+    Skills are copied through install.py's `render_skill`, which turns
+    cross-agent skill paths into sibling paths (installed skills are flat) and
+    agent links into names. This renders every skill the way the installer
+    would and checks the result: no path climbs out of the skills directory,
+    no `AGENTS.md` link survives, and every sibling link points at a skill that
+    exists. Guards the installer as much as the catalog — a new link shape
+    that `render_skill` doesn't know would surface here, not in a user's trace."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("local_agents_install", cat.root / "install.py")
+    installer = importlib.util.module_from_spec(spec)
+    # Python 3.9 dataclasses resolve `from __future__ import annotations` types
+    # through sys.modules[cls.__module__]; register before executing or 3.9 —
+    # the floor install.py promises — fails with AttributeError on NoneType.
+    sys.modules[spec.name] = installer
+    spec.loader.exec_module(installer)
+
+    errs = []
+    for skill, (agent, path, text) in cat.skills.items():
+        rendered = installer.render_skill(text, agent, skill)
+        rel = str(path.relative_to(cat.root))
+        for m in re.finditer(r"\]\(([^)]+)\)", rendered):
+            target = m.group(1)
+            if target.startswith(("http://", "https://", "#")):
+                continue
+            line = rendered[:m.start()].count("\n") + 1
+            sib = re.fullmatch(r"\.\./([a-z][a-z-]*)/SKILL\.md", target)
+            if sib and sib.group(1) in cat.skills:
+                continue
+            if sib:
+                errs.append(f"{rel}:{line}: installed link `{target}` names a skill "
+                            f"that is not in the catalog")
+            elif target.endswith("AGENTS.md") or target.startswith("../"):
+                errs.append(f"{rel}:{line}: link `{target}` is dead once installed — "
+                            f"install.py's render_skill does not know this shape")
+    return errs
+
+
 CHECKS = [
     ("links", "relative markdown links resolve", check_links),
+    ("installed-skills", "skills carry no dead links once installed", check_installed_skills),
     ("frontmatter", "YAML parses and required keys present", check_frontmatter),
     ("skill-names", "frontmatter `name` matches folder", check_skill_names),
     ("harness-paths", "no tool-specific paths in agent/skill bodies", check_harness_paths),

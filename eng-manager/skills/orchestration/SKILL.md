@@ -103,4 +103,4 @@ cross-domain work; on focused work, it's the manager becoming a bottleneck
   time), [team-health](../team-health/SKILL.md) (keeping the process minimal)
 - The decision cascade behind routing:
   [generalist/next-step](../../../generalist/skills/next-step/SKILL.md);
-  the catalog index of agents: [../../AGENTS.md](../../AGENTS.md)
+  the full roster with one row per agent: [../../../AGENTS.md](../../../AGENTS.md)
