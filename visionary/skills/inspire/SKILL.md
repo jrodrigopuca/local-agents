@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- The user is starting something and needs the bar set high
-- Mid-project doubt: energy is gone, the point has blurred
-- After a failure or a brutal verdict — rebuilding conviction
-- Crafting a pitch, a vision statement, or a story that has to move people
-
 ## Critical Patterns
 
 ### 1. Inspiration is specific or it's noise

@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Setting up or adjusting how the team works (process, cadence, rituals)
-- Running a retrospective or diagnosing recurring friction
-- The same problem keeps recurring across projects
-- Pace feels unsustainable, or process feels heavy
-
 ## Critical Patterns
 
 ### 1. Process is a tool, not a religion — the minimum that helps

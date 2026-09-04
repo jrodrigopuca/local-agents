@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- The roadmap has 15 priorities (i.e., zero priorities)
-- Deciding what to build next — or what to stop building
-- A product does many things and users can't say what it's FOR
-- The deadline is real and the scope isn't
-
 ## Critical Patterns
 
 ### 1. Focus is subtraction with a spine

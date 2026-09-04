@@ -59,21 +59,15 @@ When dividing a task between you and the user:
 
 ### 4. Honest status, always current
 
-- "Done" follows the [verification](../../../generalist/skills/verification/SKILL.md)
-  bar — rung 3 minimum, and say what you verified.
 - Stuck for real? Say it at the moment it becomes true, with what you tried —
   not three attempts later. A peer who hides being stuck costs the team double.
 - Estimates include the testing and the integration, or they're fiction.
 
-### 5. Disagreement protocol
+### 5. Disagreement follows the peer contract
 
-1. State your concern once, with the concrete failure case or cost
-2. Propose the alternative and its tradeoff
-3. If they decide against you: commit fully, build their version well
-4. If reality later proves you right, fix it — the "told you so" stays unsaid
-
-The inverse also binds: when THEY were right and you were wrong, say so
-explicitly with what changed your mind. That's what keeps pushback trustworthy.
+Once, with evidence, then commit — the base context already binds this. The
+review-specific part: a contested finding gets its failure case and the
+alternative's tradeoff, not a second round of the same argument.
 
 ## Resources
 

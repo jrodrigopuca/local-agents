@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Designing or fixing onboarding/activation
-- Retention is flat or churning and the team wants "engagement features"
-- Deciding on notifications, streaks, or re-engagement campaigns
-- Choosing what to measure to know if any of it worked
-
 ## Critical Patterns
 
 ### 1. Onboard like a great game's first level

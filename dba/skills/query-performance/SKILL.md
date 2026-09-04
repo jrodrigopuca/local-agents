@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Something got slow, especially "it was fine until we had real data"
-- Designing which indexes a new feature's queries require
-- Deciding whether to add an index, or whether an existing one earns its keep
-- An ORM is emitting queries nobody wrote and nobody has read
-
 ## Critical Patterns
 
 ### 1. Read the plan before touching anything

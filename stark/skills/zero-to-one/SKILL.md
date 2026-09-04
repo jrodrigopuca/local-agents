@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Greenfield: new product, new feature with no existing shape
-- "We have an idea" needs to become "we have a v1" with limited time/people
-- A prototype is about to be promoted to production (the danger moment)
-- Scoping an MVP that keeps trying to grow
-
 ## Critical Patterns
 
 ### 1. Kill the riskiest assumption first — and it's usually not technical

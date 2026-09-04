@@ -10,13 +10,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Designing a new feature's flow before any screen exists
-- Building or reviewing forms, onboarding, checkout, multi-step anything
-- Deciding navigation/information architecture
-- A feature "works" but users get lost, drop off, or ask support
-
 ## Critical Patterns
 
 ### 1. Map the task before drawing the screen

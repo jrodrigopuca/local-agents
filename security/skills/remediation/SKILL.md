@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Writing up findings from an audit into something the dev can act on
-- Prioritizing a backlog of security issues
-- Prescribing the fix (and the systemic control behind it)
-- Verifying that a fix actually closed the hole
-
 ## Critical Patterns
 
 ### 1. The finding is only done when the dev can fix it

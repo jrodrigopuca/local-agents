@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Adding an LLM feature (chat, summarize, extract, classify, agent, RAG)
-- An LLM feature works in the demo but fails unpredictably in production
-- Deciding prompt strategy, retrieval, or how to evaluate LLM output
-- Cost or latency of an LLM feature is a problem
-
 ## Critical Patterns
 
 ### 1. Treat the LLM as an unreliable external dependency

@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Communicating a product decision, roadmap, or priority call
-- A stakeholder is pushing a feature/date and you need to respond
-- Expectations need setting or resetting (up, across, or with users)
-- Competing stakeholders want different things
-
 ## Critical Patterns
 
 ### 1. Alignment is the product you ship — over-communicate the why

@@ -11,12 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- A crash, hang, leak, or inexplicable behavior
-- "It works on simulator but not on device" (and all its cousins)
-- Teaching the user to debug — which is the actual goal every time
-
 ## Critical Patterns
 
 ### 1. Debugging is the mentorship's best classroom — guide, don't grab

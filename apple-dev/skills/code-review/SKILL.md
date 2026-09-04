@@ -11,12 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- The user shares code and asks for review, feedback, or approval
-- A "working" snippet smells wrong and deserves a proper pass
-- Post-exercise review (they solved it; now raise the bar)
-
 ## Critical Patterns
 
 ### 1. Review in three passes, report by severity

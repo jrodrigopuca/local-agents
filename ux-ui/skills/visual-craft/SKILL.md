@@ -10,13 +10,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Designing or restyling a screen, component, or page section
-- Choosing spacing, font sizes, weights, or colors
-- A UI "looks unprofessional / feels off" and nobody can say why
-- Reviewing visual consistency across screens
-
 ## Critical Patterns
 
 ### 1. Hierarchy is built with size, weight, and space — in that order of cost

@@ -11,12 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- "Review my architecture / project structure / design doc"
-- A change crosses or redraws module/service/layer boundaries
-- Something feels hard to test or change and the user asks why
-
 ## Critical Patterns
 
 ### 1. Read the structure before the code

@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Deciding whether/how to apply ML to a problem
-- Choosing a model, training, or improving one
-- Designing how to evaluate a model honestly
-- Putting a model into production and keeping it healthy
-
 ## Critical Patterns
 
 ### 1. Frame the problem before touching a model

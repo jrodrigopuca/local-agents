@@ -88,6 +88,17 @@ Rules for this catalog:
 13. Docs that describe the catalog as a whole — [README.md](README.md) (front
     door), [GRAPH.md](GRAPH.md) (how everything is wired), [LICENSE](LICENSE) —
     live at the root. Adding one means adding it to this list.
+14. **Skills add method; the base is never restated.** Every installed agent
+    carries `generalist/CORE.md` inlined (peers also `senior-dev/CORE.md`), so
+    a skill that re-explains a CORE rule is paid for twice on every load — cite
+    it in a clause and move on. A skill MAY open a pattern with one sentence of
+    its own agent's belief, because skills are consumed cross-agent by readers
+    who do not have that body loaded; it may not re-argue the belief. Triggers
+    name a threshold: a skill that would load on every turn is base content,
+    not a skill. `## When to Use` is optional and exists only to say what the
+    description's trigger cannot — a `NOT` exclusion, or an ordering against a
+    named skill. A section that repeats the trigger is deleted; `validate.py`
+    enforces that part (`when-to-use`), the rest is review.
 
 ## Agents
 

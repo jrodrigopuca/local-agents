@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Setting up or improving a build/test/deploy pipeline
-- Choosing how to release (blue-green, canary, rolling, feature-flagged)
-- Releases are manual, scary, slow, or occasionally broken
-- "It works in CI but not in prod" (or the reverse)
-
 ## Critical Patterns
 
 ### 1. The pipeline is the single path to production — no side doors

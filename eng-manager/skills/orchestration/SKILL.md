@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- A task spans multiple domains (e.g. "build a secure, tested payments feature")
-- Someone isn't sure which agent should handle something
-- Several agents need to collaborate and their work must integrate
-- Deciding whether one agent suffices or the work needs a pipeline
-
 ## Critical Patterns
 
 ### 1. The roster map — who owns what

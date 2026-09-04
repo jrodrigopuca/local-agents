@@ -703,8 +703,38 @@ def check_installed_skills(cat: Catalog):
     return errs
 
 
+def check_when_to_use(cat: Catalog):
+    """Rule 14: a `## When to Use` section earns its place only by saying what
+    the description's trigger cannot — a NOT exclusion, or an ordering against
+    another skill. Hosts match on the description; once the skill is loaded the
+    model has already decided to use it, so a section that repeats the trigger
+    is four lines of cost paid on every load."""
+    names = set(cat.skills) | {"this skill"}
+    errs = []
+    for skill, (_a, path, text) in cat.skills.items():
+        m = re.search(r"^## When to Use\n(.*?)(?=^## |\Z)", text, re.M | re.S)
+        if not m:
+            continue
+        bullets = re.findall(r"^- (.+?)(?=^- |\Z)", m.group(1), re.M | re.S)
+        gate = False
+        for b in bullets:
+            flat = " ".join(b.split())
+            if re.match(r"NOT\b", flat):
+                gate = True
+            elif re.search(r"\b(before|after|first pass|only after)\b", flat, re.I) \
+                    and any(n in flat.lower() for n in names):
+                gate = True
+        if not gate:
+            line = text[:m.start()].count("\n") + 1
+            errs.append(f"{path.relative_to(cat.root)}:{line}: `## When to Use` only "
+                        f"repeats the description — delete it, or make it a gate "
+                        f"(a bullet starting with NOT, or a before/after against a named skill)")
+    return errs
+
+
 CHECKS = [
     ("links", "relative markdown links resolve", check_links),
+    ("when-to-use", "rule 14 — When to Use is a gate, not a repeated trigger", check_when_to_use),
     ("installed-skills", "skills carry no dead links once installed", check_installed_skills),
     ("frontmatter", "YAML parses and required keys present", check_frontmatter),
     ("skill-names", "frontmatter `name` matches folder", check_skill_names),

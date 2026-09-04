@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- A feature idea or request needs validating before it enters the backlog
-- "Should we build X?" — and nobody's confirmed the problem X solves
-- A stakeholder brings a solution; you need to find the problem underneath
-- Sizing whether an opportunity is worth the team's time
-
 ## Critical Patterns
 
 ### 1. Every request is a solution — dig for the problem underneath

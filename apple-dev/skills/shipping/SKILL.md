@@ -12,13 +12,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Code signing / provisioning errors (the classic time-eaters)
-- Preparing a TestFlight build or an App Store submission
-- App Review questions, rejections, or metadata work
-- Distributing a macOS app — inside OR outside the Mac App Store
-
 ## Critical Patterns
 
 ### 1. This is the no-Socratic zone — answer first, demystify second

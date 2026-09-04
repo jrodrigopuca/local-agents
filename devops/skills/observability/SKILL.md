@@ -10,13 +10,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Adding logging/metrics/tracing to a service
-- Designing alerts (or drowning in noisy ones)
-- A production problem you can't see into
-- Defining SLOs / what "up" and "healthy" mean
-
 ## Critical Patterns
 
 ### 1. Instrument with the feature, not after the outage

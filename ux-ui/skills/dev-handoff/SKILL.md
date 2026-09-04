@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- A design is moving from mockup/Figma into implementation
-- Explaining a Figma structure or decision to a developer
-- Setting up or auditing design tokens
-- Writing acceptance criteria for UI work
-
 ## Critical Patterns
 
 ### 1. The design-tool ↔ code Rosetta stone

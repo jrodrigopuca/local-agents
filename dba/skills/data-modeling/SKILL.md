@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- A feature needs new persisted state (a table, a collection, a document shape)
-- Reviewing someone's proposed schema or ORM model before it ships
-- Queries keep coming out awkward, or the same data lives in three places
-- Deciding what is a column, what is a row, and what is its own table
-
 ## Critical Patterns
 
 ### 1. Model the questions, not just the nouns

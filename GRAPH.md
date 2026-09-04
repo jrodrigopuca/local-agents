@@ -8,7 +8,7 @@ was extracted from the files themselves — none of it is aspirational.
 |-------|------:|---------------|
 | [Inheritance](#1-inheritance) | 23 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
 | [Agent handoffs](#2-agent-handoffs) | 39 | Editorial. An agent names who takes over when a problem stops being its own. |
-| [Skill references](#3-skill-references) | 99 | Compositional. A skill points at another skill instead of duplicating it. |
+| [Skill references](#3-skill-references) | 98 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
 ---
@@ -169,8 +169,8 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 <!-- BEGIN:refcounts -->
 | Agent | Referenced by others | References others |
 |-------|---------------------:|------------------:|
-| `generalist` | **23** | 0 |
-| `senior-dev` | 15 | 4 |
+| `generalist` | **22** | 0 |
+| `senior-dev` | 15 | 3 |
 | `architect` | 14 | 1 |
 | `ux-ui` | 9 | 2 |
 | `qa` | 9 | 3 |
@@ -194,7 +194,7 @@ wide — they're the catalog's shared vocabulary.
 <!-- BEGIN:hubs -->
 | Skill | Consumed by | Consumers |
 |-------|------------:|-----------|
-| [`generalist/verification`](generalist/skills/verification/SKILL.md) | 9 agents | apple-dev, architect, data-ml, dba, gamification, product-manager, qa, security, senior-dev |
+| [`generalist/verification`](generalist/skills/verification/SKILL.md) | 8 agents | apple-dev, architect, data-ml, dba, gamification, product-manager, qa, security |
 | [`architect/tradeoffs`](architect/skills/tradeoffs/SKILL.md) | 6 agents | data-ml, devops, gamification, product-manager, senior-dev, stark |
 | [`ux-ui/ux-flows`](ux-ui/skills/ux-flows/SKILL.md) | 6 agents | apple-dev, gamification, product-manager, qa, stark, visionary |
 | [`senior-dev/fullstack-boundaries`](senior-dev/skills/fullstack-boundaries/SKILL.md) | 5 agents | data-ml, dba, qa, security, ux-ui |

@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Writing user stories or requirements for validated work
-- Prioritizing a backlog or planning a roadmap
-- Defining acceptance criteria / what "done" means
-- The backlog has become a bottomless junk drawer
-
 ## Critical Patterns
 
 ### 1. Write stories as intent + outcome, never as implementation

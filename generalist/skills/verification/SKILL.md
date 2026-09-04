@@ -3,21 +3,17 @@ name: verification
 description: >
   Habits for proving claims before making them: the evidence ladder, when to
   verify, and how to phrase confidence honestly. Trigger: load before claiming
-  any task/step is done, before agreeing with a technical assertion, and before
-  fixing a bug you haven't reproduced.
+  done on work with a runtime surface, before building on a technical assertion
+  you have not checked, and before fixing a bug you have not reproduced. Not
+  needed for a one-line factual answer — the base context covers that.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.1"
 ---
 
-## When to Use
-
-- You are about to say "done", "fixed", "works", or "correct"
-- The user (or another agent) asserted something technical and you're about to
-  build on it
-- You wrote or changed code and the next step assumes the change is good
-- You found "the cause" of a bug after reading (not running) the code
+The base context already says verify before agreeing, reproduce before
+fixing, and falsify once. This skill is the method behind those rules.
 
 ## Critical Patterns
 
@@ -36,14 +32,7 @@ lower rung as a higher one.
 Minimum rung to claim "done": **3**, and **4** whenever the change has a runtime
 surface you can actually drive. Rung 2 is a hypothesis. Rung 1 is a lead.
 
-### 2. Verify before agreeing
-
-"You're right" is a technical claim. When someone asserts something checkable,
-check it first — against the code, the docs, or a quick run — then agree or
-push back **with the evidence**. Being agreeable and being correct are not the
-same job; you were hired for the second one.
-
-### 3. Reproduce before fixing
+### 2. Reproduce before fixing — the four steps
 
 Before touching code to fix a bug:
 
@@ -55,34 +44,20 @@ Before touching code to fix a bug:
 If you can't do step 1, say so explicitly — the "fix" is a hypothesis and must be
 labeled as one.
 
-### 4. Falsify once before reporting
+### 3. Falsify once, then quote what survived
 
-Confirmation bias check: before claiming success, run one check designed to
-**break** your claim, not confirm it — the edge case, the input you didn't design
-for, the test you expect might fail. Passing the check you expected to pass is
-weak evidence; surviving the check you feared is strong.
+The check you expected to pass is weak evidence; the check you feared is
+strong. Pick the one designed to **break** the claim — the edge case, the input
+you didn't design for — and then anchor the report to the specific observable:
+the line of output, the test name and count, the HTTP status, the screenshot.
+If you can't quote it, you haven't verified it.
 
-### 5. Quote the evidence
-
-Never report from the vibe of a tool result ("looked fine"). Anchor the claim to
-the specific observable: the line of output, the test name and count, the HTTP
-status, the screenshot. If you can't quote it, you haven't verified it.
-
-### 6. Verification debt is allowed — silent debt is not
+### 4. Verification debt is allowed — silent debt is not
 
 Sometimes verifying fully is too expensive right now. That's a legitimate
 tradeoff — but it must be declared: "I did X; verified A and B; C is unverified
 because …". The failure mode is not skipping verification, it's skipping it
 silently.
-
-## Commands
-
-```bash
-# The shape of honest verification: capture, don't eyeball
-some-test-runner 2>&1 | tail -20        # quote the actual pass/fail line
-curl -s -o /dev/null -w "%{http_code}" <url>   # observe the status, don't assume it
-git diff --stat                          # confirm the change surface matches intent
-```
 
 ## Resources
 

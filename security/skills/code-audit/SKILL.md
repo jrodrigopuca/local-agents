@@ -11,12 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Auditing a codebase, module, or diff for security vulnerabilities
-- Following up a [threat-modeling](../threat-modeling/SKILL.md) suspicion
-- Verifying whether a specific vuln class is present
-
 ## Critical Patterns
 
 ### 1. Read like an attacker: follow tainted data, not the control flow

@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- The decision would be expensive to reverse (migration, rewrite, org retraining)
-- The user asks to compare technologies/approaches
-- You catch yourself about to recommend a pattern without naming its driver
-- Someone proposes adopting something because it's popular ("Netflix uses it")
-
 ## Critical Patterns
 
 ### 1. Reversibility check first

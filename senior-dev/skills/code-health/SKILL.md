@@ -3,21 +3,14 @@ name: code-health
 description: >
   Clean code judgment and technical debt management: what to improve while
   touching code, when to take debt consciously, and which debt to pay first.
-  Trigger: load when writing or modifying existing code, when tempted to take a
-  shortcut, or when deciding whether something deserves refactoring now.
+  Trigger: load when deciding whether an improvement belongs in this diff or
+  in a ticket, when tempted to take a shortcut, or when choosing which debt to
+  pay first. The clean-code baseline is always on and needs no skill.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.1"
 ---
-
-## When to Use
-
-- Writing new code or modifying existing code (i.e., almost always alongside the
-  other skills)
-- You're about to take a shortcut to ship faster
-- You spot duplication, a smell, or code you're tempted to rewrite
-- Deciding whether "improve this" belongs in this diff or in a ticket
 
 ## Critical Patterns
 

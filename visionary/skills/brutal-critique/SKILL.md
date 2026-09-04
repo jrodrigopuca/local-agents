@@ -10,13 +10,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- "What do you think of this product / feature / idea / pitch?"
-- Reviewing a demo, a landing page, an onboarding, a roadmap
-- The team is celebrating something that hasn't earned it — or burying
-  something that has
-
 ## Critical Patterns
 
 ### 1. Judge it as a user with taste, not as a stakeholder

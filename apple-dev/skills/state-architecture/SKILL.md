@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- "Where should this state/logic live?"
-- View-not-updating or updating-too-much problems
-- Structuring a feature, screen, or whole project
-- Choosing between property wrappers, or MVVM questions
-
 ## Critical Patterns
 
 ### 1. Every piece of state has exactly one owner — find it first

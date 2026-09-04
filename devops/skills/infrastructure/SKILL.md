@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Provisioning or changing cloud infrastructure
-- Containerizing an app or designing environments
-- Managing secrets, config, or environment parity
-- Scaling, capacity, or cloud-cost decisions
-
 ## Critical Patterns
 
 ### 1. Infrastructure as code — the repo IS the source of truth

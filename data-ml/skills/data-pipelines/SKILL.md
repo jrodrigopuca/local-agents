@@ -10,13 +10,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Building ingestion / transformation / ETL / ELT pipelines
-- Data quality problems (bad values, gaps, silent corruption)
-- Deciding storage: warehouse, lake, database, format
-- A downstream model or report is getting wrong numbers
-
 ## Critical Patterns
 
 ### 1. Understand the data before you move it

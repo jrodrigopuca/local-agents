@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Altering, renaming, or dropping anything that already has rows in production
-- A release ships code that requires a schema change to have run first
-- Backfilling or transforming existing data at scale
-- Deciding whether a change can go out during traffic or needs a window
-
 ## Critical Patterns
 
 ### 1. Expand, migrate, contract — never rename in place

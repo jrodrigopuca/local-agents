@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- A feature is "done" and needs adversarial eyes before shipping
-- Reviewing a spec/design for the paths it doesn't mention
-- A production bug appeared and the question is "what else like this exists?"
-- Writing the test plan for anything non-trivial
-
 ## Critical Patterns
 
 ### 1. Walk the flow three times, as three different people

@@ -12,12 +12,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Creating or restructuring components, routes, or data flow in React/Next.js
-- Deciding where state lives or where fetching happens
-- Something re-renders too much, props drill too deep, or a component "does everything"
-
 ## Critical Patterns
 
 ### 1. Server by default, client by exception

@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Designing or consuming an API (REST, Server Actions, RPC)
-- Handling user input, env vars, webhooks, or third-party responses
-- Deciding whether logic belongs in the client, the server, or the database
-- An error can originate in one layer and surface in another
-
 ## Critical Patterns
 
 ### 1. The wire is a trust boundary — validate everything that crosses it

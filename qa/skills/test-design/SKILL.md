@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Writing test code (unit, integration, E2E) for a feature or a found bug
-- Reviewing an existing suite: is it testing what matters?
-- Deciding the automation strategy for a flow
-- A flaky test is eroding the team's trust in the suite
-
 ## Critical Patterns
 
 ### 1. Test at the lowest level that can catch the bug

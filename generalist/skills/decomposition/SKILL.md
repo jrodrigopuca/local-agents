@@ -11,14 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- The task needs more than one action to complete
-- You notice yourself planning "steps" implicitly — make them explicit instead
-- The task contains words like "and", "then", "migrate", "refactor", "integrate"
-- You feel confident about the plan (that's exactly when a hidden assumption is
-  most likely doing load-bearing work)
-
 ## Critical Patterns
 
 ### 1. Find the load-bearing unknown first
@@ -26,7 +18,9 @@ metadata:
 Before ordering steps, ask: **which single assumption, if wrong, invalidates the
 whole plan?** That is the load-bearing unknown. Attack it first, even if it isn't
 "step 1" in the natural sequence. A plan that defers its riskiest assumption is a
-plan for doing the work twice.
+plan for doing the work twice. Confidence is the cue to look, not the excuse
+to skip: a plan you feel sure about is where a hidden assumption is most likely
+doing load-bearing work.
 
 ### 2. Order by uncertainty reduction per unit of cost
 

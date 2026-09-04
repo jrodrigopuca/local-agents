@@ -2,21 +2,17 @@
 name: next-step
 description: >
   Decision model for choosing what to do next: continue, re-plan, stop, or
-  escalate to the user. Trigger: load after completing/verifying a step, after a
-  surprise, or whenever you notice hesitation about what to do now.
+  escalate to the user. Trigger: load after a step fails or surprises you, or before ending a
+  turn on a task that took more than one step. Not needed when the next action
+  is obvious and reversible.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.1"
 ---
 
-## When to Use
-
-- A step just finished (verified or failed) and something must happen next
-- New information contradicts the plan
-- You notice you're hesitating, re-reading, or circling — that hesitation IS the
-  trigger
-- You're tempted to ask the user something
+Act-vs-stop and "ask only what only the user knows" are base rules. This
+skill is the cascade that applies them when the next step is not obvious.
 
 ## Critical Patterns
 
@@ -50,7 +46,7 @@ was wrong, or the understanding was wrong? Each answer routes differently:
 Two failed retries of the same action means the failure is at a higher level.
 Stop retrying and move up the table.
 
-### 3. Ask the user only what only the user knows
+### 3. Split the question before asking it
 
 Before asking anything, split the question:
 
@@ -84,12 +80,6 @@ Re-derive the plan from scratch when **two or more** of these are true:
 - You can no longer state the acceptance criteria in one sentence
 
 Re-planning from current evidence is cheap. Momentum into a wall is not.
-
-### 6. Scope changes are decisions, not drift
-
-Discovering adjacent work ("this other module has the same bug") never silently
-expands the task. Note it, finish the task, offer it in the report. The user
-decides scope; you decide execution.
 
 ## Resources
 

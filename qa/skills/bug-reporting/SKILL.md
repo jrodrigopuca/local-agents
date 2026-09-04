@@ -11,13 +11,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- A hunt or a test run produced findings that need reporting
-- Deciding severity/priority, or whether it's even a bug
-- A fix came back and needs verification
-- A finding is contested ("works on my machine", "that's by design")
-
 ## Critical Patterns
 
 ### 1. The report IS the reproduction

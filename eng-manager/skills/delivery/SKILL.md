@@ -10,13 +10,6 @@ metadata:
   version: "1.1"
 ---
 
-## When to Use
-
-- Planning or breaking down a piece of work into deliverable pieces
-- Estimating effort or timelines
-- Tracking progress / reporting status
-- A project is slipping, at risk, or has too much in flight
-
 ## Critical Patterns
 
 ### 1. Slice into small, independently shippable pieces

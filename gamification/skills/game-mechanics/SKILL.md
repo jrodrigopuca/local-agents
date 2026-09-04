@@ -13,7 +13,8 @@ metadata:
 
 ## When to Use
 
-- The flow is understood and simplified, and now it needs to be more engaging
+- Only after [flow-analysis](../flow-analysis/SKILL.md) has run — a flow that
+  isn't understood and simplified yet is not ready for mechanics
 - Evaluating an existing mechanic that isn't working ("nobody uses our badges")
 - A stakeholder asks for "points" or "a leaderboard" and you need to redirect
   to the underlying motivation problem
