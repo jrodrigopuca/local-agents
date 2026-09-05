@@ -66,29 +66,68 @@ warns against).
 A handoff fails when agent B can't act on what agent A produced. Make the seam
 explicit: what A delivers (the artifact, the contract, the finding) and what B
 needs to start. The agents already know their neighbors — `ux-ui`'s five-states
-table IS `qa`'s test checklist; `security`'s design-gap finding routes to
-`ux-ui`, not the dev. Your job is making those seams line up, in the spirit of
-[decomposition's](../../../generalist/skills/decomposition/SKILL.md) "each step
-independently verifiable".
+table is the list `qa` designs tests from; `security`'s design-gap finding
+routes to `ux-ui`, not the dev. Your job is making those seams line up, in the
+spirit of [decomposition's](../../../generalist/skills/decomposition/SKILL.md)
+"each step independently verifiable".
 
-### 5. Match the escalation to the decision type
+What crosses the seam is a **path and a contract, not a transcript**: where
+the artifact is, the decision that was made, the question still open. An agent
+handed the whole conversation pays context for what it can't use; one handed a
+summary of a summary acts on drift. Name the file, state the decision, list
+the unknowns — and nothing else.
+
+### 5. Parallel when nothing is shared; sequential when one's output is the other's input
+
+Two agents run at the same time only when neither needs the other's DECISION
+to start. `ux-ui` and `security` can both begin from the same spec, so they
+run together. Anything that depends on the shape of persisted data waits for
+`dba`, because a build that guesses the schema is rework with a deadline. A
+shared unknown — which payment provider, which tenant model — is resolved
+first, by whoever owns it, before anyone forks; that is decomposition's
+load-bearing unknown, applied to a roster. Parallel by default is not speed,
+it's two agents solving the same question differently.
+
+### 6. When specialists disagree, decide who owns the call — not who is right
+
+You don't adjudicate `security` against `ux-ui` by taste, and you don't send
+them to "talk it through" without an owner. Separate the FLOOR from the
+TRADEOFF: security names what is non-negotiable (the floor — a card number is
+never stored, an action is never unauthenticated); above the floor it is a
+product tradeoff, and product owns it — `product-manager`, or the user, or
+`visionary` for a bet at the grand level — decided with a number (fraud
+exposure against conversion loss), not with adjectives. Structure disputes go
+to `architect`; data-shape disputes to `dba`, whose no comes in numbers. Your
+job is to name the owner, get the number, and time-box the loop.
+
+### 7. A missing agent is a finding, then a route
+
+Not every host has the whole roster installed. When the agent you'd route to
+isn't there, say so where the user will see it — the base rule on unreachable
+capabilities applies to agents too — then route to the nearest thing that IS
+there: skills install independently of agents, so `senior-dev` loading `dba`'s
+`migrations` skill is a real second-best, `generalist` with the skill is the
+third. Label the result as what it is — a review from a non-owner — and never
+narrate an invocation that didn't happen.
+
+### 8. Match the escalation to the decision type
 
 - Two-way door (reversible) → route to the builder, let them decide, move on.
 - One-way door (expensive) → route through `architect` (tradeoffs) or
   `visionary` (product) BEFORE building.
-- On fire right now → `stark`/crisis-mode or `devops`, not a planning session.
+- On fire right now → `devops` when it's the pipeline or the infra and the
+  parachute exists (rollback, flag); `stark`/crisis-mode when the cause is
+  unknown or crosses domains nobody owns. Never a planning session.
 - Teaching moment / skill growth → `architect`/mentoring or `apple-dev`.
 
 Sending an expensive decision straight to build, or a crisis to a committee, is
 the classic mis-route.
 
-### 6. Know when NOT to orchestrate
+### 9. Know when NOT to orchestrate
 
-The lightest touch that keeps things coordinated wins. If a task clearly belongs
-to one agent, say so and step aside — wrapping a single-agent job in coordination
-ceremony is pure overhead. Orchestration earns its keep on genuinely
-cross-domain work; on focused work, it's the manager becoming a bottleneck
-([management judgment #1](../../AGENTS.md)).
+Management judgment #1: if a task clearly belongs to one agent, say so and step
+aside. Coordination ceremony around a single-agent job is the manager becoming
+the bottleneck.
 
 ## Resources
 

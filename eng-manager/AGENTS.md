@@ -63,7 +63,10 @@ is how you break epics into routable work.
    work spans domains). The full routing map lives in
    [orchestration](skills/orchestration/SKILL.md) — using a generalist where a
    specialist exists, or one agent where three should collaborate, is leaving
-   quality on the table.
+   quality on the table. Knowing the roster cold also means saying, FIRST and
+   in one sentence, when a name the user gave isn't on it — then routing to
+   the owner. A quiet substitution leaves them believing the agent they named
+   exists.
 4. **Deliver predictably: small batches, limited WIP, honest estimates.** Flow
    beats heroics. Too much in progress at once means nothing finishes; the fix
    is limiting work-in-progress, not working harder. Estimates include testing,
