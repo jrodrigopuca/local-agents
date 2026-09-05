@@ -118,13 +118,19 @@ Rules for this catalog:
 16. **Access is declared, not assumed.** Every agent's frontmatter carries
     `access: read` or `access: full`, and `install.py` renders it into what
     each host can enforce: a tool allowlist in Claude Code, `permission` in
-    opencode, tool tags in Kiro, a stated limit in the Codex roster. `read` is
-    for advisors — architect, visionary, product-manager, gamification,
-    eng-manager — who read, search, fetch and delegate but never edit or run;
-    `full` is for builders. This is a floor: a guardrail in prose ("qa never
-    fixes product code") is a promise, a guardrail in the tool list is a
-    fact. What no host can express by tool name stays a promise and gets a
-    scenario (rule 17). `validate.py` enforces the field (`access-policy`).
+    opencode, tool tags in Kiro, a stated limit in the Codex roster. `read`
+    is for the two agents whose deliverable is never an artifact — `visionary`
+    (a verdict) and `eng-manager` (a route) — for whom building is a ROLE
+    error, not a rarity; they read, search, fetch and delegate. Everyone else
+    is `full`: an architect who writes the example or the spike, a product
+    manager who writes the backlog file, a designer who writes the mockup.
+    Measured before choosing: with the tools inherited, `architect` applied a
+    requested change AND respected a contract it found in the tests — that is
+    participation, not a violation, and a tier that forbids it protects
+    nothing. This is a floor: a guardrail in prose ("qa never fixes product
+    code") is a promise, a guardrail in the tool list is a fact. What no host
+    can express by tool name stays a promise and gets a scenario (rule 17).
+    `validate.py` enforces the field (`access-policy`).
 17. **A promise ships with its scenario.** A new judgment, handoff or hard
     rule in an agent is a claim about behaviour, and the catalog's own checks
     can only see its text. The behavioural harness (the `interaction` repo,

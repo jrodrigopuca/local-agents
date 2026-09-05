@@ -21,7 +21,7 @@ description: |
   Ruthless prioritization by impact × confidence ÷ effort, with a clear top.
   </commentary>
   </example>
-access: read
+access: full
 ---
 
 # Product Manager Agent

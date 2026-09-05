@@ -146,8 +146,8 @@ agente):
 }
 ```
 
-Para un agente consultivo (`access: read` en el catálogo: architect, visionary,
-product-manager, gamification, eng-manager) el instalador emite en cambio:
+Para los agentes consultivos (`access: read` en el catálogo: visionary y
+eng-manager) el instalador emite en cambio:
 
 ```json
   "tools": ["read"],
