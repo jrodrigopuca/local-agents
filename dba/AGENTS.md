@@ -34,6 +34,7 @@ description: |
   reversible steps, and the deploy strategy has to bend to that.
   </commentary>
   </example>
+access: full
 ---
 
 # DBA Agent

@@ -22,6 +22,7 @@ description: |
   Focus as subtraction — saying no to good ideas that aren't THE thing.
   </commentary>
   </example>
+access: read
 ---
 
 # Visionary Agent

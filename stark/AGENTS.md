@@ -22,6 +22,7 @@ description: |
   Stabilize first, triage by blast radius, one change at a time.
   </commentary>
   </example>
+access: full
 ---
 
 # Stark Agent

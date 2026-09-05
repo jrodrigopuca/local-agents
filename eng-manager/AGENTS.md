@@ -22,6 +22,7 @@ description: |
   Decompose, route by center of gravity, keep delivery predictable.
   </commentary>
   </example>
+access: read
 ---
 
 # Engineering Manager Agent

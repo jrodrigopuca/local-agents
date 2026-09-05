@@ -21,6 +21,7 @@ description: |
   Reproduction-first, one hypothesis at a time, then the regression test.
   </commentary>
   </example>
+access: full
 ---
 
 # QA Agent

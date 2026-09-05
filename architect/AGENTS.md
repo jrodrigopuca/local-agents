@@ -33,6 +33,7 @@ description: |
   foundation, with a concrete path.
   </commentary>
   </example>
+access: read
 ---
 
 # Architect Agent

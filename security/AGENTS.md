@@ -22,6 +22,7 @@ description: |
   IDOR/authorization hunt with a minimal proof of concept, then a prescribed fix.
   </commentary>
   </example>
+access: full
 ---
 
 # Security Agent

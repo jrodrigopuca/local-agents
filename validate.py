@@ -298,6 +298,22 @@ def check_link_identity(cat: Catalog):
     return errs
 
 
+def check_access_policy(cat: Catalog):
+    """Root AGENTS.md rule 16: every agent declares `access: read | full`.
+
+    The tier is what install.py turns into a tool allowlist on the hosts that
+    have one; an agent without it silently inherits everything, which is the
+    state this rule exists to end."""
+    errs = []
+    for agent, text in cat.agents.items():
+        data, _err = frontmatter(text)
+        tier = (data or {}).get("access")
+        if tier not in ("read", "full"):
+            errs.append(f"{agent}/AGENTS.md: frontmatter needs `access: read` or "
+                        f"`access: full` (rule 16), found {tier!r}")
+    return errs
+
+
 def check_kiro_contract(cat: Catalog):
     """The Kiro agent JSON the installer emits must match the recipe in USAGE.md.
 
@@ -309,17 +325,20 @@ def check_kiro_contract(cat: Catalog):
     usage = (cat.root / "USAGE.md").read_text()
     install = (cat.root / "install.py").read_text()
 
-    def tools_of(text, label):
-        m = re.search(r'"tools":\s*(\[[^\]]*\])', text)
-        if not m:
-            errs.append(f"{label}: no `tools` array found for the Kiro agent config")
+    def arrays(found, label):
+        if not found:
+            errs.append(f"{label}: no Kiro tool arrays found")
             return None
-        return [t.strip().strip('"') for t in m.group(1).strip("[]").split(",") if t.strip()]
+        return sorted({tuple(t.strip().strip('"') for t in arr.strip("[]").split(",") if t.strip())
+                       for arr in found})
 
-    documented = tools_of(usage, "USAGE.md")
-    emitted = tools_of(install, "install.py")
+    # USAGE.md documents one `"tools": [...]` array per access tier; install.py
+    # keeps them in the KIRO_TOOLS mapping. Both must list the same sets.
+    documented = arrays(re.findall(r'"tools":\s*(\[[^\]]*\])', usage), "USAGE.md")
+    mapping = re.search(r"KIRO_TOOLS\s*=\s*\{([^}]*)\}", install)
+    emitted = arrays(re.findall(r"(\[[^\]]*\])", mapping.group(1)) if mapping else [], "install.py")
     if documented and emitted and documented != emitted:
-        errs.append(f"install.py emits Kiro tools {emitted} but USAGE.md documents "
+        errs.append(f"install.py emits Kiro tool sets {emitted} but USAGE.md documents "
                     f"{documented} — they must agree; an unknown tag is a Kiro config error")
     return errs
 
@@ -814,6 +833,7 @@ CHECKS = [
     ("identity-neutrality", "agent identity is stack-agnostic (skills carry the stack)", check_identity_neutrality),
     ("section-scope", "rule 11 — External skills holds no agent routing", check_section_scope),
     ("link-identity", "link text names its target (paths die on install)", check_link_identity),
+    ("access-policy", "rule 16 — every agent declares access: read | full", check_access_policy),
     ("kiro-contract", "Kiro agent JSON matches the recipe in USAGE.md", check_kiro_contract),
     ("readme-counts", "README roster matches reality", check_readme_counts),
     ("reference-roster", "REFERENCE_.md lists every agent (Spanish guide)", check_reference_roster),

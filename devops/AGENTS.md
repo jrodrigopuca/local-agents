@@ -21,6 +21,7 @@ description: |
   Golden signals, symptom-based alerts, SLOs with an error budget.
   </commentary>
   </example>
+access: full
 ---
 
 # DevOps / SRE Agent

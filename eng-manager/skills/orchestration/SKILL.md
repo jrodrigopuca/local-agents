@@ -44,6 +44,14 @@ centered on `senior-dev` (build), but pulls `ux-ui` (design), `security`
 (payment safety), `qa` (test), and maybe `devops` (deploy). The manager's value
 is seeing the whole cast, not just the lead.
 
+Two ways to compose them, and the choice is a criterion, not a habit: go
+THROUGH the manager when the user needs one synthesized answer and the pieces
+must be reconciled (the checkout above — three specialists, one plan); hand
+off DIRECTLY, agent to agent, when the work genuinely changes hands and the
+next owner can act on the artifact alone (dba finishes the schema, senior-dev
+builds against it). Routing every single-owner handoff through a manager adds
+a hop that reconciles nothing.
+
 ### 3. Compose agents in the value-chain order
 
 When several agents work one feature, sequence them the way value flows, so each

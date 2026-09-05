@@ -115,6 +115,25 @@ Rules for this catalog:
     line numbers; `rg` if present, else say so" is catalog content and lives
     in `generalist/CORE.md`; "never use grep, use rg, install it if missing"
     is a preference and stays in the harness.
+16. **Access is declared, not assumed.** Every agent's frontmatter carries
+    `access: read` or `access: full`, and `install.py` renders it into what
+    each host can enforce: a tool allowlist in Claude Code, `permission` in
+    opencode, tool tags in Kiro, a stated limit in the Codex roster. `read` is
+    for advisors — architect, visionary, product-manager, gamification,
+    eng-manager — who read, search, fetch and delegate but never edit or run;
+    `full` is for builders. This is a floor: a guardrail in prose ("qa never
+    fixes product code") is a promise, a guardrail in the tool list is a
+    fact. What no host can express by tool name stays a promise and gets a
+    scenario (rule 17). `validate.py` enforces the field (`access-policy`).
+17. **A promise ships with its scenario.** A new judgment, handoff or hard
+    rule in an agent is a claim about behaviour, and the catalog's own checks
+    can only see its text. The behavioural harness (the `interaction` repo,
+    `run.py`) is where the claim gets tested against the installed agent, on
+    the model in daily use, with a neutral judge. Add the scenario in the same
+    change as the promise, run it against the previous version first so the
+    baseline failure is on record, and let the criterion measure what the
+    reply DELIVERS — never its tone, length or dialect, which belong to the
+    host.
 
 ## Agents
 

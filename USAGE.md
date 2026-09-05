@@ -48,6 +48,8 @@ Load the skills it references when their triggers fire.
   es `name` + `description` (la description decide cuándo Claude lo delega —
   escribila pensando en el trigger, no en el marketing).
 - Opcional: `tools:` para restringir herramientas y `model:` para fijar modelo.
+  El instalador escribe `tools: Read, Grep, Glob, WebFetch, WebSearch, Agent`
+  para los agentes con `access: read` del catálogo; los `full` heredan todo.
 - Se invoca pidiéndolo ("usá el agente architect") o Claude lo delega solo
   cuando la tarea matchea la description.
 
@@ -92,7 +94,9 @@ Load the skills it references when their triggers fire.
 - `mode: primary` = seleccionable como agente principal (Tab);
   `mode: subagent` = solo delegable.
 - Frontmatter soporta además `model`, `temperature` y `permission` (p. ej.
-  `permission: { edit: deny }` para un agente de solo consulta).
+  `permission: { edit: deny }` para un agente de solo consulta). El instalador
+  emite `permission: { edit: deny, bash: deny }` para los agentes con
+  `access: read` del catálogo.
 
 ### Alternativa JSON con `{file:}` — prompt directo sin instrucción de lectura
 
@@ -140,6 +144,14 @@ agente):
   "tools": ["read", "write", "shell"],
   "allowedTools": ["read"]
 }
+```
+
+Para un agente consultivo (`access: read` en el catálogo: architect, visionary,
+product-manager, gamification, eng-manager) el instalador emite en cambio:
+
+```json
+  "tools": ["read"],
+  "allowedTools": ["read"]
 ```
 
 - `"prompt": "file://..."` es Patrón A nativo: rutas absolutas se usan tal

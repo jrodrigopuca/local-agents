@@ -22,6 +22,7 @@ description: |
   Peer review: findings with failure cases, not grades.
   </commentary>
   </example>
+access: full
 ---
 
 # Senior Dev Agent

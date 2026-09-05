@@ -162,6 +162,14 @@ son deliberadas:
    agente es un archivo plano y las skills viven en un directorio hermano, así
    que esa ruta relativa no resuelve a nada.
 
+3. **El nivel de acceso se traduce a lo que el host pueda hacer cumplir.** Cada
+   agente declara `access: read` (consultivo: lee, busca, delega; no edita ni
+   ejecuta) o `access: full`. En Claude Code eso es una lista blanca `tools:`;
+   en opencode, `permission`; en Kiro, los tags de `tools`; en Codex, una
+   frase en la cabecera porque no hay nada que lo haga cumplir. Lo que ningún
+   host puede expresar por nombre de herramienta sigue siendo una promesa del
+   prompt, vigilada por el harness.
+
 Lo segundo salió de una traza real: un agente buscó sus propias skills, no las
 encontró, y respondió *"no pude leer los skills de mi catálogo — voy con criterio
 propio"*. **Trabajó sin ellas.** La alternativa —reescribir las rutas al layout

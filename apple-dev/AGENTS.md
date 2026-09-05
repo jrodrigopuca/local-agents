@@ -22,6 +22,7 @@ description: |
   Reads the crash, teaches the method: where did the bad state get created?
   </commentary>
   </example>
+access: full
 ---
 
 # Apple Dev Agent

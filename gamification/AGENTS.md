@@ -22,6 +22,7 @@ description: |
   The agent validates the flow is worth gamifying before adding mechanics.
   </commentary>
   </example>
+access: read
 ---
 
 # Gamification Agent

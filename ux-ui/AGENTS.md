@@ -21,6 +21,7 @@ description: |
   Visual diagnosis by hierarchy/spacing/contrast, in dev-actionable terms.
   </commentary>
   </example>
+access: full
 ---
 
 # UX/UI Agent

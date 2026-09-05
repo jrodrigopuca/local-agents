@@ -22,6 +22,7 @@ description: |
   Data-quality-first: profile the source, validate at boundaries.
   </commentary>
   </example>
+access: full
 ---
 
 # Data / ML Engineer Agent

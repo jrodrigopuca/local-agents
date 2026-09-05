@@ -248,6 +248,24 @@ def rewrite_skill_name(skill_md_text: str, new_name: str) -> str:
 # --------------------------------------------------------------------------- #
 # Rendering an agent file per tool format
 # --------------------------------------------------------------------------- #
+# What an agent may DO, declared once in its frontmatter (`access:`) and
+# rendered into whatever each host can enforce. Two tiers on purpose: `read`
+# for advisors (they read, search, fetch and delegate; they never edit or run),
+# `full` for builders. Finer promises — "qa edits only tests", "security never
+# exfiltrates" — cannot be expressed by tool name on any host and stay in the
+# prompt, guarded by the behavioural harness. A tier is a floor, not the rule.
+ACCESS_TIERS = ("read", "full")
+CLAUDE_READ_TOOLS = "Read, Grep, Glob, WebFetch, WebSearch, Agent"
+KIRO_TOOLS = {"read": ["read"], "full": ["read", "write", "shell"]}
+
+
+def access_of(meta: dict) -> str:
+    tier = (meta or {}).get("access", "full")
+    if tier not in ACCESS_TIERS:
+        sys.exit(f"unknown access tier {tier!r} — expected one of {ACCESS_TIERS}")
+    return tier
+
+
 def render_agent(tool: Tool, name: str, body: str, description: str,
                  skill_names: list, meta: dict = None) -> tuple:
     """Return (destination_path, file_contents) for the agent in this tool's
@@ -255,16 +273,31 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
     Add a branch here only for a genuinely new file format."""
     meta = meta or {}
     desc = meta.get("description") or description
+    tier = access_of(meta)
+    # A read-only agent has to KNOW it is read-only, or it discovers it when
+    # an edit is refused and narrates around the gap. Measured: with the tool
+    # list alone, architect could no longer edit but never said so. The note
+    # goes into the body on every host, enforced or not.
+    if tier == "read":
+        body = ("> **Access: read-only.** On this host you read, search, fetch and "
+                "delegate; you do not edit files or run commands. When a task needs "
+                "a change made, say so in one line and hand the exact change to the "
+                "user or to the agent that builds — never narrate an edit you cannot "
+                "make.\n\n") + body
     if tool.agent_style == "claude_md":
+        # `tools:` is an allowlist; omitted, the subagent inherits every tool.
+        tools_line = f"tools: {CLAUDE_READ_TOOLS}\n" if tier == "read" else ""
         fm = ("---\n"
               f"name: {name}\n"
               f"{yaml_description(desc)}\n"
               f"model: {meta.get('model', 'inherit')}\n"
               f"memory: {meta.get('memory', 'user')}\n"
+              f"{tools_line}"
               "---\n\n")
         return tool.agents_dir / f"{name}.md", fm + body
     if tool.agent_style == "opencode_md":
-        fm = f"---\n{yaml_description(desc)}\nmode: {meta.get('mode', 'primary')}\n---\n\n"
+        perm = "permission:\n  edit: deny\n  bash: deny\n" if tier == "read" else ""
+        fm = f"---\n{yaml_description(desc)}\nmode: {meta.get('mode', 'primary')}\n{perm}---\n\n"
         return tool.agents_dir / f"{name}.md", fm + body
     if tool.agent_style == "kiro_json":
         obj = {
@@ -273,15 +306,16 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
             "prompt": body,
             # Kiro tool tags, not free-form names: `write` already covers editing
             # and deleting, and there is no `edit` tool — an unknown tag is a
-            # config error, so keep this list in sync with USAGE.md's Kiro recipe.
-            "tools": ["read", "write", "shell"],
+            # config error, so keep KIRO_TOOLS in sync with USAGE.md's recipe.
+            "tools": KIRO_TOOLS[tier],
             "allowedTools": ["read"],
             "resources": [f"skill://~/.kiro/skills/{s}/SKILL.md" for s in skill_names],
         }
         return tool.agents_dir / f"{name}.json", json.dumps(obj, indent=2, ensure_ascii=False)
     if tool.agent_style == "roster_md":
         # No frontmatter: nothing parses it here. The lead paragraph states what
-        # the file is so a model that opens it knows immediately.
+        # the file is so a model that opens it knows immediately — including
+        # its access tier, since a roster host has nothing to enforce it with.
         head = (f"# `{name}` agent\n\n"
                 f"Adopt this identity fully when the task matches its row in the "
                 f"agent catalog (`../AGENTS.md`). Load the skills it references "

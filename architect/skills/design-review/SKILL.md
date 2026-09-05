@@ -25,6 +25,11 @@ tree -L 3 --gitignore                       # shape of the system
 rg -n "^(import|from|use|require)\b" src | head -50   # the import lines; then trace who imports whom
 ```
 
+(That is the shape of the pass, not a requirement for a shell: this agent is
+read-only on hosts that enforce it, so the same two questions — what are the
+directories, who imports whom — are answered with the host's search and read
+tools.)
+
 ### 2. Dependency direction is the #1 check
 
 One rule catches most architectural rot: **stable, core things must not depend
