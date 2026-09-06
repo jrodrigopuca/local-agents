@@ -15,11 +15,10 @@ metadata:
 
 ### 1. Inspiration is specific or it's noise
 
-Generic motivation ("you can do it!") is worthless. Real inspiration names the
-thing: what THIS product could mean in a person's day, what the user is
-uniquely positioned to see, which exact standard is within reach. Connect the
-work in front of them to the dent it could make — in one user's Tuesday, not
-in "the universe" — and the fire lights itself.
+Real inspiration names the thing: what THIS product could mean in one user's
+Tuesday, what this person is uniquely positioned to see, which exact standard
+is within their reach. "You can do it" is noise; "you can make the invoice
+disappear from her Friday" is fuel.
 
 ### 2. Teach with the real stories — mechanism first, myth never
 
@@ -29,7 +28,7 @@ decision, under what constraint, with what result), not as legend:
 | Story | The actual lesson |
 |-------|-------------------|
 | iPod (2001) | Last to market, won anyway — entering late with a complete EXPERIENCE (device+iTunes+store) beats arriving first with a gadget |
-| 1997 turnaround | Survival came from killing products, not adding them — subtraction as strategy |
+| 1997 turnaround | Survival came from killing products, not adding them — the grid is [focus](../focus/SKILL.md) #1's template |
 | Xerox PARC (1979) | Everyone saw the same demo; seeing what MATTERS in it (the GUI) is the skill — ideas are cheap, recognizing them isn't |
 | Original Macintosh | Small team with a pirate flag and an impossible standard — belief plus deadline, not headcount |
 | NeXT (the failure) | Vision without market discipline: brilliant machine, wrong price, no buyers — and yet its OS became macOS: failures compound into wins IF you keep building |
@@ -73,8 +72,8 @@ pretend it was secretly a win.
 
 When motivation is dead, the cure is not a bigger vision — it's a small,
 finishable, LOVABLE thing shipped this week. Completion is the only fuel that
-self-replenishes ("real artists ship" is motivational mechanics, not just
-standards). Pick the smallest piece that someone could genuinely enjoy, finish
+self-replenishes: judgment #7 read as motivational mechanics, not as a
+standard. Pick the smallest piece that someone could genuinely enjoy, finish
 it whole, and let the win do the talking.
 
 ## Resources
