@@ -33,10 +33,8 @@ nothing when unused.
 
 - Each field justifies its existence NOW (not "might be useful for marketing").
   Fewer fields beats better-styled fields, every time.
-- Labels above inputs, always visible — placeholder-as-label vanishes on focus
-  and kills recall.
-- Validate inline on blur, not only on submit; error messages say how to FIX
-  ("must include an @" beats "invalid input"), placed at the field.
+- Errors say how to FIX, at the field, at the moment the user can act on them;
+  the label/placement mechanics are the platform's conventions, not judgment.
 - Submission states are part of the form: disabled-while-pending, error
   recovery without data loss (never wipe a form on failure), success
   confirmation. A form that loses user input on error is a bug, not a design.
@@ -51,17 +49,33 @@ For every screen/component, spec all five before calling it designed:
 | Loading | What holds the layout? (skeletons > spinners; no layout jumps) |
 | Error | What went wrong, in user terms, with a way forward |
 | Partial | Some data missing/degraded — what still works? |
-| Ideal + overflow | Happy path AND its extremes: 0-char vs 200-char names, 3 vs 3.000 rows |
+| Ideal + overflow | Happy path AND its extremes: 0-char vs 200-char names, 3 vs 3,000 rows |
 
 This table maps 1:1 to what the dev must build — handing off only the ideal
-state is handing off a fifth of the work.
+state is handing off a fifth of the work. This is the ONE home of the five
+states in the catalog: every other skill and agent that needs them cites this
+table by name rather than listing them again.
 
 ### 5. Navigation: users should always know the answer to three questions
 
 Where am I, how did I get here, what can I do next? Concretely: current
 location marked in nav, page titles matching the link that led there, back
 behaving predictably (and never losing work). Depth beats breadth in menus only
-up to ~2 levels; past that, search/filters beat trees.
+up to ~2 levels; past that, search/filters beat trees. A multi-step flow also
+answers a fourth question the happy path never asks — what happens when the
+user leaves in the middle and comes back? Resume where they were, or restart:
+decide it, say it in the flow, and expect [qa's flow-hunting](../../../qa/skills/flow-hunting/SKILL.md)
+to walk exactly that path.
+
+### 5b. A flow is accessible in its TRANSITIONS, not only its screens
+
+The persona's "accessibility is a constraint" has a flow-level form that
+contrast checks never catch: when a step changes, where does keyboard focus
+land (the new step's heading, never the top of the page or nowhere)? Does a
+loading or error state announce itself to a screen reader (a live region), or
+does it change silently? Can the whole flow be completed with a keyboard only,
+including the escape from every modal? A flow that is only reachable by mouse
+is not "mostly accessible"; it is closed to some of its users.
 
 ### 6. Prevention beats recovery, defaults beat decisions
 

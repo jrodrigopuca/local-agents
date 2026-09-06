@@ -42,9 +42,11 @@ content grouping should still be obvious.
 
 ### 4. Color: semantic roles, neutral base, one accent doing the work
 
-- Colors are ROLES, not values: background, surface, border, text-primary,
-  text-muted, accent, success/warning/danger. Screens reference roles; only the
-  palette file knows hex codes (same indirection as design tokens).
+- Colors are ROLES, not values — the token indirection whose naming rules live
+  in [dev-handoff](../dev-handoff/SKILL.md) #2. Here the judgment is which
+  roles a palette needs: background, surface, border, text-primary,
+  text-muted, one accent, and the success/warning/danger trio; only the
+  palette file knows hex codes.
 - Neutral grays carry the interface; ONE accent color marks interactivity and
   primary actions. If the accent appears everywhere, it marks nothing.
 - Contrast is non-negotiable: 4.5:1 for body text, 3:1 for large text and UI
@@ -61,6 +63,14 @@ content grouping should still be obvious.
   (max-width) on large screens — full-bleed text walls are not "using the space".
 - Elevation (shadows) sparingly and consistently: 2-3 levels max, each meaning
   something (raised, overlay). Ten different shadows = no elevation system.
+- Layout changes at a breakpoint when the content stops working, not because a
+  device class exists: a table that becomes cards, a sidebar that becomes a
+  sheet. Scale until it breaks; reflow only then.
+- Touch targets and motion are constraints the persona promises and this skill
+  carries: 44px minimum hit area on anything tappable (visual size can be
+  smaller, the target can't), and motion only where it explains a state change
+  — with `prefers-reduced-motion` honoured, because for some users animation
+  is not decoration, it's nausea.
 
 ### 6. Diagnosing "it feels off" — the checklist order
 

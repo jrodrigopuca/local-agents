@@ -38,7 +38,11 @@ a continuum. Every handoff must state what happens BETWEEN the artboards.
 Name tokens by ROLE (`color-text-muted`, `space-md`, `radius-card`), never by
 value (`gray-400`, `spacing-12px`). Role names survive a rebrand; value names
 lie after the first change. Two layers max: primitives (the palette/scale) →
-semantic (what screens use). If designers use Figma variables and devs use CSS
+semantic (what screens use) — and a theme (dark, high-contrast) is a second
+mapping of primitives onto the SAME semantic names, never a second set of
+names; a screen that references a role works in every theme by construction.
+This is the one home of token naming in the catalog; [visual-craft](../visual-craft/SKILL.md)
+decides which roles exist. If designers use Figma variables and devs use CSS
 variables with DIFFERENT names, you have two design systems drifting — align
 the names first, everything else follows.
 
@@ -76,9 +80,11 @@ principle as code comments explaining constraints.
 
 Walk the dev through flows and states, ask what's expensive to build, and
 NEGOTIATE: often a 5% visual compromise saves 40% of implementation cost — a
-peer designer wants to know that tradeoff exists. Then stay available: the
-first implementation questions arrive on day two, and answering them fast is
-part of the handoff.
+peer designer wants to know that tradeoff exists. And the most contested call
+in any handoff gets decided out loud, not by default: new component, new
+VARIANT of an existing one, or a one-off? A variant when the anatomy is the
+same and one axis changes; a component when the anatomy differs; a one-off
+only with an expiry date, because one-offs are how design systems die.
 
 ## Resources
 

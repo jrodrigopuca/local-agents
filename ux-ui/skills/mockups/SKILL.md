@@ -75,16 +75,15 @@ time):
 ### 4. Real content or honest placeholders — never lorem ipsum
 
 Lorem ipsum hides the design problems that content creates: the 47-character
-client name, the empty description, the 3.000-row table. Use realistic data
+client name, the empty description, the 3,000-row table. Use realistic data
 including the awkward cases (per [ux-flows](../ux-flows/SKILL.md) overflow
 state). If real content is unknown, that's a finding to raise — "what's the max
 length here?" is a design question, not a dev detail.
 
 ### 5. Mock the states, not just the hero screen
 
-A mockup deliverable includes the five states (empty / loading / error /
-partial / overflow) — as sections of the same HTML page or a state-switcher
-toggle. This is the single highest-leverage habit: it converts the mockup from
+A mockup deliverable includes the five states of [ux-flows](../ux-flows/SKILL.md)
+#4 — as sections of the same HTML page or a state-switcher toggle. This is the single highest-leverage habit: it converts the mockup from
 a picture into a spec.
 
 ### 6. Iterate in place, version the decisions

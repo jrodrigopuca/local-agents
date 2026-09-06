@@ -8,7 +8,7 @@ was extracted from the files themselves — none of it is aspirational.
 |-------|------:|---------------|
 | [Inheritance](#1-inheritance) | 23 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
 | [Agent handoffs](#2-agent-handoffs) | 44 | Editorial. An agent names who takes over when a problem stops being its own. |
-| [Skill references](#3-skill-references) | 104 | Compositional. A skill points at another skill instead of duplicating it. |
+| [Skill references](#3-skill-references) | 105 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
 ---
@@ -149,7 +149,7 @@ when its trigger cannot fire in both directions on one problem.
 
 ## 3. Skill references
 
-The densest layer: **<!--n:skill-cross-refs-->104<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->133<!--/n--> sibling
+The densest layer: **<!--n:skill-cross-refs-->105<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->136<!--/n--> sibling
 references inside each agent). This is where "compose, don't duplicate" actually
 lives — `security/remediation` doesn't re-explain how to write a bug report, it
 points at `qa/bug-reporting`.
@@ -178,8 +178,8 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 | `generalist` | **21** | 0 |
 | `senior-dev` | 15 | 3 |
 | `architect` | 14 | 1 |
-| `ux-ui` | 9 | 2 |
-| `qa` | 9 | 4 |
+| `qa` | 10 | 4 |
+| `ux-ui` | 9 | 3 |
 | `stark` | 8 | 13 |
 | `gamification` | 6 | 4 |
 | `devops` | 6 | 7 |
