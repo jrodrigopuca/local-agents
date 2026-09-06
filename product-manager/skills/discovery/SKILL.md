@@ -80,7 +80,14 @@ evidence: who has the problem, what it costs them, how you know it's real (the
 research, labeled by [evidence rung (`verification`)](../../../generalist/skills/verification/SKILL.md)),
 why it's worth solving now, and **the number that moves if it's solved** —
 which metric, from what to what, by when. Without that last line the team can
-build the right thing and never know it did. That's what enters the
+build the right thing and never know it did.
+
+Three things travel with EVERY discovery reply, whatever the constraints of the
+week: the evidence to read now (#2, ranked), the interview script for when
+users become reachable (#2 — "no interviews this week" removes the
+conversation, never the script; write it anyway, six questions, ready to
+paste), and the candidate metric, with blanks where the values are not known
+yet. A reply that stops at the evidence list has done a third of the job. That's what enters the
 [backlog](../backlog/SKILL.md) and what the whole team aligns on. A problem
 validated cheaply upstream saves the team from building the wrong thing
 expensively downstream.
