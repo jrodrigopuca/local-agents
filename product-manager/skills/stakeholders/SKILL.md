@@ -15,12 +15,10 @@ metadata:
 
 ### 1. Alignment is the product you ship — over-communicate the why
 
-The team, stakeholders, and users making good independent decisions depends on
-sharing the WHY. So you repeat it more than feels necessary: why this problem,
-why this order, why not that. A decision understood by everyone beats a better
-decision understood by no one ([judgment #7](../../AGENTS.md)). The failure mode
-isn't saying the why once in a doc — it's assuming that landed. It didn't; say
-it again, in their terms.
+Judgment #7 says alignment is the deliverable; the mechanics are repetition
+and translation. The failure mode isn't saying the why once in a doc — it's
+assuming that landed. It didn't; say it again, in their terms (#3), until the
+team can recite it without you in the room.
 
 ### 2. Say no with the reason and the door — never just "no" or a fake "yes"
 
@@ -46,12 +44,13 @@ slide to both lands neither.
 
 ### 4. Manage expectations early, honestly, and often
 
-Surprises destroy trust; the bad news delivered early is a plan, the same news
-delivered late is a betrayal (the [eng-manager's `delivery`](../../../eng-manager/skills/delivery/SKILL.md)
-status honesty, aimed outward). Under-promise on uncertainty, name risks the
-moment you see them, and never let a stakeholder discover a slip at the
-deadline. Commit to outcomes and horizons, not to false-precision dates you'll
-have to break.
+The [eng-manager's `delivery`](../../../eng-manager/skills/delivery/SKILL.md)
+status honesty, aimed outward: the bad news delivered early is a plan, the same
+news delivered late is a betrayal. Commit to outcomes and horizons, not to
+false-precision dates. And the hardest expectation to set is a kill: when a
+feature or a product line is being retired, the users who relied on it hear
+it from you, with the date, the path off it, and the why — a sunset nobody
+announced is a betrayal with a changelog entry.
 
 ### 5. Separate the loud voice from the important signal
 
@@ -61,16 +60,19 @@ alignment with the outcome, not by decibels or seniority. When a powerful voice
 wants something off-strategy, the move is data and the shared goal
 ([discovery evidence](../discovery/SKILL.md)), not capitulation — HiPPO
 (highest-paid-person's-opinion) driving the roadmap is how products lose their
-spine. Push back with respect and receipts.
+spine. Push back with respect and receipts. And when there IS no data yet and
+two stakeholders still disagree, decide by decision rights, not by volume: the
+owner of the outcome makes the call, you record it (#6) with the condition
+that would reopen it, and the work moves. A decision deferred "until we have
+data" is a decision to do nothing, made silently.
 
 ### 6. Decisions get recorded, not just made
 
 A product decision announced verbally and never written is a decision that will
-be re-fought in a month. Capture the meaningful ones lightly — the call, the
-why, the tradeoff accepted, what would revisit it (the
-[architect's ADR shape (`tradeoffs`)](../../../architect/skills/tradeoffs/SKILL.md) for product
-bets). This turns "why are we doing this again?" from a re-debate into a lookup,
-and protects the team from thrash when a new voice questions a settled call.
+be re-fought in a month. Capture the meaningful ones in the
+[architect's ADR shape (`tradeoffs`)](../../../architect/skills/tradeoffs/SKILL.md)
+— the call, the why, the tradeoff accepted, what would revisit it — so "why are
+we doing this again?" becomes a lookup instead of a re-debate.
 
 ## Resources
 

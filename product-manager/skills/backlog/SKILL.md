@@ -19,9 +19,7 @@ A user story states WHO, WHAT they're trying to accomplish, and WHY — "as a
 returning customer, I want to find a past order quickly, so I can reorder
 without hunting". It does NOT say which component, which query, which layout —
 that's the team's to solve ([judgment #1](../../AGENTS.md)). The story is a
-promise to have a conversation, not a spec handed down. If you're describing how
-to build it, you've stopped being a PM and started being a worse engineer than
-the ones you have.
+promise to have a conversation, not a spec handed down.
 
 ### 2. Acceptance criteria make "done" testable and shared
 
@@ -31,8 +29,11 @@ their last 10 orders sorted by date; tapping one pre-fills a reorder"), they
 become three things at once: the team's definition of done, the list [qa's
 `test-design`](../../../qa/skills/test-design/SKILL.md) derives coverage from, and the states [ux-ui's `ux-flows`](../../../ux-ui/skills/ux-flows/SKILL.md)
 must design (empty, error, overflow included — a story with only the happy-path
-criterion is a fifth of a story). Fuzzy criteria are where "done" becomes an
-argument.
+criterion is a fifth of a story). Give them a shape the team can read the same
+way twice — Given / When / Then, or a table of examples — and include the
+criteria that are not features: the response time, the accessibility floor,
+the security floor. A story that omits those doesn't skip them; it ships them
+as surprises. Fuzzy criteria are where "done" becomes an argument.
 
 ### 3. Slice vertically — thin, valuable, shippable
 
@@ -47,32 +48,28 @@ epic wearing a costume; split it.
 
 ### 4. Prioritize by impact × confidence ÷ effort — and decide
 
-Rank by outcome impact, weighted by how confident you are it'll work, against
-the effort to build (get the effort number from the team, not your imagination).
-Frameworks (RICE, value-vs-effort, opportunity scoring) are aids, not oracles —
-they organize the judgment, they don't replace it. The point is a RANKED list
-with a clear top, not a tagged pile where everything is "high". And you commit
-to the ranking: a priority you won't defend against the next shiny request isn't
-a priority.
+Judgment #3 as arithmetic: outcome impact, weighted by confidence it will
+work, against the effort to build — the effort number comes from the team, not
+your imagination. Frameworks (RICE, value-vs-effort, opportunity scoring)
+organize the judgment; they don't replace it. The output is a RANKED list with
+a clear top, defended against the next shiny request.
 
 ### 5. The backlog is a garden, not a landfill
 
-An infinite backlog is a decision you're avoiding. Ruthlessly prune: ideas that
-won't make the top in any realistic future get archived, not "kept just in
-case". A tight backlog everyone can see and understand beats a 400-item list
-nobody reads. Same discipline as the [visionary's focus](../../../visionary/skills/focus/SKILL.md)
-— saying no to good ideas is the job, and an unpruned backlog is a thousand
-un-said noes rotting in a spreadsheet.
+An infinite backlog is a decision you're avoiding. Ideas that won't make the
+top in any realistic future get archived, not "kept just in case"; the
+discipline is the [visionary's focus](../../../visionary/skills/focus/SKILL.md),
+and an unpruned backlog is a thousand un-said noes rotting in a spreadsheet.
 
 ### 6. The roadmap is problems and outcomes, not dated features
 
-Communicate direction as the problems you'll tackle and the outcomes you're
-after, ordered by rough horizon (now / next / later) — not a Gantt chart of
-features with false-precision dates. This keeps commitment to the OUTCOME while
-leaving the SOLUTION flexible (you might solve it differently than imagined),
-and it's honest about uncertainty (later is genuinely fuzzy). Feature-and-date
-roadmaps become broken promises the moment reality moves; outcome roadmaps bend
-without breaking trust.
+Judgment #2 as an artifact: direction is the problems you'll tackle and the
+outcomes you're after, ordered by rough horizon — now / next / later — so the
+commitment is to the OUTCOME and the solution stays flexible. Horizons are
+yours; dates are [eng-manager](../../../eng-manager/AGENTS.md)'s, and a roadmap
+with dates on it is a delivery plan wearing your name. Feature-and-date
+roadmaps become broken promises the moment reality moves; outcome roadmaps
+bend without breaking trust.
 
 ## Resources
 

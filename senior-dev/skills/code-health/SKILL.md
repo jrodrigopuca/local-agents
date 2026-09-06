@@ -16,20 +16,14 @@ metadata:
 
 ### 1. Clean code = the next reader understands it without you
 
-That's the whole definition; everything else derives from it:
-
-- **Names carry the intent**: a function name says what it does at the caller's
-  level of abstraction; a variable name makes the type annotation almost
-  redundant. If naming something is hard, the design is usually wrong — the
-  naming difficulty is the diagnostic, don't paper over it.
-- **One reason to change per unit**: functions do one thing at one level of
-  abstraction; a function that needs "and" in its honest name wants splitting.
-- **Comments explain WHY, never WHAT**: a comment describing what the next line
-  does is an apology for unclear code — fix the code. Comments earn their place
-  stating constraints the code can't express (why NOT the obvious approach,
-  invariants, links to the decision).
-- **Nesting is cost**: early returns and guard clauses over `else` pyramids.
-- **Dead code gets deleted, not commented out** — git remembers.
+That's the whole definition, and the clean-code canon (names, one reason to
+change, guard clauses, no dead code) follows from it without needing a list
+here. Two diagnostics are worth keeping because they catch design, not style:
+if naming something is HARD, the design is usually wrong — the naming
+difficulty is the finding, don't paper over it; and a comment that explains
+WHAT the next line does is an apology for unclear code, while one that states
+a constraint the code can't express (why NOT the obvious approach, an
+invariant, the decision's link) is the only kind that earns its place.
 
 ### 2. The boy scout rule — scoped to the diff
 
@@ -38,7 +32,10 @@ function, a deleted dead branch. But "better" stays INSIDE the task's blast
 radius — improving lines you're already changing is hygiene; rewriting the
 module you passed through is scope creep (flag it, per the
 [peer contract](../../AGENTS.md)). The test: would the reviewer see the cleanup
-as part of this change, or as a second change hiding in the diff?
+as part of this change, or as a second change hiding in the diff? When it is
+its own change, it gets its own commit inside the same PR — that is how this
+rule and "never refactor and change behavior in one commit" (#6) coexist: same
+review, separate diffs.
 
 ### 3. Debt is a loan, not a sin — but only when it's taken consciously
 

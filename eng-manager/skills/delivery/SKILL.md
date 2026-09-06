@@ -14,19 +14,15 @@ metadata:
 
 ### 1. Slice into small, independently shippable pieces
 
-Break work so each piece delivers value and can ship on its own, vertical not
-horizontal ([decomposition](../../../generalist/skills/decomposition/SKILL.md)
-applied to delivery). Small batches flow predictably and surface problems early;
-big-bang deliverables hide risk until the end where it detonates. The unit of
-planning is "a thing a user or the next stage can actually use", not "a layer".
+[Decomposition](../../../generalist/skills/decomposition/SKILL.md) applied to
+delivery: the unit of planning is "a thing a user or the next stage can
+actually use", never "a layer". Small batches surface problems early;
+big-bang deliverables hide risk until the end, where it detonates.
 
 ### 2. Limit work in progress — finishing beats starting
 
-The counterintuitive lever: to deliver faster, start less. Too many things in
-flight means everything is 80% done and nothing ships, plus the context-switch
-tax on every switch. Cap concurrent work; pull the next item only when one
-finishes. A wall of in-progress is a wall of unrealized value and hidden risk —
-"almost done" ten times is done zero times.
+Judgments #4 and #5 as a rule of operation: cap concurrent work, pull the next
+item only when one finishes. "Almost done" ten times is done zero times.
 
 ### 3. Estimate honestly — include the invisible work
 
@@ -36,7 +32,11 @@ misses. Include them. Prefer ranges over false-precision single numbers, and
 prefer relative sizing over hero-hour guesses. When pressed for a date on
 something genuinely uncertain, the honest answer names the uncertainty ("2-4
 days depending on whether the API supports X — I'll know after a half-day
-spike") rather than a confident wrong number.
+spike") rather than a confident wrong number. When the team is a roster of
+agents, the unit is not days but runs and verification steps, and the
+invisible work is the verification run and the integration of what each
+specialist returned — an estimate that counts only the generation is the same
+fiction in a different currency.
 
 ### 4. Attack the riskiest unknown first
 
@@ -44,26 +44,26 @@ Sequence work so the thing most likely to break the plan gets tested EARLY
 (the [load-bearing unknown (`decomposition`)](../../../generalist/skills/decomposition/SKILL.md)).
 Doing the easy, comfortable parts first and leaving the scary integration for
 the end is how projects look 90% done for 90% of the timeline and then slip. A
-spike to de-risk the unknown is the cheapest schedule insurance there is.
+spike to de-risk the unknown is the cheapest schedule insurance there is. And
+map the dependencies before sequencing anything: the critical path is the
+chain where a slip propagates to the end date; everything off it can wait at
+no cost, and everything on it is where the attention goes.
 
 ### 5. Track truth: done / in-progress / blocked / at-risk
 
-Status is four honest buckets, not a percentage that always says "on track
-until suddenly it isn't". **Done** means verified done (rung 3+), not
-"code written". **Blocked** is a call to action — surface it loud. **At-risk**
-is the early warning that earns trust: raised the moment you see the slip
-forming, not confessed at the deadline. Green-shifting reality is the one thing
-that destroys a manager's usefulness ([judgment #7](../../AGENTS.md)).
+Judgment #7's mirror, as a format: four buckets, never a percentage.
+**Done** means verified done (rung 3+), not "code written". **Blocked** is a
+call to action — surface it loud. **At-risk** is the early warning that earns
+trust: raised the moment the slip forms, not confessed at the deadline.
 
 ### 6. Protect scope with a parking lot, cut scope before quality or date
 
-Scope creep is the default failure mode — every "small addition" is a schedule
-change in disguise. Hold a visible parking lot: new ideas get named and
-deferred, not silently absorbed. When something has to give (and it will), the
-order matches the [visionary's `focus`](../../../visionary/skills/focus/SKILL.md):
-cut scope first (ship fewer things, whole), move the date second, sacrifice
-quality never. "Descope to hit the date with something great" is a plan;
-"cram it all in and hope" is how death marches start.
+Every "small addition" is a schedule change in disguise: hold a visible
+parking lot where new ideas get named and deferred, not silently absorbed.
+When something has to give, the order of sacrifice is the
+[visionary's `focus`](../../../visionary/skills/focus/SKILL.md) #4 — scope,
+then date, quality never — and "cram it all in and hope" is how death marches
+start.
 
 ## Resources
 
