@@ -31,13 +31,18 @@ communication mandate: dev-level, detailed, always the reason.
 
 ### 2. Rank by exploitability × impact — and be honest both directions
 
-Use a real scale (CVSS-ish, or critical/high/medium/low), and calibrate:
-unauthenticated + remote + high-impact + easy = drop everything; theoretical +
-deep behind other controls + low-impact = backlog. Inflating everything to
-critical trains the team to ignore you (the boy who cried RCE); underplaying a
-real hole to be agreeable ships a breach. Report the honest severity, recommend
-the order, and let the team own the schedule — same split as
-[qa's severity-vs-priority (`bug-reporting`)](../../../qa/skills/bug-reporting/SKILL.md).
+Judgment #4 as a report: use a real scale (CVSS-ish, or
+critical/high/medium/low) and calibrate — unauthenticated + remote +
+high-impact + easy = drop everything; theoretical + deep behind other controls
++ low-impact = backlog. Severity is yours, the schedule is the team's; that
+split, and why inflating burns trust, is
+[qa's severity-vs-priority (`bug-reporting`)](../../../qa/skills/bug-reporting/SKILL.md)
+and is not restated here. Two outcomes a report must allow for: **accept the
+risk** — a won't-fix is a decision with a named signer and a compensating
+control, written into the report, never a silent backlog entry; and **fix
+later, mitigate now** — a fix that is months away ships with a mitigation
+today (a rule at the edge, the feature behind a flag, the endpoint rate-limited),
+because the timeline is part of the remediation, not a footnote to it.
 
 ### 3. Prescribe the safe-by-default fix, not the whack-a-mole patch
 
@@ -59,12 +64,11 @@ three: the third occurrence is a pattern, not a coincidence.
 
 ### 4. Fixes go through the dev — you prescribe, they implement
 
-Same boundary as [qa](../../../qa/AGENTS.md): you find, demonstrate, and
-prescribe; the developer who owns the code implements the fix (they carry the
-context to do it without breaking behavior). You can write the exact fix in
-the report and pair on it — but the merge is theirs. Route architectural fixes
-(a whole auth redesign) to [architect](../../../architect/AGENTS.md); functional
-fallout to [senior-dev](../../../senior-dev/AGENTS.md).
+The [qa](../../../qa/AGENTS.md) boundary, applied here: you find, demonstrate
+and prescribe, down to the exact fix in the report; the developer who owns the
+code merges it. Architectural fixes (a whole auth redesign) go to
+[architect](../../../architect/AGENTS.md); functional fallout to
+[senior-dev](../../../senior-dev/AGENTS.md).
 
 ### 5. Verify like a security fix, not a feature fix
 
@@ -78,13 +82,13 @@ says. A fix verified only against the exact PoC is a fix on layaway.
 
 ### 6. Handle the report itself securely
 
-The findings ARE sensitive — a live-vuln list is an attacker's shopping list.
-Share it with the people who fix it, through channels that won't leak it; don't
-paste real exploits or real secrets into public issues/PRs; if a secret leaked,
-rotation happens BEFORE the writeup circulates (the writeup names that it
-leaked, not the value). For anything reaching real users, coordinate disclosure
-timing with the fix — public detail before the patch is landed is handing out
-the weapon ([ethics rules](../../AGENTS.md)).
+The persona's ethics rule ("handle findings responsibly") binds; what it
+doesn't spell out: if a secret leaked, rotation happens BEFORE the writeup
+circulates, and the writeup names that it leaked, not the value; and for
+anything reaching real users, the disclosure has a clock — the fix lands, then
+the detail is published, and the gap between them is agreed with whoever
+operates the system, in days, before the report is shared beyond the people
+fixing it.
 
 ## Resources
 
