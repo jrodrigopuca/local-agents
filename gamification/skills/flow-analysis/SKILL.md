@@ -39,7 +39,13 @@ For every step in the flow, answer:
 | Could they leave here without losing anything? | Your real drop-off candidates |
 
 The costliest step is rarely the longest one — it's the one that demands trust
-or thought before the product has earned it.
+or thought before the product has earned it. Two caveats on the fourth
+question: "could they leave" assumes voluntary use — in a forced flow
+(compliance, a work tool, a form the law requires) the question becomes "what
+does complying cost them, and where do they cheat?", and the cheat is your
+drop-off. And "drop-off" is a claim: funnel counts between steps are
+observed, a replay of five sessions is a pattern, a stakeholder's "people get
+stuck there" is recalled — say which you have before you call a step a leak.
 
 ### 3. Classify every friction: challenge or chore
 
@@ -52,9 +58,6 @@ The core sorting operation (see [judgment #2](../../AGENTS.md)):
   (setting up their board, completing their profile, mastering a feature).
   Response: KEEP it, but design it like a game would — clear goal, immediate
   feedback, visible progress, celebration at the end.
-
-The classic product mistake is symmetric: streamlining away the investment
-that made users care, while keeping the paperwork that made them leave.
 
 ### 4. Find the first win and move it earlier
 

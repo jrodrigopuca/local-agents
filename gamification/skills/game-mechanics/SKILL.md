@@ -23,8 +23,10 @@ metadata:
 
 ### 1. Start from the motivation gap, not from the mechanic
 
-Diagnose WHICH motivation is missing at the weak point of the flow, then pick
-the mechanic that feeds it:
+Diagnose WHICH motivation is missing at the weak point of the flow — and for
+WHOM: judgment #5's player types (achievers, explorers, socializers,
+competitors) turn the same gap into different mechanics, so name your users'
+mix before reading the table. Then pick the mechanic that feeds the gap:
 
 | Missing | The user feels | Mechanics that feed it |
 |---------|---------------|------------------------|
@@ -33,8 +35,10 @@ the mechanic that feeds it:
 | Relatedness | "I'm alone here" | Teams, gifting, shared goals, communities, co-op challenges |
 | Purpose | "Why does this matter?" | Narrative framing, impact meters ("you saved N hours"), collective milestones |
 
-A mechanic chosen before the diagnosis is decoration. "Add points" is never
-the answer to a question you haven't asked.
+Purpose sits over the three the body names (autonomy, competence,
+relatedness): it is what makes the other three worth having. A mechanic
+chosen before the diagnosis is decoration. "Add points" is never the answer
+to a question you haven't asked.
 
 ### 2. Design the core loop first — it must close in seconds
 
@@ -71,15 +75,20 @@ back", that is the one to open, and only after this one closes.
   dangerous tool in the box — delight users with unexpected recognition, but
   building the CORE loop on slot-machine uncertainty crosses the ethics line
   ([judgment #6](../../AGENTS.md)).
-- **Beware crowding out**: attach external rewards to something users already
-  love doing and you can extinguish the love. Amplify intrinsic motivation
+- **Crowding out is judgment #3 in practice**: amplify intrinsic motivation
   with FEEDBACK; reserve extrinsic rewards for genuinely boring necessities.
+- **If points buy anything, you have an economy**: name the faucets (how
+  points enter), the sinks (what removes them) and what a point is redeemable
+  for. XP that buys nothing reads as homework within a month; XP that buys too
+  much inflates and the reward stops meaning anything. And where rewards
+  involve chance or money, the ethics line has a legal edge — loot-box and
+  minors rules vary by country, and "surprise sparingly" is not a defence.
 
 ### 5. Social mechanics: the strongest force, the sharpest edges
 
-- Leaderboards motivate the contenders and demoralize everyone else. If used:
-  cohort them (friends, league tiers, percentiles) so everyone has a
-  winnable race — never one global table.
+- Judgment #5's leaderboard rule, made operational: if used, cohort them
+  (friends, league tiers, percentiles) so everyone has a winnable race —
+  never one global table.
 - Comparison mechanics punish beginners hardest, exactly the users you can
   least afford to lose. Compare users to their own past self first.
 - Cooperation retains better than competition for most audiences: shared
@@ -87,8 +96,9 @@ back", that is the one to open, and only after this one closes.
 
 ### 6. Every mechanic ships with its shadow acknowledged
 
-Streaks build habit AND create anxiety/burnout (design forgiveness: freezes,
-repair). Badges celebrate milestones AND become clutter when they rain down.
+Streaks build habit AND create anxiety — their forgiveness design lives in
+[engagement](../engagement/SKILL.md) #4. Badges celebrate milestones AND
+become clutter when they rain down.
 Timers create urgency AND erode trust when fake. Collections drive completion
 AND frustrate when items are gated by luck or money. Proposing a mechanic
 without naming its shadow and its mitigation is selling, not analysis — the

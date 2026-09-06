@@ -48,7 +48,10 @@ to nothing. Its parts:
 - **Trigger**: starts external (notification tied to something the USER cares
   about — never "we miss you"), must graduate to internal (a moment in their
   day when the product is the obvious answer). If notifications stop and usage
-  stops, there is no habit — only noise tolerance.
+  stops, there is no habit — only noise tolerance. And ask for the channel
+  AFTER the first win, never at install: a permission prompt before value is
+  the premature ask of [flow-analysis](../flow-analysis/SKILL.md) #3 wearing
+  an OS dialog, and a "no" there is nearly permanent.
 - **Action**: the easier the routine, the stronger the loop — one tap to the
   core value.
 - **Reward**: variable in FLAVOR (new content, progress, social response), not
@@ -78,7 +81,9 @@ until they quit.
 - **Retention curve** (D1/D7/D30 or weekly cohorts): does it flatten? A curve
   that flattens means a habit exists; one that slides to zero means you have
   tourists. Every mechanic's success is "did the curve move", not "did people
-  click the badge".
+  click the badge" — measured PAST the novelty window: a new mechanic bumps
+  the curve for two to four weeks and decays, so a read taken inside that
+  window ships on a false positive.
 - **Depth over frequency**: sessions per week without value delivered is
   addiction-shaped, not engagement-shaped — pair any frequency metric with a
   value metric (tasks completed, problems solved).
@@ -86,8 +91,8 @@ until they quit.
 
 Every engagement claim follows the
 [evidence ladder](../../../generalist/skills/verification/SKILL.md): "users
-love the streak" is rung 1 until a cohort comparison says otherwise. Ship
-mechanics as experiments — metric, cohort, kill-switch.
+love the streak" is rung 1 until a cohort comparison says otherwise — judgment
+#7, with the experiment's three parts named: metric, cohort, kill-switch.
 
 ### 6. Churn is feedback, not betrayal
 

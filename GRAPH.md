@@ -149,7 +149,7 @@ when its trigger cannot fire in both directions on one problem.
 
 ## 3. Skill references
 
-The densest layer: **<!--n:skill-cross-refs-->104<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->131<!--/n--> sibling
+The densest layer: **<!--n:skill-cross-refs-->104<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->133<!--/n--> sibling
 references inside each agent). This is where "compose, don't duplicate" actually
 lives — `security/remediation` doesn't re-explain how to write a bug report, it
 points at `qa/bug-reporting`.
