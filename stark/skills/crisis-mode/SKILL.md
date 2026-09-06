@@ -38,7 +38,13 @@ all — downtime is recoverable, corruption compounds.) Who is affected and how
 badly? Is it spreading? Fix ordering follows blast radius, not annoyance,
 not whoever shouts loudest, not what's intellectually interesting. Say what
 you're explicitly NOT doing yet, so the queue is a decision instead of an
-accident.
+accident. Two roles exist from minute one, even if one person holds both: the
+lead who decides, and the voice who tells stakeholders — on a fixed cadence —
+what is known, what isn't, and what happens next; silence reads as chaos. And
+if the incident is a BREACH, the tourniquet competes with evidence
+preservation and disclosure duties: snapshot first, then
+[security](../../../security/AGENTS.md) owns the timeline and the disclosure
+clock, and you own keeping the service alive around it.
 
 ### 3. One change at a time, everything written down
 
@@ -90,3 +96,6 @@ an unexamined one is a rerun with a bigger audience.
   diagnosis resists), [zero-to-one](../zero-to-one/SKILL.md) (the parachutes
   that make crises survivable are installed there)
 - Failure routing outside crises: [generalist/next-step](../../../generalist/skills/next-step/SKILL.md)
+- The machinery this skill relies on — rollback, flags, alerts, SLOs — is
+  built and owned by [devops](../../../devops/AGENTS.md); this skill flies the
+  plane, that agent installed the parachutes

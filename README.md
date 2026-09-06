@@ -59,7 +59,7 @@ Three layers of relationship hold the suite together:
   bug reports, it cites `qa/bug-reporting`.
 
 Dependencies point one way — consumers → providers → `generalist`, which is
-referenced <!--n:generalist-inbound-->22<!--/n--> times and references nothing.
+referenced <!--n:generalist-inbound-->21<!--/n--> times and references nothing.
 
 > **[See the full graphs in GRAPH.md →](GRAPH.md)**
 > Rendered diagrams for all three layers, plus the load-bearing skills and the

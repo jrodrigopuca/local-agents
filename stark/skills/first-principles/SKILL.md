@@ -28,7 +28,10 @@ constraint) or **sediment** (policy, habit, "we've always", someone's
 preference, an assumption nobody re-checked). Most impossible problems are
 possible once two pieces of sediment get deleted. The question that does the
 work: "what would have to be true for this constraint to NOT apply?" — then
-check whether it already is.
+check whether it already is. And when the sort finds only bedrock — nothing
+deletable — that is a finding too: the problem is real as stated, and the
+move is to negotiate the requirement with whoever owns it or to optimize
+inside it, not to keep digging for a loophole that isn't there.
 
 ### 2. Find the real problem behind the stated one
 
@@ -55,14 +58,13 @@ until one makes the answer obvious:
 - **Shrink it**: solve the 3-item toy version by hand, watch what your own
   brain does, then mechanize that.
 
-### 4. Steal the solution from whoever already has it
+### 4. Steal the solution from whoever already has it — by naming the shape
 
-Name the SHAPE of the problem (too many requests → queueing; unreliable parts
-→ redundancy; unknown quality → sampling; contention → auctions/locks; slow
-feedback → pipelining) and ask who else has that shape: other software
-domains, logistics, biology, casinos, air traffic control. Ninety percent of
-"novel" engineering problems are somebody's Tuesday. Search for the pattern
-before inventing it — invention is for the 10% remainder, and it's more fun
+Judgment #4, made operational: the search key is the problem's SHAPE, not its
+domain. Too many requests → queueing; unreliable parts → redundancy; unknown
+quality → sampling; contention → auctions and locks; slow feedback →
+pipelining; conflicting writers → consensus. Name the shape, then ask who else
+has it. Invention is for the remainder that no shape fits, and it's more fun
 when it's actually warranted.
 
 ### 5. When still stuck: brute force first, clever later
@@ -70,9 +72,8 @@ when it's actually warranted.
 A dumb solution that works recalibrates the whole problem: hardcode it, do it
 by hand once, O(n²) it over the real data. Now you know it's POSSIBLE, you've
 felt the actual shape of the work, and "make it good" is a refactor instead
-of a moonshot. The order is always: make it work → make it right → make it
-fast — and phase one is allowed to be embarrassing
-([build to think](../../AGENTS.md), judgment #2).
+of a moonshot. Make it work → make it right → make it fast, and phase one is
+allowed to be embarrassing ([build to think](../../AGENTS.md), judgment #2).
 
 ### 6. Timebox the genius, then ask for eyes
 

@@ -169,13 +169,13 @@ flowchart LR
 ```
 
 That direction is the catalog practising what `architect` preaches: dependencies
-point inward toward stable things. `generalist` is referenced <!--n:generalist-inbound-->22<!--/n--> times and
+point inward toward stable things. `generalist` is referenced <!--n:generalist-inbound-->21<!--/n--> times and
 references nothing — it's the innermost ring. The three consumers are leaves.
 
 <!-- BEGIN:refcounts -->
 | Agent | Referenced by others | References others |
 |-------|---------------------:|------------------:|
-| `generalist` | **22** | 0 |
+| `generalist` | **21** | 0 |
 | `senior-dev` | 15 | 3 |
 | `architect` | 14 | 1 |
 | `ux-ui` | 9 | 2 |
@@ -188,8 +188,8 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 | `eng-manager` | 2 | 6 |
 | `dba` | 2 | 9 |
 | `data-ml` | 2 | 13 |
+| `product-manager` | 1 | 15 |
 | `apple-dev` | 0 | 13 |
-| `product-manager` | 0 | 15 |
 <!-- END:refcounts -->
 
 ### The load-bearing skills
@@ -249,7 +249,7 @@ flowchart LR
 
 ### Skills with no cross-agent consumers
 
-<!--n:orphan-skills-->14<!--/n--> of the <!--n:skills-->48<!--/n--> skills are referenced only inside their own agent. That is not
+<!--n:orphan-skills-->13<!--/n--> of the <!--n:skills-->48<!--/n--> skills are referenced only inside their own agent. That is not
 automatically a defect — `apple-dev/shipping` (App Store, notarization) is
 genuinely domain-bound. But `security/threat-modeling` and
 `ux-ui/visual-craft` are general enough that nobody citing them is worth a look.
@@ -261,7 +261,7 @@ data-ml/         ml-modeling
 dba/             query-performance
 eng-manager/     orchestration · team-health
 gamification/    game-mechanics
-product-manager/ backlog · discovery · stakeholders
+product-manager/ backlog · stakeholders
 ux-ui/           visual-craft
 visionary/       inspire
 ```
