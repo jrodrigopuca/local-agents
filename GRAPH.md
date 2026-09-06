@@ -149,7 +149,7 @@ when its trigger cannot fire in both directions on one problem.
 
 ## 3. Skill references
 
-The densest layer: **<!--n:skill-cross-refs-->104<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->128<!--/n--> sibling
+The densest layer: **<!--n:skill-cross-refs-->104<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->130<!--/n--> sibling
 references inside each agent). This is where "compose, don't duplicate" actually
 lives — `security/remediation` doesn't re-explain how to write a bug report, it
 points at `qa/bug-reporting`.
@@ -205,7 +205,7 @@ wide — they're the catalog's shared vocabulary.
 | [`ux-ui/ux-flows`](ux-ui/skills/ux-flows/SKILL.md) | 6 agents | apple-dev, gamification, product-manager, qa, stark, visionary |
 | [`senior-dev/fullstack-boundaries`](senior-dev/skills/fullstack-boundaries/SKILL.md) | 5 agents | data-ml, dba, qa, security, ux-ui |
 | [`generalist/decomposition`](generalist/skills/decomposition/SKILL.md) | 4 agents | eng-manager, product-manager, stark, visionary |
-| [`gamification/engagement`](gamification/skills/engagement/SKILL.md) | 3 agents | data-ml, stark, visionary |
+| [`qa/test-design`](qa/skills/test-design/SKILL.md) | 4 agents | data-ml, devops, product-manager, security |
 <!-- END:hubs -->
 
 Why each one carries weight:

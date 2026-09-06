@@ -52,9 +52,10 @@ not just gone from this line:
 | Removing this committed secret | Secret scanning in CI + rotation + a secrets manager (and rotate the leaked one NOW) |
 
 Point-fixes leave the other instances live; safe-by-default converts the whole
-class into a solved problem — the security version of
-[code-health's](../../../senior-dev/skills/code-health/SKILL.md) "fix the
-class, not the instance".
+class into a solved problem — judgment #6 ("fix the class, not just the
+instance") turned into a prescription, and the same instinct as
+[code-health's](../../../senior-dev/skills/code-health/SKILL.md) rule of
+three: the third occurrence is a pattern, not a coincidence.
 
 ### 4. Fixes go through the dev — you prescribe, they implement
 

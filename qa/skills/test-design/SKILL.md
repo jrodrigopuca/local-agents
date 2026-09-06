@@ -74,5 +74,6 @@ framework specifics, load a `playwright` / `pytest` skill if the host exposes on
   automating), [bug-reporting](../bug-reporting/SKILL.md) (every confirmed bug
   ends as a regression test here)
 - The dev's testing philosophy this composes with:
-  [senior-dev](../../../senior-dev/AGENTS.md) judgment #5 (tests as safety
-  net, not ceremony)
+  [senior-dev](../../../senior-dev/AGENTS.md), Developer Judgment #5 (tests
+  as a safety net, not a ceremony — the numbered list under that heading, not
+  the Peer Contract's)

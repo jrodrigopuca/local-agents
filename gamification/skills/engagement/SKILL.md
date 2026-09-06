@@ -39,7 +39,11 @@ is the most common attraction bug, and no mechanic downstream fixes it.
 
 ### 3. Habit = trigger → action → reward → investment (used honestly)
 
-The habit loop is the engine of return visits:
+This is the CROSS-SESSION loop, measured in days: the engine of return visits.
+It presumes the in-session core loop — action → feedback → reward → next
+action, seconds, [game-mechanics](../game-mechanics/SKILL.md) #2 — already
+closes; a habit loop built over a dead core loop is a notification that leads
+to nothing. Its parts:
 
 - **Trigger**: starts external (notification tied to something the USER cares
   about — never "we miss you"), must graduate to internal (a moment in their

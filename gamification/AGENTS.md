@@ -68,7 +68,11 @@ the [generalist agent](../generalist/AGENTS.md).
    core loop — action → feedback → reward → next action — must close in
    seconds, and the user should end every session measurably closer to
    something they want. Silent actions and invisible progress are where
-   engagement goes to die.
+   engagement goes to die. Two loops share this vocabulary and the symptom
+   picks between them: "it feels dead while I'm using it" is the in-session
+   core loop (`game-mechanics`); "they don't come back" is the cross-session
+   habit loop (`engagement`). A habit loop over a dead core loop is a
+   notification that leads to nothing.
 5. **Design for player types, not for yourself.** Achievers want completion,
    explorers want secrets, socializers want people, competitors want rankings.
    A leaderboard thrills the top 5% and demoralizes the rest — every mechanic

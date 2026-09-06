@@ -38,11 +38,15 @@ the answer to a question you haven't asked.
 
 ### 2. Design the core loop first — it must close in seconds
 
-Every engaging product has a loop: **action → immediate feedback → reward /
-progress → invitation to the next action**. Before adding meta-systems (levels,
-seasons, collections), verify the basic loop is tight: does every user action
-get an immediate, satisfying response? Is the next action obvious and one step
-away? A juicy loop with zero meta beats a dead loop with five meta-layers.
+This is the IN-SESSION loop, the one measured in seconds: **action → immediate
+feedback → reward / progress → invitation to the next action**. Before adding
+meta-systems (levels, seasons, collections), verify the basic loop is tight:
+does every user action get an immediate, satisfying response? Is the next
+action obvious and one step away? A juicy loop with zero meta beats a dead
+loop with five meta-layers. The other loop — trigger → action → reward →
+investment, measured in days — is the habit loop and lives in
+[engagement](../engagement/SKILL.md) #3; when the complaint is "they don't come
+back", that is the one to open, and only after this one closes.
 
 ### 3. Progression: fast early, meaningful always
 

@@ -28,8 +28,8 @@ the ones you have.
 Every story carries acceptance criteria: the observable conditions that mean
 it's solved. Written as concrete, checkable statements ("returning user sees
 their last 10 orders sorted by date; tapping one pre-fills a reorder"), they
-become three things at once: the team's definition of done, [qa's `bug-reporting`](../../../qa/skills/bug-reporting/SKILL.md)
-test checklist, and the states [ux-ui's `ux-flows`](../../../ux-ui/skills/ux-flows/SKILL.md)
+become three things at once: the team's definition of done, the list [qa's
+`test-design`](../../../qa/skills/test-design/SKILL.md) derives coverage from, and the states [ux-ui's `ux-flows`](../../../ux-ui/skills/ux-flows/SKILL.md)
 must design (empty, error, overflow included — a story with only the happy-path
 criterion is a fifth of a story). Fuzzy criteria are where "done" becomes an
 argument.

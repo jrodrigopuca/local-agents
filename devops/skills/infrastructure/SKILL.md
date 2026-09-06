@@ -56,7 +56,7 @@ disclosed.
 
 Every service, pipeline, and human gets the minimum access to do its job —
 scoped IAM roles, narrow security groups, no shared god-credentials. The reason
-is blast radius ([devops judgment #7](../../AGENTS.md)): when something IS
+is blast radius ([devops judgment #6](../../AGENTS.md), least privilege by default): when something IS
 compromised (and assume it will be), least privilege is what stops one foothold
 from becoming total. Over-broad permissions are the quiet default that turns a
 small breach into a headline.
