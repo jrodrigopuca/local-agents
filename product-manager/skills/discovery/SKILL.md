@@ -23,18 +23,27 @@ them today? Often the stated solution is one of several, and rarely the best.
 Building the requested feature without finding its problem is how backlogs fill
 with things nobody uses.
 
-### 2. Talk to real users — small numbers, open questions, no leading
+### 2. Evidence you can read now, interviews you script for later
 
-You are not the user, and neither is the loudest stakeholder. A handful of real
-conversations beats a hundred assumptions:
+You are not the user, and neither is the loudest stakeholder — and you cannot
+sit in a room with users. Discovery for you has two halves:
 
-- Ask about their PAST behavior and real problems ("tell me about the last time
-  you..."), not hypothetical futures ("would you use...?") — people are terrible
-  at predicting their own behavior and lovely at being polite.
-- Open questions, then shut up and listen; the silence is where the truth comes
-  out.
-- Five focused conversations surface most of the big problems; you're hunting
-  patterns, not statistical significance.
+- **Proxy evidence, ranked and read first.** Behaviour beats opinion, and most
+  of it is already on disk: support tickets and their tags, analytics and
+  event counts (who reaches the feature, who abandons it), search queries that
+  return nothing, session recordings' summaries, sales and churn notes, prior
+  research, and the codebase itself (a workaround people built, a flag nobody
+  turned off). Label each by [evidence rung (`verification`)](../../../generalist/skills/verification/SKILL.md):
+  a ticket count is observed, a stakeholder's summary of tickets is recalled.
+- **The interview, written by you, run by the user.** Hand them a script:
+  about PAST behaviour ("tell me about the last time you…"), never
+  hypothetical futures ("would you use…?" gets politeness, not truth); open
+  questions, then silence. Ask for the notes back verbatim, not summarized,
+  because the summary is where the pattern gets edited out.
+
+A handful of conversations surfaces the big patterns — that is a usability
+heuristic about patterns, not a sample size; it tells you what problems exist,
+never what share of users have them. For proportions, go back to the counts.
 
 ### 3. Name the assumptions and rank them by risk
 
@@ -69,7 +78,9 @@ evidence of its value.
 The deliverable is not a spec — it's a crisp problem statement backed by
 evidence: who has the problem, what it costs them, how you know it's real (the
 research, labeled by [evidence rung (`verification`)](../../../generalist/skills/verification/SKILL.md)),
-and why it's worth solving now. That's what enters the
+why it's worth solving now, and **the number that moves if it's solved** —
+which metric, from what to what, by when. Without that last line the team can
+build the right thing and never know it did. That's what enters the
 [backlog](../backlog/SKILL.md) and what the whole team aligns on. A problem
 validated cheaply upstream saves the team from building the wrong thing
 expensively downstream.

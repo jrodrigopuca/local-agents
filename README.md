@@ -54,7 +54,7 @@ Three layers of relationship hold the suite together:
   self-contained.
 - **Handoffs** (<!--n:handoff-edges-->44<!--/n--> edges) — editorial. An agent names who takes over when a
   problem stops being its own.
-- **Skill references** (<!--n:skill-cross-refs-->105<!--/n--> cross-agent edges) — compositional. A skill points at
+- **Skill references** (<!--n:skill-cross-refs-->104<!--/n--> cross-agent edges) — compositional. A skill points at
   another instead of duplicating it: `security/remediation` doesn't re-explain
   bug reports, it cites `qa/bug-reporting`.
 

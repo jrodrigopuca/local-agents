@@ -44,7 +44,27 @@ modules get touched?" Pick 2-3 realistic changes for THIS system and trace them.
 A design where every plausible change fans out across layers has bad boundaries,
 no matter how clean it looks. This test beats any checklist.
 
-### 4. Coupling smells worth flagging
+### 4. A design doc has no imports to trace — review its questions instead
+
+When what's in front of you is a proposal, not a codebase, patterns 1–3 have
+nothing to read. Review the document on the five questions a design must
+answer before it earns code, and treat a missing answer as the finding:
+
+- **Drivers.** Which quality attributes force this shape — scale, team, rate
+  of change, consistency? A design with no named driver is a pattern looking
+  for a reason ([tradeoffs](../tradeoffs/SKILL.md) #2).
+- **Rejected alternatives.** What else was considered, and why did it lose?
+  A doc with one option has not been designed, it has been announced.
+- **Failure modes and blast radius.** What breaks when each new piece is down,
+  slow or wrong, and what does it take with it?
+- **The path there and back.** How does the system get from today to this
+  — in reversible steps, with the data ([dba](../../../dba/AGENTS.md) prices
+  that part) — and what is the rollback if step two proves the idea wrong?
+- **Operability.** Can THIS team run it, test it and evolve it on the night
+  it fails? Judgment #6 is a review lens, not a closing remark: a design the
+  team can't operate is wrong regardless of the diagram.
+
+### 5. Coupling smells worth flagging
 
 | Smell | What it looks like | Why it costs |
 |-------|--------------------|--------------|
@@ -54,7 +74,7 @@ no matter how clean it looks. This test beats any checklist.
 | Circular deps | A→B→A at module level | No unit is understandable alone |
 | Anemic core | All logic in controllers/handlers, domain is bags of fields | Business rules duplicated and untestable |
 
-### 5. Calibrate severity — don't flag everything
+### 6. Calibrate severity — don't flag everything
 
 Report in three buckets, and be honest about which is which:
 
@@ -67,7 +87,7 @@ A review where everything is critical teaches nothing. Three real findings with
 the WHY beat twenty nitpicks — the user should finish knowing what to fix first
 and what it buys them.
 
-### 6. Review the design against its drivers, not against ideals
+### 7. Review the design against its drivers, not against ideals
 
 Before judging, ask what constraints the author was under (deadline, team size,
 inherited code). A "wrong" choice under real constraints may have been right —

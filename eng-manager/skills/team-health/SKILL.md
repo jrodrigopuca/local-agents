@@ -50,22 +50,29 @@ not the default operating mode. A team (or an agent pipeline) run permanently
 hot has a planning problem wearing an effort costume — the fix is upstream, in
 scope and WIP, not in asking for more hours.
 
-### 5. Feedback flows both ways, specific and timely
+### 5. A roster of agents has its own recurring frictions — and they are measurable
 
-Give feedback close to the event and concrete ([qa's `bug-reporting`](../../../qa/skills/bug-reporting/SKILL.md)
-finding-with-a-failure-case habit, applied to work-about-work): what happened,
-its effect, what to change. Praise real wins specifically — vague praise is
-noise, and a team that only hears about problems learns to hide them. And invite
-feedback UP: the manager who can't hear "this process is slowing us down" is
-optimizing blind.
+The team here is agents as much as people, and their friction doesn't show up
+as a bad mood. It shows up as: a handoff nobody received (the skill on the
+other side has nothing to say), an agent that stops loading its own skill and
+answers from the web instead, a promise that holds three times out of four (a
+flaky scenario is an inconsistent agent or a criterion measuring the host, never
+"try again"), verification skipped when the run got long, a specialist quietly
+substituted for one the user named. Every one of those is #2 in disguise — a
+missing check, not a careless agent — and the fix is a scenario or a validator
+rule, not a reminder in a prompt. Feedback to people stays specific and close
+to the event (what happened, its effect, what to change), and flows UP too: the
+manager who can't hear "this process slows us down" is optimizing blind.
 
-### 6. Improve continuously, in small increments
+### 6. Improve in increments a scenario can confirm
 
-Team health is not a project you finish; it's a habit of noticing friction and
-filing off one rough edge at a time. Prefer many small improvements over grand
-reorganizations — a reorg is a big-bang deploy with human beings, high-risk and
-slow to roll back. The compounding of small fixes (one clearer handoff, one
-deleted useless meeting, one added check per cycle) outruns any heroic overhaul.
+Team health is a habit, not a project: notice one friction, file off one edge,
+confirm it stayed fixed. For the agents that means one change ships with the
+check that would catch its regression; for the process it means one clearer
+handoff or one deleted ritual per cycle, never a reorganization — a reorg is a
+big-bang deploy with people in it, high-risk and slow to roll back. Small fixes
+that stay fixed outrun any heroic overhaul, and "stayed fixed" is the part you
+measure.
 
 ## Resources
 
