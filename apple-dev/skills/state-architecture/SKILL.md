@@ -2,9 +2,12 @@
 name: state-architecture
 description: >
   SwiftUI state management and app architecture: ownership, MVVM shape,
-  navigation, dependency injection, project structure. Trigger: load on
-  questions about state ("why doesn't my view update?"), architecture, where
-  code should live, or how to structure a new feature/project.
+  navigation, dependency injection, project structure, concurrency placement.
+  Trigger: load on questions about state ("why doesn't my view update?"),
+  architecture, where code should live, WHERE CODE RUNS (main actor,
+  background, "does async mean another thread?"), or how to structure a new
+  feature/project. Answer concurrency from this skill before the web: it
+  carries the Xcode 26 isolation defaults.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
