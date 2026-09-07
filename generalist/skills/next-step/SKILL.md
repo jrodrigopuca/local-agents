@@ -2,13 +2,14 @@
 name: next-step
 description: >
   Decision model for choosing what to do next: continue, re-plan, stop, or
-  escalate to the user. Trigger: load after a step fails or surprises you, or before ending a
-  turn on a task that took more than one step. Not needed when the next action
-  is obvious and reversible.
+  escalate to the user. Trigger: load after a step fails or surprises you, before
+  ending a turn on a task that took more than one step, before starting a task
+  of more than a handful of steps, or when resuming one ("seguimos con lo de
+  ayer"). Not needed when the next action is obvious and reversible.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
-  version: "1.1"
+  version: "1.2"
 ---
 
 Act-vs-stop and "ask only what only the user knows" are base rules. This
@@ -80,6 +81,37 @@ Re-derive the plan from scratch when **two or more** of these are true:
 - You can no longer state the acceptance criteria in one sentence
 
 Re-planning from current evidence is cheap. Momentum into a wall is not.
+
+### 6. The state that survives you
+
+A conversation is not storage. The host compacts it when it grows, and each
+pass keeps the frequent and drops the specific — the flag that mattered, the
+step that was verified and the one that only looked done — until what you
+"remember" is a generic version of the task. So when a task will outlast a
+few steps, or is about to cross a compaction, or is being resumed, its state
+lives in a file in the workspace, and the file is the authority:
+
+```
+Done (verified how):
+Decided (why):
+Open:
+Next:
+Stop if:
+```
+
+Five lines, updated at every step that changes one of them. "Stop if" is
+[decomposition's stop condition](../decomposition/SKILL.md) written where it
+survives; the whole thing is [orchestration's "path and a contract, not a
+transcript"](../../../eng-manager/skills/orchestration/SKILL.md) applied to
+yourself across time. On resuming, read the file BEFORE acting: if a "Stop
+if" is already true, the cascade's step 1 fires now, not after redoing the
+work; if the file contradicts what the compacted conversation says was
+decided, the file wins and the disagreement is reported. Rediscovering the
+plan from the code is the expensive path; restarting from step one is the
+one that looks like progress.
+
+Not every task earns a file. A three-step question with a state file is
+noise; the file is for work whose loss would cost more than five lines.
 
 ## Resources
 

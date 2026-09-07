@@ -8,7 +8,7 @@ was extracted from the files themselves — none of it is aspirational.
 |-------|------:|---------------|
 | [Inheritance](#1-inheritance) | 23 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
 | [Agent handoffs](#2-agent-handoffs) | 44 | Editorial. An agent names who takes over when a problem stops being its own. |
-| [Skill references](#3-skill-references) | 105 | Compositional. A skill points at another skill instead of duplicating it. |
+| [Skill references](#3-skill-references) | 106 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
 ---
@@ -149,7 +149,7 @@ when its trigger cannot fire in both directions on one problem.
 
 ## 3. Skill references
 
-The densest layer: **<!--n:skill-cross-refs-->105<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->135<!--/n--> sibling
+The densest layer: **<!--n:skill-cross-refs-->106<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->136<!--/n--> sibling
 references inside each agent). This is where "compose, don't duplicate" actually
 lives — `security/remediation` doesn't re-explain how to write a bug report, it
 points at `qa/bug-reporting`.
@@ -175,7 +175,7 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 <!-- BEGIN:refcounts -->
 | Agent | Referenced by others | References others |
 |-------|---------------------:|------------------:|
-| `generalist` | **21** | 0 |
+| `generalist` | **21** | 1 |
 | `senior-dev` | 15 | 3 |
 | `architect` | 14 | 1 |
 | `qa` | 10 | 4 |
@@ -185,7 +185,7 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 | `devops` | 6 | 7 |
 | `security` | 5 | 10 |
 | `visionary` | 4 | 4 |
-| `eng-manager` | 2 | 6 |
+| `eng-manager` | 3 | 6 |
 | `dba` | 2 | 9 |
 | `data-ml` | 2 | 13 |
 | `product-manager` | 1 | 15 |
@@ -249,7 +249,7 @@ flowchart LR
 
 ### Skills with no cross-agent consumers
 
-<!--n:orphan-skills-->13<!--/n--> of the <!--n:skills-->48<!--/n--> skills are referenced only inside their own agent. That is not
+<!--n:orphan-skills-->12<!--/n--> of the <!--n:skills-->48<!--/n--> skills are referenced only inside their own agent. That is not
 automatically a defect — `apple-dev/shipping` (App Store, notarization) is
 genuinely domain-bound. But `security/threat-modeling` and
 `ux-ui/visual-craft` are general enough that nobody citing them is worth a look.
@@ -259,7 +259,7 @@ genuinely domain-bound. But `security/threat-modeling` and
 apple-dev/       code-review · debugging · shipping · state-architecture
 data-ml/         ml-modeling
 dba/             query-performance
-eng-manager/     orchestration · team-health
+eng-manager/     team-health
 gamification/    game-mechanics
 product-manager/ backlog · stakeholders
 ux-ui/           visual-craft
