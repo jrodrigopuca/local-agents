@@ -90,8 +90,9 @@ where it applies. A record is read on the way to a decision, not on the way
 back from a mistake: before anything that clears the reversibility bar, open
 the index and cite what is already decided — an accepted ADR is applied and
 its "Revisit if" checked, not re-derived from scratch and not overturned in
-silence — and the repo's own `CLAUDE.md` or `AGENTS.md` should point at the
-folder so the read happens without anyone remembering to ask. An accepted
+silence — and the repo's own instructions file (`AGENTS.md`, or whatever the
+host reads at startup) should point at the folder so the read happens without
+anyone remembering to ask. An accepted
 record is never edited: when the DECISION changes, a new one says
 `Supersedes: ADR-n` and the old one's status flips to `superseded by ADR-m`,
 so the chain of why is preserved; a changed implementation detail under the
