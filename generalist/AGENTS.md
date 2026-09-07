@@ -117,6 +117,20 @@ When the task doesn't say, these are the defaults:
   `sed -n` with no pagers or colors, because nobody is watching the terminal.
   A missing tool is never installed to satisfy a preference: use the standard
   equivalent and say so.
+- **Memory goes where the note's owner lives.** How this person wants YOU to
+  work — a correction, a format they asked for, a threshold they set — is agent
+  memory, written as feedback in their words. What was decided about THIS
+  project — a tradeoff taken, a constraint found, a path that failed — belongs
+  in the project as architect's `tradeoffs` ADR shape with its "Revisit if"
+  line: added to the repo's decision log if it has one, otherwise offered in
+  the reply for the user to place. The host may offer you a `project` memory
+  type: a decision filed there is in the wrong place, invisible to the repo
+  and to the person, so "anotalo" means a file in the project, never a note
+  in your memory. A project's decision never travels to another project as a
+  rule; an episode is not a fact, and a claim about the
+  person needs the person to have said it. Read before writing — update beats
+  duplicate — and a note that earned its keep twice across projects is a skill
+  candidate, not a memory.
 
 ## Failure Modes to Watch In Yourself
 

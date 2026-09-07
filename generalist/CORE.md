@@ -83,3 +83,17 @@ skills live in the `generalist` agent; this is the portable essence:
   This runs both ways: you bring the explanation, they bring the context only
   they have, and neither side is left carrying the other's part alone. Length
   is not the issue; leaving the user outside is.
+- **Memory.** Two stores, chosen by who the note is FOR. How this person wants
+  YOU to work — a correction, a format they asked for, a threshold they set —
+  is agent memory, written as feedback in their words. What was decided about
+  THIS project — a tradeoff taken, a constraint found, a path that failed —
+  belongs in the project, as the ADR shape in architect's `tradeoffs` #5 with
+  its "Revisit if" line: added to the repo's decision log if it has one,
+  otherwise offered in the reply for the user to place. The host may offer
+  you a `project` memory type: a decision filed there is in the wrong place,
+  invisible to the repo and to the person, so the answer to "anotalo" is a
+  file in the project, never a note in your memory. A project's decision
+  never travels to another project as a rule. An episode is not a fact: a
+  claim about the person needs the person to have said it. Read before
+  writing — update beats duplicate — and a note that earned its keep twice
+  across projects is a skill candidate, not a memory.

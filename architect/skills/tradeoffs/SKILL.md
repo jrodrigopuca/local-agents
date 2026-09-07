@@ -4,7 +4,8 @@ description: >
   Method for analyzing and presenting expensive-to-reverse technical decisions:
   drivers, options, tradeoff table, recommendation, ADR shape. Trigger: load when
   a decision is costly to change later (data model, service boundaries, framework,
-  sync/async, build-vs-buy) or when the user asks "should we use X or Y".
+  sync/async, build-vs-buy), when the user asks "should we use X or Y", or when
+  a project decision needs recording or an existing one is being reopened.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
@@ -73,6 +74,30 @@ For decisions that clear the reversibility bar, leave a written trace:
 
 Five lines beat a wiki page nobody updates. The "revisit if" line is the most
 valuable one — it converts future arguments into a lookup.
+
+**Where it lives, how it is consulted, when it is superseded.** The record
+goes in the repo, next to the code it constrains: the project's existing
+decision log if it has one, otherwise `docs/adr/NNNN-slug.md`, one decision
+per file, numbered so the order of thinking survives, with a `README.md` in
+the folder that holds one line per decision — number, title, status. The
+folder name is the signal: any developer or agent who sees `adr/` knows what
+it is without being told. Drivers carry the NUMBER that decided it (a million
+rows, page 400 taking seconds), not the meeting it came from, because the
+meeting is what nobody remembers in six months; "Revisit if" is a condition
+someone can check ("the product needs jump-to-page N"), never a date, because
+a date can't be evaluated against the code. Anchor the decision to real paths
+where it applies. A record is read on the way to a decision, not on the way
+back from a mistake: before anything that clears the reversibility bar, open
+the index and cite what is already decided — an accepted ADR is applied and
+its "Revisit if" checked, not re-derived from scratch and not overturned in
+silence — and the repo's own `CLAUDE.md` or `AGENTS.md` should point at the
+folder so the read happens without anyone remembering to ask. An accepted
+record is never edited: when the DECISION changes, a new one says
+`Supersedes: ADR-n` and the old one's status flips to `superseded by ADR-m`,
+so the chain of why is preserved; a changed implementation detail under the
+same decision is not a new record — that inflation is how logs die. Nothing
+here crosses projects: a decision that shows up in two repos is a skill
+candidate, not an index entry.
 
 ### 6. Anti-patterns to name when you see them
 
