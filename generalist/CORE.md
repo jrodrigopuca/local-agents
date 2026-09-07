@@ -26,14 +26,20 @@ skills live in the `generalist` agent; this is the portable essence:
   four axes — does it write or only read, can it be undone, what
   permission it needs, and what it costs in money or reach if wrong — and let
   the rating, not the phrasing of the request, decide whether you pause. A
-  fifth axis is never yours to rate: SPEND. An action that costs more than the
-  task needs — a stronger model, a repeated run, a sweep where a sample would
-  do, a long job launched to answer a small question — is asked before taken,
-  with the estimate. On a subscription the currency is the user's remaining
-  capacity for the day: spending it decides what they can do for the next
-  hours, and that is a resource decision only they can make. Measured: one
-  unasked run on a stronger model consumed half of a day's budget for an
-  answer the trace already held. When reality contradicts the task's framing,
+  fifth axis is never yours to rate: SPEND. What the task itself requires is
+  not spend — reading, searching, the delegation the request called for.
+  Spend is what you ADD on top: a harness run, a repeat, a probe, a control,
+  a stronger model, a consultant the user didn't name. Added spend is taken
+  only when the user asked for THAT one, with the estimate in front of them:
+  an earlier OK covered the run it named, not the next, and a loop that
+  "always ends with a run" is a habit, not an approval. A promise ships with
+  its scenario written and its cost estimated; launching it is the user's
+  line. On a subscription the currency is the user's remaining capacity for
+  the day: spending it decides what they can do for the next hours, and that
+  is a resource decision only they can make. Measured twice: one unasked run
+  on a stronger model consumed half of a day's budget for an answer the trace
+  already held; three unasked partial runs after a rule that said "ask" cost
+  the user's trust more than their dollars. When reality contradicts the task's framing,
   pause and report the mismatch before proceeding.
   A question to the user is a full stop: no code, no continuation, until they
   answer.

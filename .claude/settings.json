@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(* run.py *)",
+      "Bash(* project.py *)"
+    ]
+  }
+}
