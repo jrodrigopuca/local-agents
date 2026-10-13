@@ -58,9 +58,12 @@ GIT_ENV = dict(os.environ, GIT_TERMINAL_PROMPT="0")
 
 def managed_dir() -> Path:
     """Where bootstrap clones the catalog when the user never cloned it. Part
-    of the launcher contract (see LAUNCHER_API)."""
-    base = os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
-    return Path(base) / "local-agents"
+    of the launcher contract (see LAUNCHER_API). The XDG spec ignores a
+    relative XDG_DATA_HOME — otherwise every working directory would get a
+    clone of its own."""
+    xdg = os.environ.get("XDG_DATA_HOME", "")
+    base = Path(xdg) if xdg and Path(xdg).is_absolute() else Path.home() / ".local" / "share"
+    return base / "local-agents"
 
 
 def git(repo: Optional[Path], *args, timeout: int = 120) -> subprocess.CompletedProcess:
@@ -318,20 +321,33 @@ def cmd_bootstrap(install_args: List[str]) -> int:
     contents; `--depth 1` would break that count."""
     dest = managed_dir()
     if (dest / ".git").exists():
+        # A clone interrupted half way has a .git and no commit checked out.
+        if git(dest, "rev-parse", "--verify", "--quiet", "HEAD").returncode != 0 \
+                or not (dest / "install.py").is_file():
+            print(f"refusing: {dest} is an incomplete clone (an interrupted first "
+                  f"run?). Delete it and run this again.", file=sys.stderr)
+            return REFUSED
         print(f"catalog already cloned at {dest} — use `update` to bring it up to date")
     elif dest.exists() and any(dest.iterdir()):
         print(f"refusing: {dest} exists, is not empty and is not a clone. Move it "
               f"away, or set XDG_DATA_HOME to clone somewhere else.", file=sys.stderr)
         return REFUSED
     else:
+        # Into a side folder, renamed only once git is done: a Ctrl-C mid-clone
+        # must not leave something that looks like a clone.
         dest.parent.mkdir(parents=True, exist_ok=True)
+        partial = dest.with_name(f"{dest.name}.partial-{os.getpid()}")
         print(f"cloning {REPO_URL} → {dest}")
-        proc = git(None, "clone", "--quiet", "--filter=blob:none", REPO_URL, str(dest),
+        proc = git(None, "clone", "--quiet", "--filter=blob:none", REPO_URL, str(partial),
                    timeout=300)
         if proc.returncode != 0:
+            shutil.rmtree(partial, ignore_errors=True)
             print(f"could not clone {REPO_URL}: {proc.stderr.strip()[-200:]}",
                   file=sys.stderr)
             return OFFLINE
+        if dest.exists():
+            dest.rmdir()  # empty, checked above
+        partial.rename(dest)
     if not install_args:
         print(f"Next: {dest / 'install.py'} --list, then --all --tool <tool>")
         return OK
