@@ -829,11 +829,13 @@ def check_backlog(cat: Catalog):
         if state not in BACKLOG_CLOSED:
             errs.append(f"BACKLOG.es.md: closed item {i} is `{state}` (hecho or descartado)")
         if state == "hecho":
-            commits = re.findall(r"`((?:harness:)?[0-9a-f]{7,40})`", ref)
+            # Other repos' commits carry their repo as a prefix; they are not
+            # here in CI, so only their shape is checked.
+            commits = re.findall(r"`((?:harness:|local-hero:)?[0-9a-f]{7,40})`", ref)
             if not commits:
                 errs.append(f"BACKLOG.es.md: {i} is hecho but cites no commit")
             for c in commits:
-                if git_ok and not c.startswith("harness:") and subprocess.run(
+                if git_ok and ":" not in c and subprocess.run(
                         ["git", "-C", str(cat.root), "cat-file", "-e", f"{c}^{{commit}}"],
                         capture_output=True).returncode != 0:
                     errs.append(f"BACKLOG.es.md: {i} cites `{c}`, which is not a commit here")

@@ -21,7 +21,8 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
   (`P1` > `P2` > `P3`) y un **criterio de terminado** que se pueda verificar:
   un chequeo que pasa, un escenario en N/3, un archivo idéntico byte a byte.
 - ✓ Al cerrarlo pasa a la tabla de cerrados: `hecho` cita los commits que lo
-  resuelven (`abc1234` del catálogo, `harness:abc1234` del repo del harness);
+  resuelven (`abc1234` del catálogo, `harness:abc1234` del repo del harness,
+  `local-hero:abc1234` del launcher);
   `descartado` dice por qué.
 - Si un ítem resulta ser otra cosa al investigarlo, se cierra como
   `descartado` con el motivo y se abre uno nuevo. No se reescribe la historia.
@@ -54,7 +55,6 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, o si un ítem cerrado conserva su detalle, y `validate.py` pasa |
-| B-051 | P1 | en curso | `local-hero`: el launcher npx, en su propio repo | Que actualizar sea `npx github:jrodrigopuca/local-hero update`, la comodidad de `npx skills` sin que el usuario gestione el clon | El repo `local-hero` existe con `package.json` (nombre y bin `local-hero`) y un launcher que no contiene lógica del catálogo; su CI corre el launcher contra el catálogo real; el README del catálogo da la receta; `npx github:…` medido en macOS y Linux |
 | B-052 | P2 | pendiente | Harness: invalidar una corrida si el catálogo instalado cambió mientras corría | Con `update.py` actualizar pasa a ser un comando, y una actualización en medio de una corrida mezcla muestras de dos versiones | `run.py` compara el sello de instalación del principio con el del final; si cambió, la corrida queda `catalog_changed: true` en `run.json`, `viz.py` nunca la usa como línea base, y está demostrado sin modelo |
 | B-053 | P2 | pendiente | Medir si `npx skills` y el target `shared` chocan en `~/.agents/` | Los dos escriben en `~/.agents/skills` y `npx skills` lleva su propio lockfile ahí; un usuario de las dos herramientas puede quedar con skills pisadas | Medido en un `HOME` descartable, con versión de `skills` y fecha: qué pasa con cada herramienta después de que corre la otra; el resultado en la tabla de hosts de ESTADO-DEL-ARTE y, si chocan, un aviso de `install.py --status` o una nota en INSTALL.md |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
@@ -70,9 +70,7 @@ ser tan simple como `npx skills`. Va antes que las fases de evaluación de más
 abajo y no depende de ninguna de ellas.
 
 1. ~~**B-050**~~, hecho en `602944e`.
-2. **B-051**, el repo `local-hero` con el launcher. Necesita B-050 commiteado y
-   pusheado, porque su CI clona el catálogo real. **Crear el repo en GitHub lo
-   hace el usuario**: es un acto público.
+2. ~~**B-051**~~, hecho: `local-hero` con su CI.
 3. **B-052**, en el harness, y **B-053**, la medición de `~/.agents/`. Van en
    paralelo con los dos anteriores; conviene B-052 antes de anunciar
    `local-hero`, porque desde ahí cualquiera actualiza con un comando.
@@ -418,61 +416,6 @@ chequeo `backlog` ya evita en las filas.
 **Costo.** Cero.
 **Depende de.** Nada.
 
-### B-051: `local-hero`, el launcher npx
-
-**Qué se busca.** Que actualizar sea un comando que el usuario ya conoce, sin
-saber dónde está el clon ni qué es `install.py`. Mismo patrón que `rustup`: un
-shim que casi nunca cambia, y la lógica versionada junto con lo que actualiza.
-
-**Decisiones tomadas (2026-10-12).**
-- **Repo aparte, uno para todos los launchers.** El comando es un contrato
-  público, y npm instala desde la raíz de un repo git, así que donde viva el
-  launcher define el comando para siempre. Aparte, el catálogo no carga
-  artefactos de node, cada launcher tiene su CI, y un token de npm, si algún
-  día existe, no vive en el repo del catálogo. El precio es un contrato entre
-  repos, cubierto por `--launcher-api` y por el CI.
-- **Nombre `local-hero`** para el repo, el paquete y el bin. Libre en npm, en
-  PyPI y en la cuenta al 2026-10-12 (una foto: nada queda reservado hasta
-  publicar). Descartados: `laila-cli`, tomado en npm por un asistente de IA
-  local multi-agente activo, el mismo rubro; `local-ag`, porque se confunde
-  con `agy` (Antigravity) en la propia doc y con el comando `ag`;
-  `local-agents` y `lagents`, tomados en PyPI. La descripción del paquete
-  dice qué hace, porque el nombre no lo dice.
-
-**Criterios de aceptación.**
-- Repo `jrodrigopuca/local-hero`, público, creado por el usuario. `package.json`
-  en la raíz con `name` y `bin` `local-hero`, y una descripción del estilo
-  "installs and updates the local-agents catalog".
-- `bin/launcher.js`, sin dependencias de npm:
-  1. verifica `git` y `python3` ≥ 3.9, y si falta algo dice qué instalar;
-  2. si no existe el clon gestionado (`$XDG_DATA_HOME/local-agents`, si no
-     `~/.local/share/local-agents`), lo clona con `--filter=blob:none`. El
-     launcher NO lee los sellos: hacerlo exigiría saber dónde guarda su
-     configuración cada host, que es lógica del catálogo. El `update.py` del
-     clon gestionado encuentra por los sellos el clon real (por ejemplo, el de
-     un desarrollador). El precio: ese desarrollador igual termina con un clon
-     gestionado de más. Esa ruta es parte del contrato, junto con
-     `--launcher-api` (ver el comentario de `LAUNCHER_API` en `update.py`);
-  3. compara `update.py --launcher-api` con el que conoce, y si no coinciden
-     dice "actualizá local-hero" en vez de fallar raro;
-  4. ejecuta `python3 <clon>/update.py` con los argumentos **tal cual**, sin
-     interpretarlos, y devuelve su código de salida.
-- El launcher no contiene lógica del catálogo: ni nombres de agentes, ni
-  hosts, ni flags de `install.py`. Un subcomando nuevo de `update.py` funciona
-  sin tocar el launcher. Esto queda dicho en el README de `local-hero`.
-- CI en `local-hero` con node LTS: clona el catálogo real en un `HOME`
-  temporal y corre `bootstrap`, `check` y `update` con el launcher. También
-  verifica que un `--launcher-api` distinto produce el mensaje esperado.
-- `npx github:jrodrigopuca/local-hero update` medido a mano en macOS y en
-  Linux, con versión de npm. Windows queda declarado como no soportado hasta
-  medirlo.
-- El README del catálogo pone la receta `npx github:…` primero y deja
-  `git clone` + `install.py` como camino manual.
-- No se publica en npm (eso es B-055).
-
-**Costo.** Cero en modelo; minutos de CI.
-**Depende de.** B-050 commiteado y pusheado.
-
 ### B-052: invalidar una corrida si el catálogo cambió
 
 **Qué se busca.** Que una actualización en medio de una corrida no produzca
@@ -558,3 +501,4 @@ termina con skills pisadas. `npx skills` 1.7.2 copia las skills a
 | B-020 | hecho | Cada carpeta de prueba de `run.py` es su propia raíz de git (`git_root`): el fixture como único commit, `.claude/` excluido, sin hooks ni firma del usuario. Antes, git subía hasta el repo del harness: un agente leía su HEAD y los archivos del fixture figuraban como ignorados, lo que contradice el chequeo de reversibilidad del CORE. Suite `20261012-155231` (83 escenarios, Sonnet): 29 comandos git en las trazas, 9 resultados muestran el commit `fixture` y ninguno un commit del harness. 81/83; los dos rojos no dependen de git (`senior-dev-reads-before-writing` no tiene fixture ni usó herramientas; `eng-manager-resolves-specialist-conflict` ya oscilaba). Es la nueva línea base: la huella de aislamiento cambió y los verdicts anteriores quedan `partial` | `harness:651e0a7` |
 | B-023 | hecho | Que los agentes carguen sus skills: una línea en el CORE ("Your skills are your method": cuando la tarea calza con un disparador de la tabla de Skills, cargarla antes de actuar). Seis escenarios elegidos donde la skill debería cargar: 10/18 con la línea contra ~3/30 antes (`20261012-161413`). Suite completa `20261012-161940` contra la línea base de B-020: carga 19/72 contra 8/72, PASS 80/83 contra 81/83, costo +4 %. Los rojos nuevos no los causó la carga: architect citó al dba como dueño del modelo de datos (criterio contra catálogo, aclarado), y dos sin skill cargada que ya oscilaban. Dos escenarios siguen sin cargar nunca y pasan igual: el modelo no carga lo que el cuerpo ya le da. Regla de trabajo que queda: el criterio que decide un PASS va al cuerpo; la skill lleva el método de detalle | `337d1ad` |
 | B-050 | hecho | `update.py`: `check` (solo lectura) informa contra el remoto qué agentes, skills y CORE cambiaron desde cada instalación; `update` hace `pull --ff-only` + `install.py --refresh` y se niega sin tocar nada con árbol sucio, commits locales, clones distintos o rama remota borrada; `bootstrap` clona con `--filter=blob:none` en `$XDG_DATA_HOME/local-agents`; `--launcher-api` = 1 (contrato con los launchers, junto con esa ruta). `install.py` sin cambios, solo stdlib, Python 3.9. Chequeo `updater` de `validate.py` contra un remoto falso local, sin red. La revisión con contexto limpio encontró 3 bloqueantes reproducidos (falso aviso de proyecto corriendo desde `~`, traceback con la rama remota borrada, salida desordenada en un pipe), todos corregidos con su caso en el test | `602944e` |
+| B-051 | hecho | `local-hero`, el launcher npx en su propio repo (decidido así porque el comando es un contrato público y npm instala desde la raíz de un repo). Shim sin dependencias ni lógica del catálogo: verifica git y Python ≥ 3.9, clona el catálogo gestionado (carpeta aparte y rename, así un Ctrl-C no deja un clon falso), chequea `--launcher-api` (si el clon es más viejo lo avanza; si es más nuevo dice cómo actualizar local-hero) y pasa los argumentos intactos a `update.py`. Piso node 24: `npx github:` necesita npm 11, y npm 10 (node ≤ 22) falla dentro de npm (ESTADO-DEL-ARTE §4). Medido: CI en ubuntu (node 24.21, npm 11.19, Python 3.9) y macOS (node 24.20, npm 11.19) corriendo `npx github:…` con bootstrap, check y update, más a mano en macOS (node 26.11, npm 11.20). La revisión con contexto limpio encontró 2 bloqueantes (clon interrumpido tomado por válido, contrato viejo sin salida); el primer CI encontró que `node --test test/` no anda en node 24 | `local-hero:d03132e`, `local-hero:b0e35b6`, `local-hero:b84a266`, `e3545e9`, `f88dcbd`, `1df1d99` |
