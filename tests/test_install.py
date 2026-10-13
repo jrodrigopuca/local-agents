@@ -215,21 +215,32 @@ class InstallTest(unittest.TestCase):
     # -- an install from before B-058 ------------------------------------- #
 
     def test_an_install_from_before_ids_is_taken_as_ours_and_upgraded(self):
-        self.install_all()
-        for d in self.skills.iterdir():   # no ids in the copies, no maps in the stamp
-            md = d / "SKILL.md"
-            md.write_text("\n".join(l for l in md.read_text().split("\n")
+        # The real path, as it happened: installed from a commit with no ids,
+        # stamped without records; then the catalog gains its ids.
+        catalog = self.own_copy_of_catalog()
+        mds = sorted(catalog.glob("*/skills/*/SKILL.md"))
+        with_ids = {md: md.read_text() for md in mds}
+        for md in mds:
+            md.write_text("\n".join(l for l in with_ids[md].split("\n")
                                     if "local-agents-id" not in l))
+        self.commit("a catalog from before ids")
+        self.install_all()
         stamp = json.loads(self.stamp.read_text())
         del stamp["skills"], stamp["agents"]
         self.stamp.write_text(json.dumps(stamp))
-        run = self.install_all()
+        for md, text in with_ids.items():
+            md.write_text(text)
+        self.commit("the catalog gains its ids")
+        run = self.install("--refresh")
+        self.assertEqual(run.returncode, 0, run.stderr[-500:])
+        # Rebuilt from the stamped commit, not the author fallback: only the
+        # rebuild can tell an edit apart.
+        self.assertNotIn("cannot be told apart", run.stdout)
         self.assertNotIn("left alone", run.stdout)
         self.assertTrue(all(self.is_ours(d) for d in self.skills.iterdir()))
         self.assertFalse([p for p in self.agents.iterdir() if "-2" in p.stem])
         stamp = json.loads(self.stamp.read_text())
         self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (48, 15))
-
 
     # -- found by review: every path records what it wrote ---------------- #
 
