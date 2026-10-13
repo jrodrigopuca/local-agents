@@ -55,8 +55,9 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, si un ítem cerrado conserva su detalle o si un detalle aparece dos veces, y `validate.py` pasa |
-| B-053 | P1 | pendiente | Medir qué choca entre `npx skills` y este catálogo: nombres iguales, targets `claude` y `shared`, enlaces simbólicos, ida y vuelta | `install.py` decide qué skill es suya por el nombre de la carpeta, y `npx skills` también; con nombres genéricos como los nuestros, un `--refresh` puede pisar una skill ajena (hipótesis por lectura de código, sin medir) | Los cinco casos del detalle medidos en un `HOME` descartable, con versión de `skills`, commit de `install.py` y fecha, anotados en ESTADO-DEL-ARTE como baseline que B-058 repite al cerrar |
+| B-053 | P1 | pendiente | Medir qué choca entre `npx skills` y este catálogo: nombres iguales, targets `claude` y `shared`, enlaces simbólicos, ida y vuelta | `install.py` decide qué skill es suya por el nombre de la carpeta, y `npx skills` también; con nombres genéricos como los nuestros, un `--refresh` puede pisar una skill ajena (hipótesis por lectura de código, sin medir) | Los seis casos del detalle medidos en un `HOME` descartable, con versión de `skills`, commit de `install.py` y fecha, anotados en ESTADO-DEL-ARTE como baseline que B-058 repite al cerrar |
 | B-058 | P1 | pendiente | Identidad e integridad de las skills: `metadata.local-agents-id` estable por skill y `{ID → hash}` en el sello | Hoy `install.py` decide por el nombre: pisa una skill ajena que se llame igual, pisa una editada a mano sin avisar (la ve como "stale"), y deja instalada para siempre la copia vieja de una skill renombrada | Los criterios del detalle cumplidos: ID validado (presente, único, inmutable), sello con hashes, `install.py` y `--status` deciden por ID en las cuatro categorías, tests en `tests/test_install.py`, y los casos de B-053 repetidos contra su baseline |
+| B-059 | P2 | pendiente | Prefijo de namespace en todas las skills | Nuestros nombres son genéricos (`debugging`, `code-review`, `verification`…) y `~/.claude/skills` es una carpeta plana y compartida: un agente nuestro que pide `debugging` recibe la que esté instalada con ese nombre, aunque sea de otro, sin ningún error; y al revés, otra herramienta recibe la nuestra. Claude Code resuelve esto solo para plugins (`anthropic-skills:skill-creator` convive con un `skill-creator` suelto) | Prefijo elegido con la medición de B-053 y registrado con su motivo; las 48 skills renombradas con su ID intacto; ningún link, tabla de agente ni escenario del harness con el nombre viejo; y una instalación previa migrada en un `HOME` de prueba, con las copias viejas reportadas como retiradas |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
@@ -76,6 +77,8 @@ abajo y no depende de ninguna de ellas.
 5. **B-058**, identidad e integridad por ID y hash. Repite B-053 al cerrar.
    Si B-057 va antes, B-058 suma sus tests en el `tests/test_install.py`
    que B-057 crea.
+6. **B-059**, el prefijo en todas las skills. Después de B-058 a propósito:
+   el ID es lo que vuelve segura la migración de las instalaciones existentes.
 
 B-054 y B-055 quedan en espera, con su condición escrita.
 
@@ -459,6 +462,11 @@ códigos, y todavía no está medida:
 - **Nuestras skills instaladas con `npx skills add`** directo desde este repo.
   Se confirma o se refuta la hipótesis de que los links entre skills quedan
   muertos, porque las copia sin transformar.
+- **Cuántos de nuestros nombres ya existen afuera.** Los 48 nombres de skill
+  contra al menos un índice público (por ejemplo, la búsqueda de skills.sh),
+  con consultas de solo lectura: cuántos coinciden exactamente y cuáles. Es el
+  número que decide B-059: si chocan pocos, quizás alcanza con el ID de B-058;
+  si chocan muchos, el prefijo es obligatorio.
 - El resultado va a ESTADO-DEL-ARTE con la versión de `skills`, la de
   `install.py` (commit) y la fecha. Cada caso queda como baseline que B-058
   repite al cerrar.
@@ -533,6 +541,58 @@ cada host usa otro formato (markdown, TOML en Codex, JSON en Kiro), sin un
 **Costo.** Cero en modelo.
 **Depende de.** B-053, que mide el antes. Y conviene B-057, que crea
 `tests/test_install.py`: si va antes, este ítem suma sus casos ahí.
+
+### B-059: prefijo de namespace en todas las skills
+
+**Qué se busca.** Que una skill nuestra y una ajena no puedan llamarse igual.
+El ID de B-058 evita que `install.py` pise lo ajeno, pero no evita que un
+agente nuestro **cargue** la skill de otro: el agente la pide por nombre
+(por ejemplo, `debugging` en la tabla de apple-dev, `apple-dev/AGENTS.md:147`)
+y el host le da la que esté instalada con ese nombre. No falla: hace otra cosa
+sin avisar. El daño está acotado porque el criterio que decide vive en el
+cuerpo del agente y las skills se cargan poco (B-023: 19 de 72), pero cuando
+se carga, el agente sigue el método equivocado con total convicción.
+
+**Decisiones tomadas (2026-10-13).**
+- **Prefijo en todas, no solo en las "genéricas".** Decidir cuáles son
+  genéricas es una regla con excepciones, y esas se erosionan.
+- **Después de B-058, a propósito.** Hoy, renombrar dejaría a cada usuario con
+  48 copias con el nombre viejo, que `install.py` vería como ajenas por el
+  nombre y que los hosts seguirían cargando. Con el ID, `debugging` y su
+  versión con prefijo comparten `local-agents-id`, y `--status` reporta la
+  vieja como nuestra y retirada.
+- **El prefijo se elige con datos**, con la medición de B-053 sobre cuántos de
+  nuestros nombres ya existen afuera. Si chocan muy pocos, este ítem puede
+  cerrarse como `descartado`, con el ID de B-058 como protección suficiente.
+
+**Criterios de aceptación.**
+- **El prefijo**, registrado aquí con su motivo. Respeta la especificación
+  (minúsculas, números y guiones, sin `--`, hasta 64 caracteres, igual al
+  nombre de la carpeta) y es corto, porque aparece en cada tabla de Skills de
+  cada agente. Candidatos para discutir: `la-` (corto, poco explícito) y
+  `local-agents-` (explícito, largo).
+- **Las 48 skills renombradas**: carpeta y `name`, con el `local-agents-id`
+  intacto (`validate.py` de B-058 lo verifica).
+- **Ninguna referencia con el nombre viejo**: links `skills/<nombre>/SKILL.md`
+  (unos 217 en los `.md` del catálogo), tablas de Skills de los agentes, la
+  skill `orchestration`, GRAPH.md y README (regenerados por `validate.py
+  --write`), y los escenarios del harness que nombran skills (unas 34
+  menciones). Las skills del host referidas por nombre (`react-19`,
+  `playwright`…) no cambian: no son nuestras.
+- **Migración medida**: en un `HOME` de prueba con una instalación previa al
+  renombre, `local-hero update` (o `update.py update`) deja las skills nuevas,
+  y `--status` reporta las viejas como retiradas, con el comando para
+  borrarlas.
+- **Comportamiento**: los escenarios del harness que miden carga de skills
+  (los de B-023) se corren antes y después del renombre, con costo y OK
+  previos, para confirmar que el prefijo no cambia cuándo el agente carga sus
+  skills.
+- ESTADO-DEL-ARTE registra la decisión y la medición de B-053 que la
+  sostiene.
+
+**Costo.** Cero en modelo para el renombre; la corrida de los escenarios de
+carga de skills, con su costo, se propone antes.
+**Depende de.** B-058 (el ID) y la medición de nombres de B-053.
 
 ## Cerrados
 
