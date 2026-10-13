@@ -361,6 +361,16 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   en avisar: en 1 de 3 el agente no le contó al usuario que el código traía
   una instrucción dirigida a agentes, que pedía justamente eso. Ver B-030.
 
+- **`npx github:…` necesita npm 11** (2026-10-13). Con npm 10 falla dentro
+  de npm, antes de que corra el paquete: `GitFetcher requires an Arborist
+  constructor to pack a tarball`. Medido con npm 10.8.2 (el que trae node 18
+  y 20) y 10.9.9 (node 22.23.3); con npm 11.0, 11.19 (node 24) y 11.20 (node
+  26) funciona. Con npm 10 sí funcionan `npm install -g github:…` y un tarball
+  (`npx https://github.com/…/archive/<sha>.tar.gz`). local-hero pide node
+  24+ y da una sola receta, `npx`; su CI fija node 24 como piso, además del
+  LTS del momento. Con un node anterior alcanza con actualizar npm a 11. Ver
+  B-051 y B-055.
+
 Cómo se midió cada cosa, y cómo repetirlo, está en los comentarios de
 `install.py` (`AGY_TOOLS`, `shadow_report`, el renderer de Codex) y en
 [INSTALL.md](INSTALL.md).

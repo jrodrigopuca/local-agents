@@ -15,8 +15,8 @@ npx github:jrodrigopuca/local-hero update                         # pull it and 
 ```
 
 [local-hero](https://github.com/jrodrigopuca/local-hero) clones the catalog
-where you never have to look and runs its `update.py`; it needs node 18+, git
-and Python 3.9+. To work from a clone of your own instead:
+where you never have to look and runs its `update.py`; it needs node 24+
+(npm 11), git and Python 3.9+. To work from a clone of your own instead:
 
 ```bash
 git clone https://github.com/jrodrigopuca/local-agents.git
