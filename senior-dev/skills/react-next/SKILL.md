@@ -12,6 +12,7 @@ license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.1"
+  local-agents-id: "sk-750795"
 ---
 
 _Verified against React 19, React Compiler 1.0 and Next.js 16 (September

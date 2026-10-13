@@ -400,6 +400,20 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
     varios hosts sí, porque esa es su carpeta canónica.
   - **Nuestra skill instalada con `npx skills add`** (`discovery`, desde este
     repo): la copia cruda deja **10 de 10 links muertos** entre skills.
+  - **Repetido con B-058** (mismo día, mismo `skills` 1.7.2): la ajena con
+    nuestro nombre queda entera (ni carpeta mezclada ni `-2`) y solo
+    `--on-conflict overwrite` la reemplaza; con el enlace de dos hosts
+    `install.py` ya no se cae (47 skills nuestras, 15 agentes, sello, y el
+    enlace intacto también tras `--refresh`); `--status` dice "not ours" y
+    "links" donde antes decía "stale"; y nuestra skill copiada cruda por `npx
+    skills add` se reconoce por su ID: `install.py` la adopta y deja 0 de 10
+    links muertos. El ida y vuelta sigue latente: es de `npx skills`, que
+    identifica por nombre.
+  - **Migración medida sobre una instalación real** (6 hosts con sello de
+    `0abe968`, anterior a B-058, solo lectura con `--status`): reconstruir lo
+    que el instalador escribió en ese commit reconoció las 48 skills y los 15
+    agentes como nuestros en los 6 hosts, sin ningún falso "editado", y las 15
+    skills propias del usuario en `~/.claude/skills` como ajenas.
 - **`npx github:…` necesita npm 11** (2026-10-13). Con npm 10 falla dentro
   de npm, antes de que corra el paquete: `GitFetcher requires an Arborist
   constructor to pack a tarball`. Medido con npm 10.8.2 (el que trae node 18

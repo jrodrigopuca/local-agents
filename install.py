@@ -20,13 +20,17 @@ No external dependencies — Python 3.9+ stdlib only.
 from __future__ import annotations
 
 import argparse
+import hashlib
+import io
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
-from dataclasses import dataclass, replace
+import tarfile
+import tempfile
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
@@ -211,6 +215,7 @@ class Skill:
     name: str          # folder name
     agent: Optional[str]  # owning agent folder, or None if top-level
     path: Path         # the skill directory (contains SKILL.md)
+    id: Optional[str] = None  # metadata.local-agents-id — who it is, whatever its name
 
     @property
     def qualified(self) -> str:
@@ -226,7 +231,19 @@ class Agent:
 
 
 def discover(catalog: Path):
-    """Find agents (dirs with AGENTS.md) and every skill (dirs with SKILL.md)."""
+    """Find agents (dirs with AGENTS.md) and every skill (dirs with SKILL.md),
+    and make this catalog the one ownership is judged against."""
+    global CATALOG_ROOT
+    agents, all_skills = scan_catalog(catalog)
+    CATALOG_ROOT = catalog
+    SKILLS_BY_ID.clear()
+    SKILLS_BY_ID.update({s.id: s for s in all_skills if s.id})
+    return agents, all_skills
+
+
+def scan_catalog(catalog: Path):
+    """discover() without side effects: also used to read an OLD commit of the
+    catalog, which must not replace the current one."""
     agents: dict[str, Agent] = {}
     all_skills: list[Skill] = []
 
@@ -235,14 +252,16 @@ def discover(catalog: Path):
         name = agent_dir.name
         skills = []
         for skill_md in sorted(agent_dir.glob("skills/*/SKILL.md")):
-            sk = Skill(name=skill_md.parent.name, agent=name, path=skill_md.parent)
+            sk = Skill(name=skill_md.parent.name, agent=name, path=skill_md.parent,
+                       id=skill_id_at(skill_md.parent))
             skills.append(sk)
             all_skills.append(sk)
         agents[name] = Agent(name=name, path=agent_dir, agents_md=agents_md, skills=skills)
 
     # Also catch any skill folders not under a discovered agent (defensive).
     for skill_md in sorted(catalog.glob("skills/*/SKILL.md")):
-        all_skills.append(Skill(name=skill_md.parent.name, agent=None, path=skill_md.parent))
+        all_skills.append(Skill(name=skill_md.parent.name, agent=None, path=skill_md.parent,
+                                id=skill_id_at(skill_md.parent)))
 
     return agents, all_skills
 
@@ -550,51 +569,320 @@ def _auto_rename(exists_fn, base: str) -> str:
 # --------------------------------------------------------------------------- #
 # Install operations
 # --------------------------------------------------------------------------- #
+# --------------------------------------------------------------------------- #
+# Ownership: what in a host's dir is ours (B-058)
+#
+# A host's skill dir is shared — `npx skills` writes there too, and 26 of our 48
+# skill names already exist in public registries (measured 2026-10-13, B-053).
+# A name decides nothing. A skill is OURS when it carries our id in its
+# metadata; an installed file is INTACT when its hash still matches the one the
+# stamp recorded when we wrote it. Agents carry no id — every host has its own
+# format — so for them the stamp is the only witness.
+#
+#   ours     our id, at its own name, untouched since we wrote it → update freely
+#   edited   our id, but changed since we wrote it → never overwritten silently
+#   foreign  no id of ours → never touched unless the user says so
+#   link     a symlink (`npx skills` links each host to its own copy) → never
+#            followed, never deleted
+#   retired  our id under another name, or an id the catalog no longer has: an
+#            old copy of a renamed or removed skill → reported, for the user to delete
+# --------------------------------------------------------------------------- #
+OURS, EDITED, FOREIGN, LINK, RETIRED = "ours", "edited", "foreign", "link", "retired"
+ELSEWHERE = "elsewhere"   # our only copy of a skill, under another name (a rename install)
+SKILLS_BY_ID: dict = {}   # filled by discover()
+CATALOG_ROOT: Optional[Path] = None
+_SKILL_ID = re.compile(r'^\s+local-agents-id:\s*"?([a-z0-9-]+)"?\s*$', re.M)
+# Every catalog skill had this author before ids existed: the one sign that an
+# id-less copy from an older install is ours.
+_OUR_AUTHOR = re.compile(r"^\s+author:\s*jrodrigopuca\s*$", re.M)
+
+
+def _frontmatter(md: Path) -> str:
+    try:
+        m = re.match(r"---\n(.*?)\n---", md.read_text(encoding="utf-8"), re.DOTALL)
+    except (OSError, UnicodeDecodeError):
+        return ""
+    return m.group(1) if m else ""
+
+
+def skill_id_at(d: Path) -> Optional[str]:
+    m = _SKILL_ID.search(_frontmatter(d / "SKILL.md"))
+    return m.group(1) if m else None
+
+
+UNREADABLE = "unreadable"   # never equal to a recorded hash: an unreadable copy is left alone
+
+
+def tree_hash(d: Path) -> str:
+    """Hash of what a skill folder holds. Dotfiles are left out — Finder's
+    .DS_Store would otherwise turn every opened skill into "edited" — and links
+    inside are not followed, so nothing outside the folder is ever read."""
+    h = hashlib.sha256()
+    try:
+        files = []
+        for root, dirs, names in os.walk(d, followlinks=False):
+            dirs[:] = sorted(x for x in dirs if not x.startswith("."))
+            files += [Path(root) / n for n in names if not n.startswith(".")]
+        for f in sorted(files, key=lambda p: p.relative_to(d).as_posix()):
+            if f.is_symlink():
+                continue
+            h.update(f.relative_to(d).as_posix().encode() + b"\0" + f.read_bytes() + b"\0")
+    except OSError:
+        return UNREADABLE
+    return h.hexdigest()
+
+
+def file_hash(f: Path) -> str:
+    try:
+        return hashlib.sha256(f.read_bytes()).hexdigest()
+    except OSError:
+        return UNREADABLE
+
+
+@dataclass
+class Run:
+    """One install run on one host: the stamp as it was BEFORE the run (what we
+    wrote last time), and what this run wrote. Kept per host dir so the many
+    paths that install (suite, one agent, one skill, menus) share it without
+    threading it through every call."""
+    stamp: Optional[dict]
+    skills_written: set = field(default_factory=set)
+    agents_written: set = field(default_factory=set)
+
+
+_RUNS: dict = {}
+
+
+def run_for(tool: Tool) -> Run:
+    if tool.config_root not in _RUNS:
+        stamp = read_manifest(tool)
+        if stamp is not None and ("skills" not in stamp or "agents" not in stamp):
+            stamp = with_legacy_records(tool, stamp)
+        _RUNS[tool.config_root] = Run(stamp)
+    return _RUNS[tool.config_root]
+
+
+def with_legacy_records(tool: Tool, stamp: dict) -> dict:
+    """A stamp from before B-058 says which commit was installed but records no
+    hashes. Rebuild them: render that commit of the catalog the way the
+    installer does, and take the hash of each file as it would have been
+    written. A copy that still matches is ours and untouched; one that does not
+    was edited by hand, and is left alone. If the renderer changed since that
+    commit, an untouched copy reads as edited — the safe side: it is kept, and
+    --status says so."""
+    rebuilt = legacy_records(tool, stamp.get("catalog_commit"))
+    if rebuilt is None:
+        print(f"    note   → {tool.label}: installed before install records existed, "
+              f"from a commit this catalog does not have — hand edits there cannot be "
+              f"told apart, and catalog files are updated")
+        return stamp
+    skills, agents = rebuilt
+    return {**stamp, "skills": stamp.get("skills", skills), "agents": stamp.get("agents", agents)}
+
+
+def legacy_records(tool: Tool, commit: Optional[str]):
+    if not commit or CATALOG_ROOT is None:
+        return None
+    if git(CATALOG_ROOT, "cat-file", "-e", f"{commit}^{{commit}}") is None:
+        return None
+    tar = subprocess.run(["git", "-C", str(CATALOG_ROOT), "archive", "--format=tar", commit],
+                         capture_output=True)
+    if tar.returncode != 0:
+        return None
+    with tempfile.TemporaryDirectory() as tmp:
+        old_root, expected = Path(tmp) / "catalog", Path(tmp) / "expected"
+        with tarfile.open(fileobj=io.BytesIO(tar.stdout)) as tf:
+            tf.extractall(old_root)
+        old_agents, old_skills = scan_catalog(old_root)
+        old_by_name = {s.name: s for s in old_skills}
+        current_id = {s.name: s.id for s in SKILLS_BY_ID.values()}
+        skills = {}
+        if tool.skills_dir.is_dir():
+            here = {d.name for d in tool.skills_dir.iterdir()
+                    if d.name in old_by_name and not d.is_symlink() and (d / "SKILL.md").is_file()}
+            for name in sorted(here):
+                if not current_id.get(name):
+                    continue
+                src, dest = old_by_name[name], expected / name
+                shutil.copytree(src.path, dest)
+                md = dest / "SKILL.md"
+                md.write_text(render_skill(md.read_text(encoding="utf-8"), src.agent, name, here),
+                              encoding="utf-8")
+                skills[current_id[name]] = {"name": name, "sha256": tree_hash(dest)}
+        agents = {}
+        if tool.agents_dir is not None and tool.agents_dir.is_dir():
+            for name, ag in old_agents.items():
+                inherited, deps = resolve_deps(ag, old_agents, old_by_name)
+                meta, desc, body = compose_agent(ag, inherited)
+                dest, text = render_agent(tool, name, body, desc, sorted(s.name for s in deps), meta)
+                if dest.exists():
+                    agents[dest.name] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return skills, agents
+
+
+def classify_skill(d: Path, stamp: Optional[dict]) -> tuple:
+    """(kind, catalog skill or None) for a folder in a host's skills dir."""
+    if d.is_symlink():
+        return LINK, None
+    if not (d / "SKILL.md").is_file():
+        return FOREIGN, None
+    sid = skill_id_at(d)
+    if sid is None:
+        if not _OUR_AUTHOR.search(_frontmatter(d / "SKILL.md")):
+            return FOREIGN, None
+        # An id-less copy from before ids existed: ours by its author.
+        by_name = {s.name: s for s in SKILLS_BY_ID.values()}
+        if d.name not in by_name:
+            return RETIRED, None
+        sk = by_name[d.name]
+        sid, kind = sk.id, OURS
+    else:
+        sk = SKILLS_BY_ID.get(sid)
+        if sk is None:
+            return RETIRED, None          # an id the catalog no longer has
+        kind = OURS
+        if sk.name != d.name:
+            # Retired only when the real one is installed at its own name; else
+            # this is our only copy, put elsewhere (`--on-conflict rename` next
+            # to a foreign skill, or a catalog rename not yet installed) — not
+            # something to tell the user to delete.
+            own = d.parent / sk.name
+            if not own.is_symlink() and (own / "SKILL.md").is_file() and skill_id_at(own) == sid:
+                return RETIRED, sk
+            kind = ELSEWHERE
+    rec = ((stamp or {}).get("skills") or {}).get(sid)
+    if rec and rec.get("name") == d.name and rec.get("sha256") != tree_hash(d):
+        return EDITED, sk
+    return kind, sk
+
+
+def classify_agent(f: Path, agent_names: set, stamp: Optional[dict]) -> str:
+    """Kind of an agent file in a host's agents dir. No stamp at all: nothing
+    says we wrote it, so it is foreign. A stamp from before B-058 has no
+    `agents` map: a catalog name counts as ours, once."""
+    if f.is_symlink():
+        return LINK
+    if stamp is None:
+        return FOREIGN
+    recs = stamp.get("agents")
+    if recs is None:
+        return OURS if f.stem in agent_names else FOREIGN
+    if f.name not in recs:
+        return FOREIGN
+    return OURS if recs[f.name] == file_hash(f) else EDITED
+
+
+_SAFE = {
+    FOREIGN: "not ours (no local-agents id)",
+    LINK: "a link to another tool's copy",
+    EDITED: "edited by hand since it was installed",
+    "foreign agent": "not ours (no install record of it)",
+}
+
+
+def decide(kind: str, policy: str, interactive: bool, what: str) -> str:
+    """write | skip | rename for an existing destination of this kind.
+
+    `update` is --refresh: it brings OUR untouched files up to date and nothing
+    else. `overwrite` is the user saying "replace it" — the only way something
+    edited or foreign gets replaced. A link is never replaced: deleting it would
+    break the tool that made it, and writing through it would rewrite its copy."""
+    if kind in (OURS, RETIRED, ELSEWHERE):
+        return "write"
+    why = _SAFE["foreign agent"] if kind == FOREIGN and what.startswith("agent") else _SAFE[kind]
+    if kind == LINK:
+        print(f"    · {what}: {_SAFE[LINK]} — left alone")
+        return "skip"
+    if policy == "overwrite":
+        return "write"
+    if policy == "rename" and kind == FOREIGN:
+        return "rename"
+    if policy == "ask" and interactive:
+        while True:
+            ans = input(f"    {what} is {why}. [o]verwrite / [s]kip? ").strip().lower()
+            if ans in ("o", "overwrite"):
+                return "write"
+            if ans in ("s", "skip", ""):
+                return "skip"
+    print(f"    · {what}: {why} — left alone "
+          f"(--on-conflict overwrite replaces it)")
+    return "skip"
+
+
 def copy_skill(skill: Skill, tool: Tool, name: str, dry_run: bool):
     dest = tool.skills_dir / name
     print(f"    skill  → {dest}")
     if dry_run:
         return name
     dest.parent.mkdir(parents=True, exist_ok=True)
+    if dest.is_symlink():   # decide() never sends one here; never delete a link's target
+        raise RuntimeError(f"refusing to replace the link {dest}")
     if dest.exists():
         shutil.rmtree(dest)
     shutil.copytree(skill.path, dest)
     md = dest / "SKILL.md"
     if md.exists():
         md.write_text(render_skill(md.read_text(encoding="utf-8"), skill.agent, name), encoding="utf-8")
+    run_for(tool).skills_written.add(name)
     return name
 
 
 def present_skills(skills_dir: Path, skills_by_name: dict) -> set:
-    """Catalog skills installed in this dir — what a link there can reach."""
+    """Catalog skills installed in this dir — what a link there can reach. A
+    folder counts only if it holds OUR copy of that skill: a foreign skill with
+    the same name is not a target our links should point at."""
     if not skills_dir.is_dir():
         return set()
     return {d.name for d in skills_dir.iterdir()
-            if d.name in skills_by_name and (d / "SKILL.md").is_file()}
+            if d.name in skills_by_name
+            and classify_skill(d, None)[0] == OURS}
 
 
 def relink_skills(tool: Tool, skills_by_name: dict, dry_run: bool):
     """Re-render every catalog skill in tool.skills_dir against the skills that
     are actually there, after an install changed that set. Links to a missing
     skill become its name; a later install that brings it turns the name back
-    into a link."""
+    into a link. Only our untouched copies: an edited one keeps its edits, and
+    a foreign one with our name is not ours to rewrite (B-053 measured exactly
+    that — a foreign folder left with our SKILL.md next to its own files)."""
     if dry_run:
         return
+    run = run_for(tool)
     present = present_skills(tool.skills_dir, skills_by_name)
     for name in sorted(present):
+        d = tool.skills_dir / name
+        if name not in run.skills_written and classify_skill(d, run.stamp)[0] != OURS:
+            continue
         src = skills_by_name[name]
-        md = tool.skills_dir / name / "SKILL.md"
+        md = d / "SKILL.md"
         fresh = render_skill((src.path / "SKILL.md").read_text(encoding="utf-8"),
                              src.agent, name, present)
         if md.read_text(encoding="utf-8") != fresh:
             md.write_text(fresh, encoding="utf-8")
+            run.skills_written.add(name)
 
 
 def install_skill(skill: Skill, tool: Tool, policy: str, interactive: bool, dry_run: bool):
-    final = resolve_name(tool.skills_dir, skill.name, "", policy, interactive)
-    if final is None:
+    dest = tool.skills_dir / skill.name
+    if not (dest.exists() or dest.is_symlink()):
+        return copy_skill(skill, tool, skill.name, dry_run)
+    kind, _ = classify_skill(dest, run_for(tool).stamp)
+    choice = decide(kind, policy, interactive, f"skill {skill.name}")
+    if choice == "skip":
         return None
-    return copy_skill(skill, tool, final, dry_run)
+    if choice == "rename":
+        # Ours is already next to the foreign one from an earlier rename: update
+        # that copy, or every run would add another `-N`.
+        mine = sorted(p for p in tool.skills_dir.iterdir()
+                      if p.name != skill.name and not p.is_symlink() and skill_id_at(p) == skill.id)
+        if mine:
+            kind2, _ = classify_skill(mine[0], run_for(tool).stamp)
+            if decide(kind2, policy, interactive, f"skill {mine[0].name}") == "skip":
+                return None
+            return copy_skill(skill, tool, mine[0].name, dry_run)
+        return copy_skill(skill, tool, _auto_rename(
+            lambda nm: (tool.skills_dir / nm).exists(), skill.name), dry_run)
+    return copy_skill(skill, tool, skill.name, dry_run)
 
 
 # Inheritance is DECLARED, in each agent's frontmatter: `inherits:` is the full,
@@ -801,17 +1089,37 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
 
     meta, desc, body = compose_agent(agent, inherited)
 
-    final = resolve_name(tool.agents_dir, agent.name,
-                         agent_suffix(tool),
-                         policy, interactive)
-    if final is None:
-        print("    · agent file skipped")
-        return
+    # Ours (the stamp recorded it, unchanged) is updated in place; anything else
+    # is decided like a skill. Before B-058 `ask` without a TTY renamed even our
+    # own files, so running the default command twice installed every agent twice.
+    run = run_for(tool)
+    suffix = agent_suffix(tool)
+    final = agent.name
+    existing = tool.agents_dir / f"{agent.name}{suffix}"
+    if existing.exists() or existing.is_symlink():
+        kind = classify_agent(existing, set(agents), run.stamp)
+        choice = decide(kind, policy, interactive, f"agent {agent.name}")
+        if choice == "skip":
+            return
+        if choice == "rename":
+            recs = (run.stamp or {}).get("agents") or {}
+            prior = sorted(f for f in recs
+                           if re.fullmatch(re.escape(agent.name) + r"-\d+" + re.escape(suffix), f)
+                           and (tool.agents_dir / f).exists())
+            if prior:   # ours already sits next to the foreign one: update it
+                again = classify_agent(tool.agents_dir / prior[0], set(agents), run.stamp)
+                if decide(again, policy, interactive, f"agent {prior[0]}") == "skip":
+                    return
+                final = prior[0][:-len(suffix)]
+            else:
+                final = _auto_rename(lambda nm: (tool.agents_dir / f"{nm}{suffix}").exists(),
+                                     agent.name)
     dest, contents = render_agent(tool, final, body, desc, installed_skill_names, meta)
     print(f"    agent  → {dest}")
     if not dry_run:
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(contents, encoding="utf-8")
+        run.agents_written.add(dest.name)
 
     # Tools with no named-agent concept only find the body through the roster,
     # so writing one without the other leaves a half-install. The suite path
@@ -885,7 +1193,11 @@ def write_roster(tool: Tool, agents: dict, just_installed: list, dry_run: bool):
     for the thirteen already there. (In `--dry-run` nothing is on disk yet, so
     this run's names are unioned in to show what the result would look like.)"""
     dest = tool.roster
-    on_disk = {p.stem for p in tool.agents_dir.glob("*.md")} if tool.agents_dir.exists() else set()
+    run = run_for(tool)
+    on_disk = ({p.stem for p in tool.agents_dir.glob("*.md")
+                if p.name in run.agents_written
+                or classify_agent(p, set(agents), run.stamp) in (OURS, EDITED)}
+               if tool.agents_dir.exists() else set())
     listed = sorted((on_disk | set(just_installed)) & set(agents))
     rows = "\n".join(
         f"| `{n}` | {short_description(agents[n])} | [`agents/{n}.md`](agents/{n}.md) |"
@@ -962,21 +1274,68 @@ def catalog_state(catalog: Path):
     return commit, bool(status or "")
 
 
-def write_manifest(tool: Tool, catalog: Path, dry_run: bool):
+def write_manifest(tool: Tool, catalog: Path, dry_run: bool, suite: bool = False):
+    """Written by every path that installs. Without git there is no commit to
+    record, but the ownership records still are: without them nothing could
+    tell our files from a stranger's or an edited one (B-058)."""
     commit, dirty = catalog_state(catalog)
-    if not commit:
-        return  # not a git checkout — silently skip, nothing to record
     dest = tool.config_root / MANIFEST
-    print(f"    stamp  → {dest.name} @ {commit[:7]}{' (dirty tree)' if dirty else ''}")
+    where = (f"@ {commit[:7]}{' (dirty tree)' if dirty else ''}" if commit
+             else "(catalog is not a git checkout: no commit recorded)")
+    print(f"    stamp  → {dest.name} {where}")
     if dry_run:
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
-    dest.write_text(json.dumps({
-        "catalog_commit": commit,
-        "catalog_dirty": dirty,
+    skills, agents = owned_records(tool, catalog)
+    data = {"catalog_commit": commit, "catalog_dirty": dirty} if commit else {}
+    # Whole catalog here, once, means whole catalog on every refresh — new
+    # skills and agents included. A partial install stays what the user chose.
+    old = run_for(tool).stamp or {}
+    data["suite"] = bool(suite or old.get("suite", "skills" not in old and bool(old)))
+    data.update({
         "catalog_path": str(catalog.resolve()),
         "installed_at": datetime.now().astimezone().isoformat(timespec="seconds"),
-    }, indent=2) + "\n", encoding="utf-8")
+        "skills": skills,
+        "agents": agents,
+    })
+    dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+def owned_records(tool: Tool, catalog: Path) -> tuple:
+    """What we own on this host and the hash of each as WE left it (B-058).
+
+    Written this run → its hash now. Not touched this run → the hash recorded
+    last time, kept as it was: re-recording the current hash would launder a
+    hand edit into "intact" and the next refresh would overwrite it. Ours but
+    never recorded (an install from before B-058) → its hash now, once."""
+    run = run_for(tool)
+    old = run.stamp or {}
+    old_skills, old_agents = old.get("skills") or {}, old.get("agents")
+    skills = {}
+    if tool.skills_dir.is_dir():
+        found = [(d,) + classify_skill(d, None) for d in sorted(tool.skills_dir.iterdir())]
+        # At its own name first; a copy elsewhere only when it is the only one.
+        for d, kind, sk in sorted(found, key=lambda x: x[1] != OURS):
+            if kind not in (OURS, ELSEWHERE) or not sk.id or sk.id in skills:
+                continue
+            prev = old_skills.get(sk.id)
+            if d.name in run.skills_written or not prev or prev.get("name") != d.name:
+                skills[sk.id] = {"name": d.name, "sha256": tree_hash(d)}
+            else:
+                skills[sk.id] = prev
+    agents = {}
+    if tool.agents_dir is not None and tool.agents_dir.is_dir():
+        names = {p.parent.name for p in catalog.glob("*/AGENTS.md")}
+        for f in sorted(tool.agents_dir.glob(f"*{agent_suffix(tool)}")):
+            if f.is_symlink():
+                continue
+            if f.name in run.agents_written:
+                agents[f.name] = file_hash(f)
+            elif old_agents is not None and f.name in old_agents:
+                agents[f.name] = old_agents[f.name]
+            elif old_agents is None and old and f.stem in names:
+                agents[f.name] = file_hash(f)   # a pre-B-058 stamp: ours, once
+    return skills, agents
 
 
 def read_manifest(tool: Tool):
@@ -998,7 +1357,9 @@ def provenance_line(tool: Tool, catalog: Path, installed_names: set):
     man = read_manifest(tool)
     if not man:
         return ["provenance: unknown — installed before stamping, or by hand"]
-    was = man.get("catalog_commit", "")
+    was = man.get("catalog_commit") or ""
+    if not was:
+        return ["installed from a catalog that was not a git checkout — no commit to compare"]
     now = git(catalog, "rev-parse", "HEAD")
     if not now:
         return [f"installed from {was[:7]} (catalog is not a git checkout here)"]
@@ -1059,6 +1420,30 @@ def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
         write_roster(tool, agents, sorted(agents), dry_run)
     retire_roster_install(tool, agents, dry_run)
 
+    write_manifest(tool, catalog, dry_run, suite=True)
+
+
+def refresh_tool(tool: Tool, dry_run: bool, agents: dict, skills_by_name: dict,
+                 catalog: Path):
+    """Bring one host's install up to date: the whole catalog where the whole
+    catalog was installed, otherwise exactly what the stamp records — one
+    skill installed alone must not become 48 skills and 15 agents."""
+    stamp = run_for(tool).stamp or {}
+    if stamp.get("suite", "skills" not in stamp):
+        install_suite(tool, "update", False, dry_run, agents, skills_by_name, catalog)
+        return
+    print(f"\n  Refreshing what was installed → {tool.label}")
+    suffix = agent_suffix(tool) if tool.agents_dir is not None else None
+    for f in sorted((stamp.get("agents") or {})):
+        name = f[:-len(suffix)] if suffix and f.endswith(suffix) else None
+        if name in agents:
+            install_agent(agents[name], tool, "update", False, dry_run, agents,
+                          skills_by_name, with_deps=True)
+    for sid in sorted(stamp.get("skills") or {}):
+        sk = SKILLS_BY_ID.get(sid)
+        if sk is not None:
+            install_skill(sk, tool, "update", False, dry_run)
+    relink_skills(tool, skills_by_name, dry_run)
     write_manifest(tool, catalog, dry_run)
 
 
@@ -1112,6 +1497,7 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, 
             return
         install_agent(agents[names[idx]], tool, policy, True, dry_run,
                       agents, skills_by_name, with_deps)
+        write_manifest(tool, catalog, dry_run)
     else:
         labels = [s.qualified for s in all_skills]
         print("  (enter comma-separated numbers to install several)")
@@ -1123,6 +1509,7 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, 
             if 0 <= p < len(all_skills):
                 install_skill(all_skills[p], tool, policy, True, dry_run)
         relink_skills(tool, skills_by_name, dry_run)
+        write_manifest(tool, catalog, dry_run)
 
 
 # --------------------------------------------------------------------------- #
@@ -1139,20 +1526,23 @@ def shadow_report(tool: Tool, skills_by_name: dict, project=None) -> list:
     makes the skill the host loads a coin toss. So the report is about stale
     copies, not duplicates, and it names the refresh that fixes each."""
     dirs = [tool.skills_dir, *tool.also_reads]
-    owners = {}
+    owners, owner_tool = {}, {}
     for t in TOOLS:
         t = project_tool(t, project) if project else t
         owners.setdefault(t.skills_dir, t.key)
+        owner_tool.setdefault(t.skills_dir, t)
     seen_twice, stale_in = 0, {}
+    ours = {d: present_skills(d, skills_by_name) for d in dirs}   # a foreign same-name skill is not a copy of ours
     for name, src in skills_by_name.items():
-        copies = [d for d in dirs if (d / name / "SKILL.md").is_file()]
+        copies = [d for d in dirs if name in ours[d]]
         if len(copies) < 2:
             continue
         seen_twice += 1
         text = (src.path / "SKILL.md").read_text(encoding="utf-8")
         for d in copies:
-            fresh = render_skill(text, src.agent, name,
-                                 present_skills(d, skills_by_name))
+            if d in owner_tool and classify_skill(d / name, run_for(owner_tool[d]).stamp)[0] == EDITED:
+                continue   # kept on purpose, and refresh leaves it: not a stale copy
+            fresh = render_skill(text, src.agent, name, ours[d])
             if (d / name / "SKILL.md").read_text(encoding="utf-8") != fresh:
                 stale_in[d] = stale_in.get(d, 0) + 1
     if not stale_in:
@@ -1162,8 +1552,7 @@ def shadow_report(tool: Tool, skills_by_name: dict, project=None) -> list:
     for d, n in sorted(stale_in.items(), key=lambda kv: str(kv[0])):
         owner = owners.get(d)
         scope = f" --project {project}" if project else ""
-        fix = (f"  → ./install.py --all --tool {owner}{scope} --on-conflict overwrite"
-               if owner else "")
+        fix = (f"  → ./install.py --all --tool {owner}{scope}" if owner else "")
         lines.append(f"  {n} stale in {d}{fix}")
     return lines
 
@@ -1188,55 +1577,89 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
             continue
         print(f"\n{tool.label}  ({tool.key})\n  {tool.config_root}")
 
-        # --- skills: re-rendered by the same path the installer writes ---
-        present, foreign, stale = [], [], []
+        # --- skills: who owns each folder, then whether ours is current ---
+        stamp = run_for(tool).stamp
         here = present_skills(tool.skills_dir, skills_by_name)
+        groups = {k: [] for k in ("stale", EDITED, FOREIGN, LINK, RETIRED, ELSEWHERE)}
+        present = []
         if tool.skills_dir.exists():
-            for d in sorted(p for p in tool.skills_dir.iterdir() if p.is_dir()):
-                src = skills_by_name.get(d.name)
-                if not src:
-                    foreign.append(d.name)
+            for d in sorted(p for p in tool.skills_dir.iterdir() if p.is_dir() or p.is_symlink()):
+                kind, sk = classify_skill(d, stamp)
+                if kind in (FOREIGN, LINK, RETIRED):
+                    groups[kind].append(d.name)
+                    continue
+                if kind == ELSEWHERE:
+                    groups[ELSEWHERE].append(f"{sk.name} as {d.name}")
                     continue
                 present.append(d.name)
-                a, b = src.path / "SKILL.md", d / "SKILL.md"
-                fresh = render_skill(a.read_text(encoding="utf-8"), src.agent, d.name, here)
-                if not b.exists() or fresh != b.read_text(encoding="utf-8"):
-                    stale.append(d.name)
+                if kind == EDITED:
+                    groups[EDITED].append(d.name)
+                    continue
+                fresh = render_skill((sk.path / "SKILL.md").read_text(encoding="utf-8"),
+                                     sk.agent, d.name, here)
+                if fresh != (d / "SKILL.md").read_text(encoding="utf-8"):
+                    groups["stale"].append(d.name)
         missing = sorted(set(skills_by_name) - set(present))
+        counts = [f"{len(groups['stale'])} stale" if groups["stale"] else "",
+                  f"{len(groups[EDITED])} edited by hand (refresh leaves them)" if groups[EDITED] else "",
+                  f"{len(missing)} missing" if missing else "",
+                  f"{len(groups[FOREIGN])} not ours (untouched)" if groups[FOREIGN] else "",
+                  f"{len(groups[LINK])} links (untouched)" if groups[LINK] else "",
+                  f"{len(groups[RETIRED])} retired copies" if groups[RETIRED] else "",
+                  f"{len(groups[ELSEWHERE])} under another name" if groups[ELSEWHERE] else ""]
         print(f"    skills   {len(present)}/{len(skills_by_name)} from catalog"
-              f"{f' · {len(stale)} stale' if stale else ''}"
-              f"{f' · {len(missing)} missing' if missing else ''}"
-              f"{f' · {len(foreign)} foreign (untouched)' if foreign else ''}")
-        for label, items in (("stale", stale), ("missing", missing)):
+              + "".join(f" · {c}" for c in counts if c))
+        for label, items in (("stale", groups["stale"]), ("edited", groups[EDITED]),
+                             ("missing", missing), ("links", groups[LINK]),
+                             ("ours under another name", groups[ELSEWHERE])):
             if items:
                 print(f"      {label}: {', '.join(items[:8])}"
                       f"{f' +{len(items) - 8} more' if len(items) > 8 else ''}")
+        if groups[RETIRED]:
+            # Ours, under a name the catalog no longer uses: a renamed or removed
+            # skill, or a `-2` copy an older installer left. Nothing loads the
+            # right one by that name any more; deleting is the user's call.
+            print(f"      retired (ours, old name — safe to delete): {', '.join(groups[RETIRED])}")
+            print(f"        rm -r " + " ".join(str(tool.skills_dir / n) for n in groups[RETIRED]))
         for line in shadow_report(tool, skills_by_name, project):
             print(f"    {line}")
 
-        # --- agents: rendered, so compare against a fresh render ---
+        # --- agents: the stamp says which files we wrote ---
         if tool.agents_dir is None:
             print("    agents   (this tool has no place for agent bodies)")
             continue
         suffix = agent_suffix(tool)
-        on_disk = ({p.stem for p in tool.agents_dir.glob(f"*{suffix}")}
-                   if tool.agents_dir.exists() else set())
-        a_present = sorted(on_disk & set(agents))
-        a_foreign = sorted(on_disk - set(agents))
-        a_missing = sorted(set(agents) - on_disk)
-        a_stale = []
-        for name in a_present:
-            inherited, dep_skills = resolve_deps(agents[name], agents, skills_by_name)
-            meta, desc, body = compose_agent(agents[name], inherited)
-            dest, fresh = render_agent(tool, name, body, desc,
-                                       sorted(s.name for s in dep_skills), meta)
-            if not dest.exists() or dest.read_text(encoding="utf-8") != fresh:
-                a_stale.append(name)
+        files = (sorted(tool.agents_dir.glob(f"*{suffix}")) if tool.agents_dir.exists() else [])
+        a_present, a_foreign, a_edited, a_stale = [], [], [], []
+        for f in files:
+            kind = classify_agent(f, set(agents), stamp)
+            if kind in (FOREIGN, LINK) or f.stem not in agents:
+                a_foreign.append(f.stem)
+                continue
+            a_present.append(f.stem)
+            if kind == EDITED:
+                a_edited.append(f.stem)
+                continue
+            inherited, dep_skills = resolve_deps(agents[f.stem], agents, skills_by_name)
+            meta, desc, body = compose_agent(agents[f.stem], inherited)
+            _, fresh = render_agent(tool, f.stem, body, desc,
+                                    sorted(s.name for s in dep_skills), meta)
+            if f.read_text(encoding="utf-8") != fresh:
+                a_stale.append(f.stem)
+        a_missing = sorted(set(agents) - set(a_present))
+        if stamp is None and any(f.stem in agents for f in files):
+            # An install from before stamps: its agents look like ours but
+            # nothing records them, so nothing updates them on its own.
+            print(f"    note     agents named like the catalog's, with no install record: "
+                  f"install once with --all --tool {tool.key}"
+                  f"{f' --project {project}' if project else ''} --on-conflict overwrite "
+                  f"to adopt them (it replaces them)")
         print(f"    agents   {len(a_present)}/{len(agents)} from catalog"
               f"{f' · {len(a_stale)} stale' if a_stale else ''}"
+              f"{f' · {len(a_edited)} edited by hand (refresh leaves them)' if a_edited else ''}"
               f"{f' · {len(a_missing)} missing' if a_missing else ''}"
-              f"{f' · {len(a_foreign)} foreign (untouched)' if a_foreign else ''}")
-        for label, items in (("stale", a_stale), ("missing", a_missing)):
+              f"{f' · {len(a_foreign)} not ours (untouched)' if a_foreign else ''}")
+        for label, items in (("stale", a_stale), ("edited", a_edited), ("missing", a_missing)):
             if items:
                 print(f"      {label}: {', '.join(items)}")
 
@@ -1255,9 +1678,9 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
                 print(f"      roster: {rows} rows in {roster.name}{mark}")
 
     scope = f" --project {project}" if project else ""
-    print(f"\ncatalog: {len(agents)} agents, {len(skills_by_name)} skills — refresh with:"
-          f"  ./install.py --all --tool <key>{scope} --on-conflict overwrite"
-          f"\n  or every tool installed from the catalog at once:  ./install.py --refresh{scope}")
+    print(f"\ncatalog: {len(agents)} agents, {len(skills_by_name)} skills — bring every install "
+          f"up to date:  ./install.py --refresh{scope}"
+          f"\n  (it updates only what it installed; edited and foreign files stay as they are)")
 
 
 def print_list(agents, all_skills):
@@ -1349,9 +1772,10 @@ def main():
         if not installed:
             sys.exit("--refresh: no tool here holds a catalog install (no "
                      f"{MANIFEST} found) — install one with --all --tool <key>")
+        # `update`, not `overwrite`: a refresh brings what we installed up to
+        # date and leaves everything else — foreign, edited, links — alone.
         for t in installed:
-            install_suite(target(t), "overwrite", False, args.dry_run,
-                          agents, skills_by_name, catalog)
+            refresh_tool(target(t), args.dry_run, agents, skills_by_name, catalog)
         return
 
     # Non-interactive: whole suite
@@ -1378,9 +1802,6 @@ def main():
             install_agent(agents[name], tool, args.on_conflict, False, args.dry_run,
                           agents, skills_by_name, with_deps=not args.no_deps)
 
-        if args.agent:
-            write_manifest(tool, catalog, args.dry_run)
-
         skills_by_q = {s.qualified: s for s in all_skills}
         for ref in args.skill:
             sk = skills_by_q.get(ref) or skills_by_name.get(ref)
@@ -1389,6 +1810,9 @@ def main():
             print(f"\n  Installing skill '{sk.qualified}' → {tool.label}")
             install_skill(sk, tool, args.on_conflict, False, args.dry_run)
         relink_skills(tool, skills_by_name, args.dry_run)
+        # Once, after the last write — a relink after the stamp would read as a
+        # hand edit next time.
+        write_manifest(tool, catalog, args.dry_run)
         return
 
     # Interactive path

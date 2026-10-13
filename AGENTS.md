@@ -26,7 +26,13 @@ Rules for this catalog:
    chore**: don't bump it per edit. Which catalog commit a copy came from — and
    what moved since — is answered by the provenance stamp `install.py` writes
    (`--status`), because git already knows it exactly and a hand-kept number
-   does not. Bump only for a deliberate release marker.
+   does not. Bump only for a deliberate release marker. `metadata` also
+   carries **`local-agents-id`**: an opaque `sk-<6 hex>` given once and never
+   changed, a rename included. It is how `install.py` tells our copy of a skill
+   from a stranger's with the same name — 26 of our 48 names already exist in
+   public registries, and a host's skills dir is shared. A new skill gets a
+   fresh one; `validate.py` checks they are present, unique and unchanged
+   (`skill-ids`).
 3. Each agent's `AGENTS.md` opens with YAML frontmatter holding a curated
    `description:` — one paragraph of "use this agent for X" plus `<example>`
    blocks that show WHEN to delegate to it. `install.py` reads this to generate

@@ -55,7 +55,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, si un ítem cerrado conserva su detalle o si un detalle aparece dos veces, y `validate.py` pasa |
-| B-058 | P1 | pendiente | Identidad e integridad de las skills: `metadata.local-agents-id` estable por skill y `{ID → hash}` en el sello | Hoy `install.py` decide por el nombre: pisa una skill ajena que se llame igual, pisa una editada a mano sin avisar (la ve como "stale"), y deja instalada para siempre la copia vieja de una skill renombrada | Los criterios del detalle cumplidos: ID validado (presente, único, inmutable), sello con hashes, `install.py` y `--status` deciden por ID en las cuatro categorías, tests en `tests/test_install.py`, y los casos de B-053 repetidos contra su baseline |
+| B-058 | P1 | en curso | Identidad e integridad de lo instalado: `metadata.local-agents-id` por skill, y en el sello `{ID → hash}` de skills y `{archivo → hash}` de agentes | Hoy `install.py` decide por el nombre: pisa una skill ajena que se llame igual, pisa una editada a mano sin avisar (la ve como "stale"), deja instalada para siempre la copia vieja de una skill renombrada, y correr dos veces el comando por defecto duplica skills y agentes con `-2` | Los criterios del detalle cumplidos: ID validado (presente, único, inmutable), sello con hashes, `install.py` y `--status` deciden por ID en las cuatro categorías, tests en `tests/test_install.py`, y los casos de B-053 repetidos contra su baseline |
 | B-059 | P2 | pendiente | Prefijo de namespace en todas las skills | Nuestros nombres son genéricos (`debugging`, `code-review`, `verification`…) y `~/.claude/skills` es una carpeta plana y compartida: un agente nuestro que pide `debugging` recibe la que esté instalada con ese nombre, aunque sea de otro, sin ningún error; y al revés, otra herramienta recibe la nuestra. Claude Code resuelve esto solo para plugins (`anthropic-skills:skill-creator` convive con un `skill-creator` suelto) | Prefijo elegido con la medición de B-053 y registrado con su motivo; las 48 skills renombradas con su ID intacto; ningún link, tabla de agente ni escenario del harness con el nombre viejo; y una instalación previa migrada en un `HOME` de prueba, con las copias viejas reportadas como retiradas |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
@@ -503,10 +503,26 @@ con cómo reproducir cada uno):
   como "foreign" la copia nuestra renombrada. Las cuatro categorías lo
   reemplazan.
 
-**Fuera de alcance, a propósito.** Los agentes tienen el mismo problema, pero
-cada host usa otro formato (markdown, TOML en Codex, JSON en Kiro), sin un
-`metadata` común. `npx skills` solo instala skills (B-053), así que con él no
-chocan; si aparece otra herramienta que instale agentes, se abre otro ítem.
+**Los agentes, por el sello** (ampliado 2026-10-13). Un ID en el archivo no
+sirve para los agentes: cada host usa otro formato (markdown, TOML en Codex,
+JSON en Kiro) y no hay un `metadata` común. El sello sí, porque vive en la
+misma carpeta del host que los agentes, y ninguna otra herramienta escribe
+agentes ahí (B-053). Hacía falta por un bug medido el mismo día: correr dos
+veces el comando por defecto (`install.py --all --tool claude`, sin TTY, como
+lo hace `local-hero bootstrap`) **duplica el catálogo**: 48 → 96 skills y
+15 → 30 agentes, con sufijo `-2`, porque `ask` sin TTY renombra cualquier
+archivo existente, también los nuestros.
+- El sello suma `agents: {archivo: sha256}`. Un archivo que el sello registra
+  y conserva su hash es nuestro e intacto; uno con otro hash, editado a mano;
+  uno que el sello no registra, ajeno. Mismas reglas que las skills.
+- `ask` sin TTY deja de renombrar: lo nuestro e intacto se actualiza; lo
+  ajeno y lo editado se saltean con un aviso. Renombrar queda solo para
+  `--on-conflict rename` explícito.
+- Correr dos veces el comando por defecto no crea ningún `-2`.
+- **Migración**: un sello anterior a este ítem no tiene `skills` ni `agents`.
+  En ese caso, una skill sin ID pero con `metadata.author: jrodrigopuca` y un
+  agente con el nombre de un agente del catálogo cuentan como nuestros una vez,
+  y el sello nuevo ya registra los hashes.
 
 **Costo.** Cero en modelo.
 **Depende de.** B-053, que mide el antes. Y conviene B-057, que crea

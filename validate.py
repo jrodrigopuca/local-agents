@@ -22,6 +22,8 @@ from __future__ import annotations
 
 import argparse
 import glob
+import importlib.util
+import json
 import os
 import re
 import shutil
@@ -657,9 +659,22 @@ def check_installer(cat: Catalog):
             return subprocess.run([sys.executable, str(cat.root / "install.py"), *args],
                                   capture_output=True, text=True, env=env,
                                   stdin=subprocess.DEVNULL)
+        # A stale copy is one WE installed from an older catalog: it differs from
+        # today's render, and its hash is the one the stamp recorded. A drift
+        # alone would read as a hand edit, which --refresh rightly leaves (B-058).
         stale_copy = Path(home) / ".agents" / "skills" / "tradeoffs" / "SKILL.md"
         stale_copy.write_text(stale_copy.read_text(encoding="utf-8") + "\ndrift\n",
                               encoding="utf-8")
+        spec = importlib.util.spec_from_file_location("installer_stale", cat.root / "install.py")
+        inst = importlib.util.module_from_spec(spec)
+        sys.modules["installer_stale"] = inst
+        spec.loader.exec_module(inst)
+        manifest = Path(home) / ".agents" / ".local-agents.json"
+        stamp = json.loads(manifest.read_text(encoding="utf-8"))
+        for rec in stamp["skills"].values():
+            if rec["name"] == "tradeoffs":
+                rec["sha256"] = inst.tree_hash(stale_copy.parent)
+        manifest.write_text(json.dumps(stamp), encoding="utf-8")
         status = run("--status").stdout
         opencode_block = status.split("opencode  (opencode)")[-1].split("\nKiro")[0]
         if "stale in" not in opencode_block or ".agents/skills" not in opencode_block:
@@ -694,6 +709,71 @@ def check_installer(cat: Catalog):
             elif body.read_text(encoding="utf-8") != before:
                 errs.append(f"install.py refused --tool {second} but still changed "
                             f"the {first} agent file")
+    return errs
+
+
+SKILL_ID = re.compile(r'^\s+local-agents-id:\s*"?([a-z0-9-]+)"?\s*$', re.M)
+
+
+def check_skill_ids(cat: Catalog):
+    """Every skill carries `metadata.local-agents-id` (B-058): unique, of the
+    form sk-<6 hex>, and never changed once given. install.py decides what in a
+    host's dir is ours by this id, not by name — 26 of our 48 names already
+    exist in public registries — so an id that changes turns our own installed
+    copies into "retired" ones, and a duplicated id makes two skills one.
+
+    Immutability is checked against the last commit (what you are about to
+    commit) and, between commits, against the one before (what CI sees, where
+    the working tree IS the last commit). A rename keeps its id; that is the
+    point of having one."""
+    errs, by_id = [], {}
+    now = {}
+    for md in sorted(cat.root.glob("*/skills/*/SKILL.md")):
+        name = md.parent.name
+        m = SKILL_ID.search(md.read_text(encoding="utf-8").split("\n---", 1)[0])
+        if not m:
+            errs.append(f"{md.relative_to(cat.root)}: no `metadata.local-agents-id`")
+            continue
+        sid = m.group(1)
+        if not re.fullmatch(r"sk-[0-9a-f]{6}", sid):
+            errs.append(f"{md.relative_to(cat.root)}: id `{sid}` is not sk-<6 hex>")
+        if sid in by_id:
+            errs.append(f"skills `{by_id[sid]}` and `{name}` share the id `{sid}`")
+        by_id[sid], now[name] = name, sid
+
+    def ids_at(rev):
+        ls = subprocess.run(["git", "-C", str(cat.root), "ls-tree", "-r", "--name-only", rev],
+                            capture_output=True, text=True)
+        if ls.returncode != 0:
+            return None
+        out = {}
+        for path in ls.stdout.splitlines():
+            if re.fullmatch(r"[^/]+/skills/[^/]+/SKILL\.md", path):
+                show = subprocess.run(["git", "-C", str(cat.root), "show", f"{rev}:{path}"],
+                                      capture_output=True, text=True)
+                m = SKILL_ID.search(show.stdout.split("\n---", 1)[0])
+                if m:
+                    out[path.split("/")[2]] = m.group(1)
+        return out
+
+    head, before = ids_at("HEAD"), ids_at("HEAD~1")
+    for label, old, new in (("since the last commit", head, now),
+                            ("in the last commit", before, head)):
+        if not old or new is None:
+            continue
+        for name, sid in old.items():
+            if name in new and new[name] != sid:
+                errs.append(f"skill `{name}` changed its id {label}: `{sid}` → "
+                            f"`{new[name]}` — an id never changes, a rename keeps it")
+        # An id moving to another name is a rename — unless its old name is
+        # still there with another id: then it was reused, and two skills
+        # would be one to install.py.
+        old_owner = {sid: name for name, sid in old.items()}
+        for name, sid in new.items():
+            was = old_owner.get(sid)
+            if was and was != name and was in new and new[was] != sid:
+                errs.append(f"id `{sid}` of skill `{was}` reused by `{name}` {label} — "
+                            f"a new skill gets a new id")
     return errs
 
 
@@ -1223,6 +1303,7 @@ CHECKS = [
     ("partial-installs", "a single-agent install leaves no dead skill links", check_partial_installs),
     ("readme-counts", "README roster matches reality", check_readme_counts),
     ("reference-roster", "REFERENCE.es.md lists every agent (Spanish guide)", check_reference_roster),
+    ("skill-ids", "B-058 — every skill has a unique local-agents-id that never changes", check_skill_ids),
     ("installer", "install.py --list, --dry-run, real installs, stale-copy warning, --refresh, .agents/ guard", check_installer),
 ]
 

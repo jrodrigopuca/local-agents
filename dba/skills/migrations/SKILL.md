@@ -9,6 +9,7 @@ license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.1"
+  local-agents-id: "sk-d152fb"
 ---
 
 _Engine facts here were verified against PostgreSQL 11–17 semantics (September

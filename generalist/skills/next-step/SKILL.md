@@ -10,6 +10,7 @@ license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.2"
+  local-agents-id: "sk-e0809d"
 ---
 
 Act-vs-stop and "ask only what only the user knows" are base rules. This

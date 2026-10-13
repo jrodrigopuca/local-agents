@@ -10,6 +10,7 @@ license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.1"
+  local-agents-id: "sk-d94d54"
 ---
 
 _Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves

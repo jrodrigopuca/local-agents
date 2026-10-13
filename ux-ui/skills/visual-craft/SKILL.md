@@ -8,6 +8,7 @@ license: Apache-2.0
 metadata:
   author: jrodrigopuca
   version: "1.1"
+  local-agents-id: "sk-f0c5a3"
 ---
 
 ## Critical Patterns

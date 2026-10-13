@@ -412,22 +412,57 @@ To install ONLY the agent and its own skills, without dependencies:
 
 ---
 
-## Conflict Handling (Collisions and Renaming)
+## What it touches: ours, edited, foreign
 
-The `--on-conflict` flag determines what happens if an agent or skill already exists:
+A host's skills dir is shared with every other tool that installs skills —
+`npx skills` writes there too, and 26 of our 48 skill names already exist in
+public registries. So `install.py` never decides by name. Every catalog skill
+carries `metadata.local-agents-id`, and the stamp (`.local-agents.json`)
+records the hash of every skill and agent file as it was written. With those,
+each thing already at a destination is one of:
 
-```bash
-./install.py --agent architect --tool claude --on-conflict rename
-```
+| Kind | How it is told | What happens |
+|---|---|---|
+| **ours** | our id, at its own name, hash as recorded | updated, always |
+| **edited** | our id (or recorded by the stamp), hash changed since we wrote it | left alone, with a warning — unless you say `--on-conflict overwrite` |
+| **foreign** | no id of ours (an agent file the stamp never recorded) | left alone, with a warning — unless you say `--on-conflict overwrite` |
+| **link** | a symlink (`npx skills` links each host to its own copy) | always left alone: never followed, never deleted |
+| **retired** | our id under another name while the real one is installed at its own name (a renamed skill's old copy, a `-2` an older installer left), or an id the catalog no longer has | reported by `--status`, with the `rm` command; deleting is your call |
+| **ours, under another name** | our id under another name, and no copy at its own name (`--on-conflict rename` next to a foreign skill) | updated in place on the next run; never offered for deletion |
 
-| Value | Behavior |
+`--status` shows each kind per host. `--refresh` updates what is ours and
+nothing else, so it is always safe to run — and it keeps the shape of the
+install: where the whole catalog was installed it brings new skills and
+agents too; where one agent or one skill was, it refreshes exactly that (the
+stamp records which, as `"suite"`).
+
+Every path that installs writes the stamp, a catalog that is not a git
+checkout included (it records no commit, but still records what it wrote).
+
+**Installs from before B-058** have a stamp with a commit and no hashes. The
+installer rebuilds them: it renders that commit of the catalog the way it was
+installed and compares file by file, so a copy edited by hand since then is
+recognized and left alone, and the rest is updated. If the commit is not in
+this clone, it says so and falls back to the old rule (a skill with
+`metadata.author: jrodrigopuca`, an agent with a catalog name, count as ours).
+An install with no stamp at all keeps its skills updated by the same author
+rule; its agents have no record, and `--status` says how to adopt them once.
+
+### `--on-conflict`
+
+It only matters for **edited** and **foreign** things; what is ours is always
+updated and a link is always left alone.
+
+| Value | Edited or foreign at the destination |
 |---|---|
-| `ask` (default in interactive) | Prompts for each collision |
-| `rename` | Automatically appends `-2`, `-3`… **Rewrites `name:` in `SKILL.md`** to match the new directory |
-| `overwrite` | Replaces existing files |
-| `skip` | Leaves existing files unchanged |
+| `ask` (default) | Asks in a terminal; without one (a script, `local-hero`), leaves it and says so |
+| `overwrite` | Replaces it — the explicit way to say "this one too" |
+| `rename` | Installs ours next to a foreign one as `-2`, `-3`… (**rewrites `name:`** to match). Agents still load the foreign one by its name; rarely what you want |
+| `skip` | Leaves it, silently |
 
-In interactive mode, a collision prompts you to choose overwrite, rename, or skip.
+Before B-058, `ask` without a terminal renamed **everything** that existed,
+ours included: running the default command twice installed the whole catalog
+twice. Copies like that show up in `--status` as retired.
 
 ---
 
