@@ -14,6 +14,8 @@ cd local-agents
 ./install.py --list                        # see what's available
 ./install.py --status                      # see what's installed, and if it's current
 ./install.py --refresh                     # bring every installed tool up to date
+./update.py check                          # what changed on GitHub since you installed
+./update.py update                         # pull it and refresh every install
 ./install.py --all --tool claude --dry-run # preview
 ./install.py --all --tool claude           # install the whole suite (global)
 ./install.py --all --tool claude --project ~/code/repo   # or vendor it into a repo

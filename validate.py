@@ -22,8 +22,10 @@ from __future__ import annotations
 
 import argparse
 import glob
+import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -696,6 +698,179 @@ def check_installer(cat: Catalog):
     return errs
 
 
+def check_updater(cat: Catalog):
+    """update.py against a fake remote: a local bare repo, a throwaway HOME, no
+    network. It never runs against the real catalog's clone — a test that pulls
+    into the developer's working tree is an accident waiting to happen. The
+    bare repo is seeded from the catalog's HEAD, so the installs are real.
+
+    It runs THIS checkout's update.py (the code under test), which finds the
+    managed clone through the stamps the bootstrap install wrote."""
+    errs = []
+    updater = cat.root / "update.py"
+    if not updater.is_file():
+        return ["update.py is missing"]
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        home, bare, work = tmp / "home", tmp / "remote.git", tmp / "work"
+        home.mkdir()
+        env = {k: v for k, v in os.environ.items()
+               if k not in ("CLAUDE_CONFIG_DIR", "CODEX_HOME") and not k.startswith("GIT_")}
+        # The user's git config may sign commits or rewrite URLs; none of it
+        # belongs in a test. XDG_CONFIG_HOME too: git before 2.32 ignores
+        # GIT_CONFIG_GLOBAL and still reads $XDG_CONFIG_HOME/git/config.
+        env.update(HOME=str(home), USERPROFILE=str(home), XDG_DATA_HOME=str(tmp / "data"),
+                   XDG_CONFIG_HOME=str(tmp / "config"),
+                   GIT_CONFIG_GLOBAL=os.devnull, GIT_CONFIG_NOSYSTEM="1",
+                   GIT_AUTHOR_NAME="t", GIT_AUTHOR_EMAIL="t@t", GIT_COMMITTER_NAME="t",
+                   GIT_COMMITTER_EMAIL="t@t", LOCAL_AGENTS_REPO=str(bare))
+        managed = tmp / "data" / "local-agents"
+        skill = Path("generalist/skills/verification/SKILL.md")
+
+        def sh(*cmd, cwd=None):
+            return subprocess.run(list(cmd), capture_output=True, text=True, env=env,
+                                  cwd=cwd, stdin=subprocess.DEVNULL, timeout=300)
+
+        def upd(*args, cwd=None):
+            return sh(sys.executable, str(updater), *args, cwd=str(cwd or tmp))
+
+        def head(repo):
+            return sh("git", "-C", str(repo), "rev-parse", "HEAD").stdout.strip()
+
+        def upstream_commit(msg):
+            with open(work / skill, "a", encoding="utf-8") as fh:
+                fh.write(f"\n{msg}\n")
+            sh("git", "-C", str(work), "commit", "--quiet", "-am", msg)
+            sh("git", "-C", str(work), "push", "--quiet", "origin", "main")
+
+        sh("git", "init", "--quiet", "--bare", str(bare))
+        sh("git", "--git-dir", str(bare), "symbolic-ref", "HEAD", "refs/heads/main")
+        seed = sh("git", "-C", str(cat.root), "push", "--quiet", str(bare), "HEAD:refs/heads/main")
+        if seed.returncode != 0:
+            return [f"update.py test: could not seed the fake remote: {seed.stderr.strip()[-200:]}"]
+
+        api = upd("--launcher-api")
+        if api.stdout.strip() != "1":
+            errs.append(f"update.py --launcher-api printed {api.stdout.strip()!r}, expected 1")
+        bogus = upd("bogus")
+        if bogus.returncode != 1:
+            errs.append(f"update.py with an unknown subcommand exited {bogus.returncode}; "
+                        f"a usage error is 1, not 2 (refused)")
+
+        boot = upd("bootstrap", "--all", "--tool", "claude", "--on-conflict", "overwrite")
+        stamp = home / ".claude" / ".local-agents.json"
+        if boot.returncode != 0 or not stamp.is_file():
+            return errs + [f"update.py bootstrap exited {boot.returncode} or wrote no stamp: "
+                           f"{(boot.stderr or boot.stdout).strip()[-200:]}"]
+        if Path(json.loads(stamp.read_text())["catalog_path"]).resolve() != managed.resolve():
+            errs.append("update.py bootstrap: the install is not stamped with the managed clone")
+        if sh("git", "-C", str(managed), "config", "remote.origin.promisor").stdout.strip() != "true":
+            errs.append("update.py bootstrap did not clone with --filter=blob:none")
+
+        chk = upd("check")
+        if chk.returncode != 0 or "installs claude: up to date" not in chk.stdout:
+            errs.append("update.py check on a fresh install did not report it up to date")
+
+        # Two new commits upstream, both touching one skill.
+        sh("git", "clone", "--quiet", str(bare), str(work))
+        upstream_commit("update.py test line one")
+        upstream_commit("update.py test line two")
+        installed = home / ".claude" / "skills" / "verification" / "SKILL.md"
+        before_head, before_skill = head(managed), installed.read_text(encoding="utf-8")
+
+        chk = upd("check")
+        if chk.returncode != 0 or "2 commits behind" not in chk.stdout \
+                or "skill verification" not in chk.stdout:
+            errs.append(f"update.py check did not name the two commits and the changed "
+                        f"skill: {chk.stdout.strip()[-300:]}")
+        if head(managed) != before_head or installed.read_text(encoding="utf-8") != before_skill:
+            errs.append("update.py check changed the clone or an install — it must be read-only")
+
+        # Refusals leave everything as it was: a tracked edit, then an untracked
+        # file that would be installed.
+        readme = managed / "README.md"
+        original = readme.read_text(encoding="utf-8")
+        readme.write_text(original + "local edit\n", encoding="utf-8")
+        ref = upd("update")
+        if ref.returncode != 2 or head(managed) != before_head:
+            errs.append(f"update.py update with a dirty clone exited {ref.returncode} "
+                        f"(expected 2) or moved the clone")
+        elif "(README.md)" not in ref.stderr:
+            errs.append(f"update.py update refused a dirty clone without naming the "
+                        f"changed file: {ref.stderr.strip()[-200:]}")
+        readme.write_text(original, encoding="utf-8")
+        new_skill = managed / "generalist" / "skills" / "zz-untracked" / "SKILL.md"
+        new_skill.parent.mkdir(parents=True)
+        new_skill.write_text("x\n", encoding="utf-8")
+        ref = upd("update")
+        if ref.returncode != 2 or head(managed) != before_head:
+            errs.append(f"update.py update with an untracked skill exited {ref.returncode} "
+                        f"(expected 2) or moved the clone")
+        shutil.rmtree(new_skill.parent)
+
+        # Run from $HOME, where npx usually runs: the global install must not be
+        # mistaken for a project install of the home directory.
+        upd_ok = upd("update", cwd=home)
+        if upd_ok.returncode != 0 or head(managed) != head(work):
+            errs.append(f"update.py update did not fast-forward the clone (exit "
+                        f"{upd_ok.returncode}): {(upd_ok.stderr or upd_ok.stdout).strip()[-200:]}")
+        elif "update.py test line two" not in installed.read_text(encoding="utf-8"):
+            errs.append("update.py update moved the clone but did not refresh the install")
+        elif json.loads(stamp.read_text())["catalog_commit"] != head(work):
+            errs.append("update.py update: the stamp does not record the new commit")
+        if "project install" in upd_ok.stdout:
+            errs.append("update.py update run from $HOME reported the global install "
+                        "as a project install")
+        if upd_ok.stdout.find("catalog ") > upd_ok.stdout.find("refresh "):
+            errs.append("update.py update: the report and install.py's output are out of "
+                        "order when piped")
+
+        # Two installs stamped from two clones: only the user knows which is right.
+        other = home / ".kiro" / ".local-agents.json"
+        other.parent.mkdir(parents=True, exist_ok=True)
+        other.write_text(json.dumps({"catalog_commit": head(managed),
+                                     "catalog_path": str(work)}), encoding="utf-8")
+        two = upd("check")
+        if two.returncode != 2 or "different clones" not in two.stderr:
+            errs.append(f"update.py check with installs from two clones exited "
+                        f"{two.returncode}, expected a refusal (2)")
+        other.unlink()
+
+        sh("git", "-C", str(managed), "commit", "--quiet", "--allow-empty", "-m", "local")
+        diverged = head(managed)
+        ref = upd("update")
+        if ref.returncode != 2 or head(managed) != diverged:
+            errs.append(f"update.py update with a local commit exited {ref.returncode} "
+                        f"(expected 2) or moved the clone")
+        sh("git", "-C", str(managed), "reset", "--quiet", "--hard", "HEAD~1")
+
+        # The remote branch is gone: a refusal that names it, not a traceback.
+        # A bare repo will not delete its current branch, so the clone is
+        # pointed at one that never existed — the state a pruning fetch leaves
+        # behind once a branch is deleted upstream.
+        sh("git", "-C", str(managed), "config", "branch.main.merge", "refs/heads/gone")
+        gone = upd("check")
+        if gone.returncode != 2 or "no longer has" not in gone.stderr:
+            errs.append(f"update.py check with its remote branch deleted exited "
+                        f"{gone.returncode}: {gone.stderr.strip()[-200:]}")
+
+        sh("git", "-C", str(managed), "remote", "set-url", "origin", str(tmp / "nowhere.git"))
+        off = upd("check")
+        if off.returncode != 3:
+            errs.append(f"update.py check with an unreachable remote exited "
+                        f"{off.returncode}, expected 3")
+
+        # bootstrap must not clone into a folder that holds something else.
+        env["XDG_DATA_HOME"] = str(tmp / "occupied")
+        (tmp / "occupied" / "local-agents").mkdir(parents=True)
+        (tmp / "occupied" / "local-agents" / "notes.txt").write_text("mine\n")
+        occ = upd("bootstrap")
+        if occ.returncode != 2:
+            errs.append(f"update.py bootstrap into a non-empty folder exited "
+                        f"{occ.returncode}, expected a refusal (2)")
+    return errs
+
+
 def check_partial_installs(cat: Catalog):
     """Installing ONE agent must leave no dead link between the skills it got.
     `installed-skills` only covers the whole suite, and that is how this went
@@ -1221,6 +1396,7 @@ CHECKS = [
     ("readme-counts", "README roster matches reality", check_readme_counts),
     ("reference-roster", "REFERENCE.es.md lists every agent (Spanish guide)", check_reference_roster),
     ("installer", "install.py --list, --dry-run, real installs, stale-copy warning, --refresh, .agents/ guard", check_installer),
+    ("updater", "update.py against a local fake remote: bootstrap, read-only check, update, refusals, offline", check_updater),
 ]
 
 

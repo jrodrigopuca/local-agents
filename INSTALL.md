@@ -319,6 +319,45 @@ only:
 The installer still writes one copy per tool and never relies on another
 tool's: removing Claude Code must not take opencode's skills with it.
 
+### New versions from GitHub: `update.py`
+
+`--status` and `--refresh` compare against the clone on your disk; neither one
+contacts the remote, so a clone nobody pulled reports "up to date" forever.
+`update.py` is the part that talks to the remote. It is a separate script on
+purpose: `install.py` stays offline and deterministic, and the network failures
+stay out of it.
+
+```bash
+./update.py check      # fetch, then list the agents, skills and CORE files that changed
+                       # since each install — writes nothing
+./update.py update     # the same report, then git pull --ff-only and install.py --refresh
+```
+
+- **Which clone.** The one your installs were stamped from (`catalog_path` in
+  `.local-agents.json`), wherever you run the script. If two installs come from
+  two different clones it refuses, because only you can say which one is
+  right.
+- **It refuses rather than guesses.** It does not update a clone with
+  uncommitted changes, or with commits that are not on the remote; it never
+  merges, stashes or resets. On a developer's working clone, that is the
+  usual answer, and nothing is touched.
+- **Project installs** live in the team's repository and change on purpose.
+  `update` names them and prints the `--refresh --project` command; it does not
+  run it.
+- **Exit codes:** `0` done or nothing to do · `1` error · `2` refused, nothing
+  touched · `3` the remote could not be reached.
+
+Without a clone at all, `bootstrap` makes one where you never have to look
+(`$XDG_DATA_HOME/local-agents`, else `~/.local/share/local-agents`) and passes
+every argument after it to `install.py`:
+
+```bash
+python3 update.py bootstrap --all --tool claude
+```
+
+It clones with `--filter=blob:none`: the whole history, which `--status` needs
+to count commits, without downloading old file contents.
+
 ---
 
 ## Command Recipes
@@ -328,6 +367,8 @@ tool's: removing Claude Code must not take opencode's skills with it.
 | View everything available | `./install.py --list` |
 | **Check installed status and staleness** | `./install.py --status` |
 | **Bring every installed tool up to date** | `./install.py --refresh` |
+| **See what changed on GitHub since you installed** | `./update.py check` |
+| **Pull it and refresh every install** | `./update.py update` |
 | **Install into a repository (for the team)** | `./install.py --all --tool claude --project ~/code/repo` |
 | Preview (writes nothing) | add `--dry-run` to any command |
 | **Install the full suite** | `./install.py --all --tool claude` |
