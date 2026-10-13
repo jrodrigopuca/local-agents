@@ -55,7 +55,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, si un ítem cerrado conserva su detalle o si un detalle aparece dos veces, y `validate.py` pasa |
-| B-053 | P1 | pendiente | Medir qué choca entre `npx skills` y este catálogo: nombres iguales, targets `claude` y `shared`, enlaces simbólicos, ida y vuelta | `install.py` decide qué skill es suya por el nombre de la carpeta, y `npx skills` también; con nombres genéricos como los nuestros, un `--refresh` puede pisar una skill ajena (hipótesis por lectura de código, sin medir) | Los seis casos del detalle medidos en un `HOME` descartable, con versión de `skills`, commit de `install.py` y fecha, anotados en ESTADO-DEL-ARTE como baseline que B-058 repite al cerrar |
+| B-053 | P1 | en curso | Medir qué choca entre `npx skills` y este catálogo: nombres iguales, targets `claude` y `shared`, enlaces simbólicos, ida y vuelta | `install.py` decide qué skill es suya por el nombre de la carpeta, y `npx skills` también; con nombres genéricos como los nuestros, un `--refresh` puede pisar una skill ajena (hipótesis por lectura de código, sin medir) | Los seis casos del detalle medidos en un `HOME` descartable, con versión de `skills`, commit de `install.py` y fecha, anotados en ESTADO-DEL-ARTE como baseline que B-058 repite al cerrar |
 | B-058 | P1 | pendiente | Identidad e integridad de las skills: `metadata.local-agents-id` estable por skill y `{ID → hash}` en el sello | Hoy `install.py` decide por el nombre: pisa una skill ajena que se llame igual, pisa una editada a mano sin avisar (la ve como "stale"), y deja instalada para siempre la copia vieja de una skill renombrada | Los criterios del detalle cumplidos: ID validado (presente, único, inmutable), sello con hashes, `install.py` y `--status` deciden por ID en las cuatro categorías, tests en `tests/test_install.py`, y los casos de B-053 repetidos contra su baseline |
 | B-059 | P2 | pendiente | Prefijo de namespace en todas las skills | Nuestros nombres son genéricos (`debugging`, `code-review`, `verification`…) y `~/.claude/skills` es una carpeta plana y compartida: un agente nuestro que pide `debugging` recibe la que esté instalada con ese nombre, aunque sea de otro, sin ningún error; y al revés, otra herramienta recibe la nuestra. Claude Code resuelve esto solo para plugins (`anthropic-skills:skill-creator` convive con un `skill-creator` suelto) | Prefijo elegido con la medición de B-053 y registrado con su motivo; las 48 skills renombradas con su ID intacto; ningún link, tabla de agente ni escenario del harness con el nombre viejo; y una instalación previa migrada en un `HOME` de prueba, con las copias viejas reportadas como retiradas |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
@@ -504,6 +504,11 @@ y `--refresh` (o `local-hero update`) **pisa la edición sin avisar**.
 - **El ID nos protege a nosotros, no a `npx skills`**, que solo mira el
   nombre. Lo que se gana es que nosotros no pisemos lo ajeno ni lo editado, y
   que `--status` diga la verdad.
+- **Sin parche previo para la caída por enlace simbólico** (decidido
+  2026-10-13, tras B-053). Se conoce y se resuelve acá, completa, en lugar de
+  un parche de unas líneas: no hay usuarios esperando, y el parche habría
+  escrito dos veces el manejo del enlace. Si aparece un usuario afectado antes
+  de cerrar este ítem, el parche se reevalúa.
 
 **Criterios de aceptación.**
 - **ID.** Cada skill del catálogo lleva `metadata.local-agents-id`: un texto
@@ -533,6 +538,18 @@ y `--refresh` (o `local-hero update`) **pisa la edición sin avisar**.
   la tabla, más el renombre y el enlace simbólico.
 - **Al cerrar**, se repiten los casos de B-053 y se anota la diferencia
   contra su baseline.
+
+**Lo que midió B-053 y este ítem tiene que resolver** (ESTADO-DEL-ARTE §4,
+con cómo reproducir cada uno):
+- `relink_skills` decide por nombre: después de que `ask` renombró la nuestra
+  a `code-review-2`, reescribe el `SKILL.md` de la carpeta ajena y la deja
+  mezclada. Tiene que decidir por ID, como el resto.
+- Un enlace simbólico en el destino hace caer `install.py` (`rmtree` sobre un
+  enlace) a mitad de la instalación, sin agentes ni sello. Nunca tiene que
+  caerse ni escribir a través del enlace.
+- `--status` reporta como "stale" una skill ajena que pisó a la nuestra, y
+  como "foreign" la copia nuestra renombrada. Las cuatro categorías lo
+  reemplazan.
 
 **Fuera de alcance, a propósito.** Los agentes tienen el mismo problema, pero
 cada host usa otro formato (markdown, TOML en Codex, JSON en Kiro), sin un

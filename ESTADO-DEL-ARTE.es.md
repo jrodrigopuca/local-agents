@@ -366,6 +366,40 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   en avisar: en 1 de 3 el agente no le contó al usuario que el código traía
   una instrucción dirigida a agentes, que pedía justamente eso. Ver B-030.
 
+- **Choques entre `npx skills` y el catálogo** (B-053, 2026-10-13; `skills`
+  1.7.2, `install.py` @ `8c500d1`, cada caso en un `HOME` descartable, con
+  `DO_NOT_TRACK=1`). Es el baseline que B-058 repite al cerrar.
+  - **Nombres que ya existen afuera: 26 de 48** con nombre idéntico en el
+    índice de skills.sh (un piso: la búsqueda es difusa y se miraron 50
+    resultados por nombre). Los de más peso: `code-review`
+    (`mattpocock/skills`, 723.322 instalaciones; es la skill de apple-dev) y
+    `orchestration` (`stablyai/orca`, 285.981; la de eng-manager).
+  - **La de afuera primero, después `install.py`** (target `claude`, `npx
+    skills` para un solo host, que copia sin enlace). Con `--on-conflict
+    overwrite` o `--refresh`, la ajena se pisa sin aviso. Con `ask` sin TTY
+    (un script, `local-hero`) `install.py` renombra la nuestra a
+    `code-review-2`, pero en el mismo comando `relink_skills` reescribe el
+    `SKILL.md` de la carpeta ajena con el nuestro, porque decide por el
+    nombre: queda una carpeta **mezclada**, nuestro `SKILL.md` con el
+    `agents/openai.yaml` del tercero, y dos copias nuestras.
+    `install.py --status` cuenta `code-review-2` como "foreign".
+  - **`install.py` primero, después `npx skills add`**: pisa la nuestra sin
+    aviso, y `install.py --status` la reporta como "stale", no como ajena.
+  - **Enlace simbólico** (`npx skills add` para dos hosts, `claude-code` y
+    `codex`: copia en `~/.agents/skills` y enlace desde `~/.claude/skills`).
+    `install.py --tool claude` **se cae** con `OSError: Cannot call rmtree on a
+    symbolic link` a mitad de la instalación: quedaron 7 de 48 skills, ningún
+    agente y ningún sello. No escribe a través del enlace (la ajena queda
+    intacta), pero el catálogo no se puede instalar.
+  - **Ida y vuelta**: `npx skills update` no restauró la suya después de que
+    `install.py` la pisó, porque solo reinstala cuando cambia la carpeta en el
+    repo de origen. El ida y vuelta queda latente hasta el próximo cambio de
+    ese repo; no se pudo provocar.
+  - **Target `shared`**: con `npx skills` para un solo host no hay choque en
+    `~/.agents/skills` (`npx skills` escribe solo en `~/.claude/skills`); con
+    varios hosts sí, porque esa es su carpeta canónica.
+  - **Nuestra skill instalada con `npx skills add`** (`discovery`, desde este
+    repo): la copia cruda deja **10 de 10 links muertos** entre skills.
 - **`npx github:…` necesita npm 11** (2026-10-13). Con npm 10 falla dentro
   de npm, antes de que corra el paquete: `GitFetcher requires an Arborist
   constructor to pack a tarball`. Medido con npm 10.8.2 (el que trae node 18
