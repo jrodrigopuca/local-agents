@@ -54,7 +54,6 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, o si un ítem cerrado conserva su detalle, y `validate.py` pasa |
-| B-050 | P1 | en curso | `update.py`: traer la versión nueva del catálogo sin tocar `install.py` | Actualizar hoy son tres pasos que el usuario tiene que saber (ir al clon, `git pull`, `--refresh`), y `--status` compara contra el clon local, así que nunca avisa que hay algo nuevo en GitHub | `update.py check` informa contra el remoto qué agentes y skills cambiaron sin escribir nada; `update.py update` hace `pull --ff-only` y `install.py --refresh` y se niega con árbol sucio o divergido; el bootstrap crea el clon gestionado; `--launcher-api` responde; todo probado en `validate.py` contra un remoto falso local, sin red; `install.py` sin cambios |
 | B-051 | P1 | pendiente | `local-hero`: el launcher npx, en su propio repo | Que actualizar sea `npx github:jrodrigopuca/local-hero update`, la comodidad de `npx skills` sin que el usuario gestione el clon | El repo `local-hero` existe con `package.json` (nombre y bin `local-hero`) y un launcher que no contiene lógica del catálogo; su CI corre el launcher contra el catálogo real; el README del catálogo da la receta; `npx github:…` medido en macOS y Linux |
 | B-052 | P2 | pendiente | Harness: invalidar una corrida si el catálogo instalado cambió mientras corría | Con `update.py` actualizar pasa a ser un comando, y una actualización en medio de una corrida mezcla muestras de dos versiones | `run.py` compara el sello de instalación del principio con el del final; si cambió, la corrida queda `catalog_changed: true` en `run.json`, `viz.py` nunca la usa como línea base, y está demostrado sin modelo |
 | B-053 | P2 | pendiente | Medir si `npx skills` y el target `shared` chocan en `~/.agents/` | Los dos escriben en `~/.agents/skills` y `npx skills` lleva su propio lockfile ahí; un usuario de las dos herramientas puede quedar con skills pisadas | Medido en un `HOME` descartable, con versión de `skills` y fecha: qué pasa con cada herramienta después de que corre la otra; el resultado en la tabla de hosts de ESTADO-DEL-ARTE y, si chocan, un aviso de `install.py --status` o una nota en INSTALL.md |
@@ -68,8 +67,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 ser tan simple como `npx skills`. Va antes que las fases de evaluación de más
 abajo y no depende de ninguna de ellas.
 
-1. **B-050**, `update.py` en el catálogo. Es la lógica entera; sin esto el
-   launcher no tiene a quién llamar.
+1. ~~**B-050**~~, hecho en `602944e`.
 2. **B-051**, el repo `local-hero` con el launcher. Necesita B-050 commiteado y
    pusheado, porque su CI clona el catálogo real. **Crear el repo en GitHub lo
    hace el usuario**: es un acto público.
@@ -418,55 +416,6 @@ chequeo `backlog` ya evita en las filas.
 **Costo.** Cero.
 **Depende de.** Nada.
 
-### B-050: `update.py`
-
-**Qué se busca.** Separar CONSEGUIR la versión nueva de INSTALARLA. Hoy
-`install.py` no usa red, siempre da el mismo resultado y no tiene
-dependencias, y de eso se apoyan `validate.py`, `smoke.py` y el harness. La red
-y git viven en un script aparte, que llama a `install.py` por línea de comandos
-como un usuario más.
-
-**Criterios de aceptación.**
-- Python 3.9, solo stdlib, igual que `install.py`. Es un archivo en la raíz del
-  catálogo.
-- **Ubicar el clon.** Lee `catalog_path` de los sellos `.local-agents.json` de
-  cada herramienta instalada. Si dos sellos apuntan a clones distintos, lo dice
-  y no elige. Si no hay ninguno, el clon gestionado vive en
-  `$XDG_DATA_HOME/local-agents`, o en `~/.local/share/local-agents` si esa
-  variable no está.
-- **`bootstrap`.** Sin clon, hace `git clone --filter=blob:none` en esa ruta
-  (la historia completa sin bajar contenido viejo; `--depth 1` rompería el
-  conteo de commits de `--status`) e instala lo que se le pida pasándole los
-  argumentos a `install.py`.
-- **`check`, solo lectura.** Hace `git fetch` y lista los agentes, skills y
-  CORE que cambiaron entre el commit sellado y la rama remota, con `git diff
-  --name-only` agrupado por unidad. No escribe nada en el clon ni en los
-  hosts. Sin red, lo dice y sale con un código distinto de 0 y de 1, para que
-  un script pueda diferenciarlo.
-- **`update`.** Primero corre lo mismo que `check`. Después se niega, sin
-  tocar nada y diciendo por qué, si el clon tiene cambios sin commitear o
-  commits que no están en el remoto (el caso del clon de desarrollo). Si no,
-  hace `git pull --ff-only` y `install.py --refresh`, y muestra desde qué
-  commit hasta cuál fue. Nunca hace merge, stash ni reset.
-- **Instalaciones por proyecto.** `update` actualiza las globales. Si
-  encuentra un sello de proyecto, lo nombra y da el comando para actualizarlo
-  (`--refresh --project`); no lo toca solo, porque vive en el repo del equipo.
-- **`--launcher-api`.** Imprime un entero, `1`: el único contrato con los
-  launchers (B-051). Cambia solo si cambia cómo se invoca `update.py`, y ese
-  cambio tiene que pasar este criterio de nuevo.
-- **Pruebas en `validate.py`, sin red.** Un repo `bare` local hace de remoto
-  y un `HOME` temporal de usuario. Cubren `bootstrap`, `check` con 0 y con N
-  commits, `update` feliz, la negativa con árbol sucio, la negativa con
-  divergencia y `--launcher-api`. Ninguna prueba hace `pull` sobre el catálogo
-  real.
-- `install.py` no cambia en este ítem. La línea en `--status` que remita a
-  `update.py check` queda para después, si hace falta.
-- INSTALL.md y el README del catálogo explican `update.py`. Se agrega a la
-  regla 13 de AGENTS.md si corresponde (lista docs, no scripts: verificarlo).
-
-**Costo.** Cero en modelo.
-**Depende de.** Nada.
-
 ### B-051: `local-hero`, el launcher npx
 
 **Qué se busca.** Que actualizar sea un comando que el usuario ya conoce, sin
@@ -606,3 +555,4 @@ termina con skills pisadas. `npx skills` 1.7.2 copia las skills a
 | B-026 | hecho | Privacidad: `llm-integration` (la recuperación hereda la autorización del usuario y filtra en la consulta; un caché de respuestas incluye el alcance de permisos en la clave y se invalida con una revocación o un borrado) y `data-pipelines` (inmutable no es para siempre: minimizar al ingerir, retención con fecha, camino de borrado por sujeto). `data-ml-caches-rag-answers-by-permission`: 2/3 con la versión vieja (la roja no invalidaba al revocar acceso a un documento) → 3/3 con la nueva; solo 2 de 6 muestras cargaron la skill, así que el cambio no se atribuye al texto | `ccc68a4`, `harness:aaf206b` |
 | B-020 | hecho | Cada carpeta de prueba de `run.py` es su propia raíz de git (`git_root`): el fixture como único commit, `.claude/` excluido, sin hooks ni firma del usuario. Antes, git subía hasta el repo del harness: un agente leía su HEAD y los archivos del fixture figuraban como ignorados, lo que contradice el chequeo de reversibilidad del CORE. Suite `20261012-155231` (83 escenarios, Sonnet): 29 comandos git en las trazas, 9 resultados muestran el commit `fixture` y ninguno un commit del harness. 81/83; los dos rojos no dependen de git (`senior-dev-reads-before-writing` no tiene fixture ni usó herramientas; `eng-manager-resolves-specialist-conflict` ya oscilaba). Es la nueva línea base: la huella de aislamiento cambió y los verdicts anteriores quedan `partial` | `harness:651e0a7` |
 | B-023 | hecho | Que los agentes carguen sus skills: una línea en el CORE ("Your skills are your method": cuando la tarea calza con un disparador de la tabla de Skills, cargarla antes de actuar). Seis escenarios elegidos donde la skill debería cargar: 10/18 con la línea contra ~3/30 antes (`20261012-161413`). Suite completa `20261012-161940` contra la línea base de B-020: carga 19/72 contra 8/72, PASS 80/83 contra 81/83, costo +4 %. Los rojos nuevos no los causó la carga: architect citó al dba como dueño del modelo de datos (criterio contra catálogo, aclarado), y dos sin skill cargada que ya oscilaban. Dos escenarios siguen sin cargar nunca y pasan igual: el modelo no carga lo que el cuerpo ya le da. Regla de trabajo que queda: el criterio que decide un PASS va al cuerpo; la skill lleva el método de detalle | `337d1ad` |
+| B-050 | hecho | `update.py`: `check` (solo lectura) informa contra el remoto qué agentes, skills y CORE cambiaron desde cada instalación; `update` hace `pull --ff-only` + `install.py --refresh` y se niega sin tocar nada con árbol sucio, commits locales, clones distintos o rama remota borrada; `bootstrap` clona con `--filter=blob:none` en `$XDG_DATA_HOME/local-agents`; `--launcher-api` = 1 (contrato con los launchers, junto con esa ruta). `install.py` sin cambios, solo stdlib, Python 3.9. Chequeo `updater` de `validate.py` contra un remoto falso local, sin red. La revisión con contexto limpio encontró 3 bloqueantes reproducidos (falso aviso de proyecto corriendo desde `~`, traceback con la rama remota borrada, salida desordenada en un pipe), todos corregidos con su caso en el test | `602944e` |
