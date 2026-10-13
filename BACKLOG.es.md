@@ -44,7 +44,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-028 | P3 | en espera | Publicar las skills como plugin de Agent Plugins | La 1.0 no porta agentes y no define dónde se publica; Claude Code no la soporta | La especificación suma agentes o un registro común: entonces se reevalúa |
 | B-029 | P3 | en espera | Modo opcional con enlaces simbólicos para las skills | Los cuatro hosts siguen los enlaces, pero el destino no puede ser el catálogo (las skills se instalan transformadas) y `--refresh` ya cubre el problema | Aparece un caso que `--refresh` no resuelve |
 | B-047 | P1 | pendiente | Comparar `claude plugin eval` con `run.py`, empezando por si puede evaluar agentes instalados | La herramienta oficial ya trae ramas CON y SIN, 2 de 3 votos, tope de costo y JSON versionado; si sirve para el catálogo, B-038 y B-044 no se construyen en `run.py` | El paso 0 está respondido con evidencia; si responde que sí, 3 escenarios corridos en ambas herramientas, comparación en ESTADO-DEL-ARTE y una decisión registrada (adoptar, adaptar su formato o no usarla) |
-| B-044 | P1 | pendiente | Harness: tope de costo por corrida (`--max-cost-usd`) | Hoy solo hay una estimación en `--dry-run`; B-038, B-041 y B-045 multiplican el gasto y nada corta una corrida que se dispara | Las muestras pasan por una compuerta de presupuesto; al llegar al tope, `run.json` registra `capped: true` y el exceso, `viz.py` nunca usa esa corrida como línea base aunque cubra todos los IDs, y el primer test del harness lo demuestra sin modelo |
+| B-044 | P1 | pendiente | Harness: tope de costo por corrida (`--max-cost-usd`) | Hoy solo hay una estimación en `--dry-run`; B-038, B-041 y B-045 multiplican el gasto y nada corta una corrida que se dispara | Las muestras pasan por una compuerta de presupuesto; al llegar al tope, `run.json` registra `capped: true` y el exceso, `viz.py` nunca usa esa corrida como línea base aunque cubra todos los IDs, y un test en `tests/` del harness lo demuestra sin modelo |
 | B-039 | P1 | pendiente | Harness: calibrar el juez contra etiquetas humanas | Ningún veredicto del juez se comparó nunca con un humano; toda la evidencia del catálogo descansa en él (ESTADO-DEL-ARTE §3 y §5.7) | Cada muestra persiste lo que leyó el juez; hay ≥ 20 PASS y ≥ 20 FAIL etiquetados a mano; TPR y TNR medidos sobre un 40 % reservado, por modelo de juez, anotados en ESTADO-DEL-ARTE; TNR ≥ 0,90 o un ítem abierto para corregirlo |
 | B-038 | P1 | pendiente | Harness: rama sin agente para medir cuánto aporta cada persona (Δ) | Un escenario que pasa igual sin agente mide al modelo base, no al catálogo (ESTADO-DEL-ARTE §5.8); `claude plugin eval` y skill-creator reportan Δ, nosotros no | La rama SIN corre sin agentes ni skills en el workspace, queda como `branch: without` y nunca es línea base; `viz.py` muestra CON, SIN y Δ; cada Δ = 0 confirmado en N/3 quedó reformulado o con `protects:` y su motivo |
 | B-040 | P2 | pendiente | Harness: veredicto INDETERMINADO del juez | Hoy un caso ambiguo se fuerza a PASS o FAIL; superpowers y Anthropic le dan al juez la opción "no se puede saber" | El juez puede responder INDETERMINADO, que nunca cuenta como PASS y con `--repeat` deja el escenario INDETERMINADO; `viz.py` lo muestra aparte; una respuesta ambigua fija, vuelta a juzgar, lo produce 3/3; o el ítem se descarta si B-039 no encontró ambiguas |
@@ -55,7 +55,6 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, o si un ítem cerrado conserva su detalle, y `validate.py` pasa |
-| B-052 | P2 | pendiente | Harness: invalidar una corrida si el catálogo instalado cambió mientras corría | Con `update.py` actualizar pasa a ser un comando, y una actualización en medio de una corrida mezcla muestras de dos versiones | `run.py` compara el sello de instalación del principio con el del final; si cambió, la corrida queda `catalog_changed: true` en `run.json`, `viz.py` nunca la usa como línea base, y está demostrado sin modelo |
 | B-053 | P2 | pendiente | Medir si `npx skills` y el target `shared` chocan en `~/.agents/` | Los dos escriben en `~/.agents/skills` y `npx skills` lleva su propio lockfile ahí; un usuario de las dos herramientas puede quedar con skills pisadas | Medido en un `HOME` descartable, con versión de `skills` y fecha: qué pasa con cada herramienta después de que corre la otra; el resultado en la tabla de hosts de ESTADO-DEL-ARTE y, si chocan, un aviso de `install.py --status` o una nota en INSTALL.md |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
@@ -71,9 +70,7 @@ abajo y no depende de ninguna de ellas.
 
 1. ~~**B-050**~~, hecho en `602944e`.
 2. ~~**B-051**~~, hecho: `local-hero` con su CI.
-3. **B-052**, en el harness, y **B-053**, la medición de `~/.agents/`. Van en
-   paralelo con los dos anteriores; conviene B-052 antes de anunciar
-   `local-hero`, porque desde ahí cualquiera actualiza con un comando.
+3. ~~**B-052**~~, hecho. Queda **B-053**, la medición de `~/.agents/`.
 
 B-054 y B-055 quedan en espera, con su condición escrita.
 
@@ -100,7 +97,7 @@ en cualquier orden.
 
 **Fase 1: el tope de costo.**
 
-5. **B-044.** Sin modelo; es el primer test del harness. Protege todas las
+5. **B-044.** Sin modelo; su test va a `tests/` del harness. Protege todas las
    corridas que siguen, así que ninguna fase posterior arranca sin él.
 
 **Fase 2: medir al instrumento.**
@@ -187,7 +184,7 @@ preguntar": la pregunta fija el monto y el flag lo hace cumplir.
 - La estimación por muestra deja de ser `COST_PER_CALL` fijo para los
   escenarios con delegación, que cuestan unos USD 3.
 - `--dry-run` muestra el tope junto a la estimación.
-- El harness no tiene tests todavía: este es el primero. Usa un ejecutor falso
+- Su test va a `tests/` del harness, que existe desde B-052. Usa un ejecutor falso
   de costo fijo y no llama al modelo.
 
 **Costo.** Cero: no necesita corridas reales.
@@ -416,26 +413,6 @@ chequeo `backlog` ya evita en las filas.
 **Costo.** Cero.
 **Depende de.** Nada.
 
-### B-052: invalidar una corrida si el catálogo cambió
-
-**Qué se busca.** Que una actualización en medio de una corrida no produzca
-veredictos mezclados de dos versiones sin que nadie se entere. Protege también
-contra un `--refresh` manual, que ya hoy puede pasar.
-
-**Criterios de aceptación.**
-- `run.py` lee el sello de `~/.claude/.local-agents.json` al empezar (ya lo
-  hace) y otra vez al terminar, y compara el commit y la fecha de
-  instalación.
-- Si cambió: `run.json` registra `catalog_changed: true` con los dos sellos,
-  la salida lo dice en la última línea, y `viz.py` nunca la toma como línea
-  base ni como veredicto vigente.
-- Demostrado sin modelo: con el ejecutor falso de B-044 si ya existe, o
-  cambiando el sello en un test que no lanza muestras.
-
-**Costo.** Cero en modelo.
-**Depende de.** Nada; si B-044 ya trajo el primer test del harness, se apoya
-en él.
-
 ### B-053: `npx skills` y el target `shared` en `~/.agents/`
 
 **Qué se busca.** Saber si un usuario que usa `npx skills` y este catálogo
@@ -502,3 +479,4 @@ termina con skills pisadas. `npx skills` 1.7.2 copia las skills a
 | B-023 | hecho | Que los agentes carguen sus skills: una línea en el CORE ("Your skills are your method": cuando la tarea calza con un disparador de la tabla de Skills, cargarla antes de actuar). Seis escenarios elegidos donde la skill debería cargar: 10/18 con la línea contra ~3/30 antes (`20261012-161413`). Suite completa `20261012-161940` contra la línea base de B-020: carga 19/72 contra 8/72, PASS 80/83 contra 81/83, costo +4 %. Los rojos nuevos no los causó la carga: architect citó al dba como dueño del modelo de datos (criterio contra catálogo, aclarado), y dos sin skill cargada que ya oscilaban. Dos escenarios siguen sin cargar nunca y pasan igual: el modelo no carga lo que el cuerpo ya le da. Regla de trabajo que queda: el criterio que decide un PASS va al cuerpo; la skill lleva el método de detalle | `337d1ad` |
 | B-050 | hecho | `update.py`: `check` (solo lectura) informa contra el remoto qué agentes, skills y CORE cambiaron desde cada instalación; `update` hace `pull --ff-only` + `install.py --refresh` y se niega sin tocar nada con árbol sucio, commits locales, clones distintos o rama remota borrada; `bootstrap` clona con `--filter=blob:none` en `$XDG_DATA_HOME/local-agents`; `--launcher-api` = 1 (contrato con los launchers, junto con esa ruta). `install.py` sin cambios, solo stdlib, Python 3.9. Chequeo `updater` de `validate.py` contra un remoto falso local, sin red. La revisión con contexto limpio encontró 3 bloqueantes reproducidos (falso aviso de proyecto corriendo desde `~`, traceback con la rama remota borrada, salida desordenada en un pipe), todos corregidos con su caso en el test | `602944e` |
 | B-051 | hecho | `local-hero`, el launcher npx en su propio repo (decidido así porque el comando es un contrato público y npm instala desde la raíz de un repo). Shim sin dependencias ni lógica del catálogo: verifica git y Python ≥ 3.9, clona el catálogo gestionado (carpeta aparte y rename, así un Ctrl-C no deja un clon falso), chequea `--launcher-api` (si el clon es más viejo lo avanza; si es más nuevo dice cómo actualizar local-hero) y pasa los argumentos intactos a `update.py`. Piso node 24: `npx github:` necesita npm 11, y npm 10 (node ≤ 22) falla dentro de npm (ESTADO-DEL-ARTE §4). Medido: CI en ubuntu (node 24.21, npm 11.19, Python 3.9) y macOS (node 24.20, npm 11.19) corriendo `npx github:…` con bootstrap, check y update, más a mano en macOS (node 26.11, npm 11.20). La revisión con contexto limpio encontró 2 bloqueantes (clon interrumpido tomado por válido, contrato viejo sin salida); el primer CI encontró que `node --test test/` no anda en node 24 | `local-hero:d03132e`, `local-hero:b0e35b6`, `local-hero:b84a266`, `e3545e9`, `f88dcbd`, `1df1d99` |
+| B-052 | hecho | Una corrida durante la que se reinstaló el catálogo queda inválida: `run.py` relee el sello de instalación al terminar (commit, marca de sucio, fecha; reinstalar el mismo commit también cuenta), registra `catalog_changed: true` con los dos sellos en `run.json` y lo dice en la última línea (`INVALID RUN`); `--applicability` la saltea como a un experimento y `viz.py` la marca y nunca la usa como línea base. Primeros tests del harness (`tests/`, unittest, sin modelo): 5, con prueba de mutación (sin las correcciones fallan los 2 que deben). El cableado en `main()` se verificó leyendo, no ejecutando: una corrida real cuesta | `harness:64960b5` |
