@@ -100,6 +100,12 @@ Rules for this catalog:
     skills` boundary; the rest is review.
 12. `validate.py` checks these conventions and regenerates the derived blocks in
     [GRAPH.md](GRAPH.md). Run it before committing; CI runs it on every PR.
+    What a SCRIPT does is tested apart, in `tests/`, with the standard
+    library's `unittest` (`python3 -m unittest discover -s tests`): a
+    convention is a property of the catalog's files, a behaviour is a
+    property of running code, and one check per behaviour names what broke.
+    CI runs those tests before installing anything, which also proves the
+    scripts need nothing beyond the standard library.
     CI also runs `skills-ref validate` — the Agent Skills authors' own reference
     implementation — over every skill, so conformance is judged by the spec
     rather than by our reading of it. It is pinned to a commit on purpose: it

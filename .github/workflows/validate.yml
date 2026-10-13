@@ -21,6 +21,12 @@ jobs:
         with:
           python-version: "3.9"
 
+      # Before PyYAML on purpose: install.py and update.py promise the standard
+      # library only, and a clean interpreter is what proves it — an import of
+      # anything else fails here. Fake remote, throwaway HOME, no network.
+      - name: Script tests (stdlib only)
+        run: python -I -m unittest discover -s tests -v
+
       - name: Install PyYAML
         run: pip install pyyaml
 

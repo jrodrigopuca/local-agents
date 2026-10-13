@@ -9,6 +9,16 @@ skills it loads on demand. They encode **decision criteria, not task lists** —
 a section could be replaced by "just do X", it doesn't belong here.
 
 ```bash
+npx github:jrodrigopuca/local-hero bootstrap --all --tool claude   # install the whole suite
+npx github:jrodrigopuca/local-hero check                          # what changed upstream — writes nothing
+npx github:jrodrigopuca/local-hero update                         # pull it and refresh every install
+```
+
+[local-hero](https://github.com/jrodrigopuca/local-hero) clones the catalog
+where you never have to look and runs its `update.py`; it needs node 18+, git
+and Python 3.9+. To work from a clone of your own instead:
+
+```bash
 git clone https://github.com/jrodrigopuca/local-agents.git
 cd local-agents
 ./install.py --list                        # see what's available
