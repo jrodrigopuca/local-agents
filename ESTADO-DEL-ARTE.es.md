@@ -167,6 +167,54 @@ De los siete, solo superpowers y wshobson muestran algo parecido a una
 evaluación de comportamiento, y ninguno publica una línea base con versión
 vieja contra versión nueva.
 
+### Cómo se distribuye: `npx skills`
+
+[vercel-labs/skills](https://github.com/vercel-labs/skills), la versión 1.7.2
+del 2026-10-09. Lo leímos en el **código fuente** sin ejecutarlo, así que acá
+*documentado* quiere decir "leído en el código"; lo que solo dice su README se
+aclara.
+
+- **Origen.** Va directo al host de git: `owner/repo`, URLs de GitHub y GitLab
+  con rama y subcarpeta, `#ref`, rutas locales, o un índice
+  `/.well-known/agent-skills/index.json` en cualquier dominio. No hay un
+  registro central para instalar; skills.sh sirve para buscar, como caché de
+  algunos dueños puntuales y para telemetría.
+- **Transporte.** Un clon superficial (`--depth 1`) a un directorio temporal
+  que se borra al terminar: no queda caché, y hace falta git. Solo para unos
+  pocos dueños en una lista fija usa la API de GitHub y un snapshot de
+  skills.sh, cuyo contenido no se verifica contra GitHub.
+- **Destino.** Una tabla de ~79 hosts que se detectan porque existe su carpeta
+  de configuración. Por defecto copia una vez a `~/.agents/skills/<nombre>` y
+  pone un enlace simbólico desde cada host. Funciona porque la skill es la misma
+  para todos.
+- **Registro.** Un lockfile global, `~/.agents/.skill-lock.json`, y uno por
+  proyecto para commitear, `skills-lock.json`, sin timestamps y ordenado. Por
+  skill guarda el origen, el `ref` que escribió el usuario y un hash de la
+  carpeta. **No guarda el commit resuelto.** Un lockfile global de una versión
+  vieja del formato se borra sin avisar.
+- **Actualizar.** `check`, `update` y `upgrade` son el mismo comando: `check`
+  también actualiza. Compara hashes de carpeta y reinstala solo las skills que
+  cambiaron.
+- **Contenido.** Copia crudo. No reescribe los links entre skills, así que una
+  skill instalada sola que apunta a otra queda con el link muerto (inferencia
+  del código; B-053 lo mide). Solo instala skills: lee `marketplace.json` y
+  `plugin.json` de Claude Code únicamente para encontrarlas.
+- **Telemetría** activa por defecto, contra skills.sh. Se apaga con
+  `DO_NOT_TRACK` o `DISABLE_TELEMETRY`.
+
+**Qué tomamos y qué no.** La comodidad no viene de bajar menos, sino de que el
+usuario no tiene que hacerse cargo del clon: eso lo copiamos entero, con
+`update.py` y `local-hero` (B-050, B-051). Su forma de actualizar está pensada
+para skills crudas e independientes, y este catálogo transforma cada archivo
+por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
+
+- los enlaces simbólicos a una copia única, porque no hay copia única;
+- la reinstalación parcial, porque reinstalar todo tarda segundos y un CORE
+  que cambia afecta a todos sus herederos;
+- guardar solo el `ref`, que es más débil que el commit que ya sellamos;
+- un `check` que escribe;
+- la telemetría.
+
 ### Cómo se evalúan agentes y skills
 
 - **`claude plugin eval`** ([doc](https://code.claude.com/docs/en/plugin-evals),
@@ -225,6 +273,7 @@ vieja contra versión nueva.
 | Veredicto indeterminado | superpowers (Quorum), Anthropic | B-040 |
 | Evals de disparo con casi-aciertos | skill-creator | B-041, B-043 |
 | Usar la herramienta oficial antes que construir | `claude plugin eval` | B-047 |
+| Actualizar con un comando, sin gestionar el clon | `npx skills` | B-050, B-051 |
 | Tope de costo por corrida | `claude plugin eval` | B-044 |
 | Topes de tamaño por host | wshobson | B-042 |
 | Humo con CLI reales en CI | wshobson | B-046 |

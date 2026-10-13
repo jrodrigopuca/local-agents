@@ -54,10 +54,33 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, o si un ítem cerrado conserva su detalle, y `validate.py` pasa |
+| B-050 | P1 | pendiente | `update.py`: traer la versión nueva del catálogo sin tocar `install.py` | Actualizar hoy son tres pasos que el usuario tiene que saber (ir al clon, `git pull`, `--refresh`), y `--status` compara contra el clon local, así que nunca avisa que hay algo nuevo en GitHub | `update.py check` informa contra el remoto qué agentes y skills cambiaron sin escribir nada; `update.py update` hace `pull --ff-only` y `install.py --refresh` y se niega con árbol sucio o divergido; el bootstrap crea el clon gestionado; `--launcher-api` responde; todo probado en `validate.py` contra un remoto falso local, sin red; `install.py` sin cambios |
+| B-051 | P1 | pendiente | `local-hero`: el launcher npx, en su propio repo | Que actualizar sea `npx github:jrodrigopuca/local-hero update`, la comodidad de `npx skills` sin que el usuario gestione el clon | El repo `local-hero` existe con `package.json` (nombre y bin `local-hero`) y un launcher que no contiene lógica del catálogo; su CI corre el launcher contra el catálogo real; el README del catálogo da la receta; `npx github:…` medido en macOS y Linux |
+| B-052 | P2 | pendiente | Harness: invalidar una corrida si el catálogo instalado cambió mientras corría | Con `update.py` actualizar pasa a ser un comando, y una actualización en medio de una corrida mezcla muestras de dos versiones | `run.py` compara el sello de instalación del principio con el del final; si cambió, la corrida queda `catalog_changed: true` en `run.json`, `viz.py` nunca la usa como línea base, y está demostrado sin modelo |
+| B-053 | P2 | pendiente | Medir si `npx skills` y el target `shared` chocan en `~/.agents/` | Los dos escriben en `~/.agents/skills` y `npx skills` lleva su propio lockfile ahí; un usuario de las dos herramientas puede quedar con skills pisadas | Medido en un `HOME` descartable, con versión de `skills` y fecha: qué pasa con cada herramienta después de que corre la otra; el resultado en la tabla de hosts de ESTADO-DEL-ARTE y, si chocan, un aviso de `install.py --status` o una nota en INSTALL.md |
+| B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
+| B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…`, pero suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
 
-### Orden de trabajo de B-038 a B-049
+### Orden de trabajo
 
-Salen de la comparación con la industria del 2026-10-12 (ESTADO-DEL-ARTE §3).
+**Ahora: distribución con `local-hero` (B-050 a B-053).** Decidido el
+2026-10-12, a partir del pedido de un usuario: actualizar la suite tiene que
+ser tan simple como `npx skills`. Va antes que las fases de evaluación de más
+abajo y no depende de ninguna de ellas.
+
+1. **B-050**, `update.py` en el catálogo. Es la lógica entera; sin esto el
+   launcher no tiene a quién llamar.
+2. **B-051**, el repo `local-hero` con el launcher. Necesita B-050 commiteado y
+   pusheado, porque su CI clona el catálogo real. **Crear el repo en GitHub lo
+   hace el usuario**: es un acto público.
+3. **B-052**, en el harness, y **B-053**, la medición de `~/.agents/`. Van en
+   paralelo con los dos anteriores; conviene B-052 antes de anunciar
+   `local-hero`, porque desde ahí cualquiera actualiza con un comando.
+
+B-054 y B-055 quedan en espera, con su condición escrita.
+
+**Después: evaluación (B-038 a B-049).** Salen de la comparación con la
+industria del 2026-10-12 (ESTADO-DEL-ARTE §3).
 Las dependencias de cada detalle mandan; esto las pone en secuencia y marca
 dónde hay que frenar a decidir.
 
@@ -393,6 +416,149 @@ chequeo `backlog` ya evita en las filas.
 - `validate.py` pasa sobre el backlog actual.
 
 **Costo.** Cero.
+**Depende de.** Nada.
+
+### B-050: `update.py`
+
+**Qué se busca.** Separar CONSEGUIR la versión nueva de INSTALARLA. Hoy
+`install.py` no usa red, siempre da el mismo resultado y no tiene
+dependencias, y de eso se apoyan `validate.py`, `smoke.py` y el harness. La red
+y git viven en un script aparte, que llama a `install.py` por línea de comandos
+como un usuario más.
+
+**Criterios de aceptación.**
+- Python 3.9, solo stdlib, igual que `install.py`. Es un archivo en la raíz del
+  catálogo.
+- **Ubicar el clon.** Lee `catalog_path` de los sellos `.local-agents.json` de
+  cada herramienta instalada. Si dos sellos apuntan a clones distintos, lo dice
+  y no elige. Si no hay ninguno, el clon gestionado vive en
+  `$XDG_DATA_HOME/local-agents`, o en `~/.local/share/local-agents` si esa
+  variable no está.
+- **`bootstrap`.** Sin clon, hace `git clone --filter=blob:none` en esa ruta
+  (la historia completa sin bajar contenido viejo; `--depth 1` rompería el
+  conteo de commits de `--status`) e instala lo que se le pida pasándole los
+  argumentos a `install.py`.
+- **`check`, solo lectura.** Hace `git fetch` y lista los agentes, skills y
+  CORE que cambiaron entre el commit sellado y la rama remota, con `git diff
+  --name-only` agrupado por unidad. No escribe nada en el clon ni en los
+  hosts. Sin red, lo dice y sale con un código distinto de 0 y de 1, para que
+  un script pueda diferenciarlo.
+- **`update`.** Primero corre lo mismo que `check`. Después se niega, sin
+  tocar nada y diciendo por qué, si el clon tiene cambios sin commitear o
+  commits que no están en el remoto (el caso del clon de desarrollo). Si no,
+  hace `git pull --ff-only` y `install.py --refresh`, y muestra desde qué
+  commit hasta cuál fue. Nunca hace merge, stash ni reset.
+- **Instalaciones por proyecto.** `update` actualiza las globales. Si
+  encuentra un sello de proyecto, lo nombra y da el comando para actualizarlo
+  (`--refresh --project`); no lo toca solo, porque vive en el repo del equipo.
+- **`--launcher-api`.** Imprime un entero, `1`: el único contrato con los
+  launchers (B-051). Cambia solo si cambia cómo se invoca `update.py`, y ese
+  cambio tiene que pasar este criterio de nuevo.
+- **Pruebas en `validate.py`, sin red.** Un repo `bare` local hace de remoto
+  y un `HOME` temporal de usuario. Cubren `bootstrap`, `check` con 0 y con N
+  commits, `update` feliz, la negativa con árbol sucio, la negativa con
+  divergencia y `--launcher-api`. Ninguna prueba hace `pull` sobre el catálogo
+  real.
+- `install.py` no cambia en este ítem. La línea en `--status` que remita a
+  `update.py check` queda para después, si hace falta.
+- INSTALL.md y el README del catálogo explican `update.py`. Se agrega a la
+  regla 13 de AGENTS.md si corresponde (lista docs, no scripts: verificarlo).
+
+**Costo.** Cero en modelo.
+**Depende de.** Nada.
+
+### B-051: `local-hero`, el launcher npx
+
+**Qué se busca.** Que actualizar sea un comando que el usuario ya conoce, sin
+saber dónde está el clon ni qué es `install.py`. Mismo patrón que `rustup`: un
+shim que casi nunca cambia, y la lógica versionada junto con lo que actualiza.
+
+**Decisiones tomadas (2026-10-12).**
+- **Repo aparte, uno para todos los launchers.** El comando es un contrato
+  público, y npm instala desde la raíz de un repo git, así que donde viva el
+  launcher define el comando para siempre. Aparte, el catálogo no carga
+  artefactos de node, cada launcher tiene su CI, y un token de npm, si algún
+  día existe, no vive en el repo del catálogo. El precio es un contrato entre
+  repos, cubierto por `--launcher-api` y por el CI.
+- **Nombre `local-hero`** para el repo, el paquete y el bin. Libre en npm, en
+  PyPI y en la cuenta al 2026-10-12 (una foto: nada queda reservado hasta
+  publicar). Descartados: `laila-cli`, tomado en npm por un asistente de IA
+  local multi-agente activo, el mismo rubro; `local-ag`, porque se confunde
+  con `agy` (Antigravity) en la propia doc y con el comando `ag`;
+  `local-agents` y `lagents`, tomados en PyPI. La descripción del paquete
+  dice qué hace, porque el nombre no lo dice.
+
+**Criterios de aceptación.**
+- Repo `jrodrigopuca/local-hero`, público, creado por el usuario. `package.json`
+  en la raíz con `name` y `bin` `local-hero`, y una descripción del estilo
+  "installs and updates the local-agents catalog".
+- `bin/launcher.js`, sin dependencias de npm:
+  1. verifica `git` y `python3` ≥ 3.9, y si falta algo dice qué instalar;
+  2. ubica el clon como B-050, o corre el bootstrap si no existe;
+  3. compara `update.py --launcher-api` con el que conoce, y si no coinciden
+     dice "actualizá local-hero" en vez de fallar raro;
+  4. ejecuta `python3 <clon>/update.py` con los argumentos **tal cual**, sin
+     interpretarlos, y devuelve su código de salida.
+- El launcher no contiene lógica del catálogo: ni nombres de agentes, ni
+  hosts, ni flags de `install.py`. Un subcomando nuevo de `update.py` funciona
+  sin tocar el launcher. Esto queda dicho en el README de `local-hero`.
+- CI en `local-hero` con node LTS: clona el catálogo real en un `HOME`
+  temporal y corre `bootstrap`, `check` y `update` con el launcher. También
+  verifica que un `--launcher-api` distinto produce el mensaje esperado.
+- `npx github:jrodrigopuca/local-hero update` medido a mano en macOS y en
+  Linux, con versión de npm. Windows queda declarado como no soportado hasta
+  medirlo.
+- El README del catálogo pone la receta `npx github:…` primero y deja
+  `git clone` + `install.py` como camino manual.
+- No se publica en npm (eso es B-055).
+
+**Costo.** Cero en modelo; minutos de CI.
+**Depende de.** B-050 commiteado y pusheado.
+
+### B-052: invalidar una corrida si el catálogo cambió
+
+**Qué se busca.** Que una actualización en medio de una corrida no produzca
+veredictos mezclados de dos versiones sin que nadie se entere. Protege también
+contra un `--refresh` manual, que ya hoy puede pasar.
+
+**Criterios de aceptación.**
+- `run.py` lee el sello de `~/.claude/.local-agents.json` al empezar (ya lo
+  hace) y otra vez al terminar, y compara el commit y la fecha de
+  instalación.
+- Si cambió: `run.json` registra `catalog_changed: true` con los dos sellos,
+  la salida lo dice en la última línea, y `viz.py` nunca la toma como línea
+  base ni como veredicto vigente.
+- Demostrado sin modelo: con el ejecutor falso de B-044 si ya existe, o
+  cambiando el sello en un test que no lanza muestras.
+
+**Costo.** Cero en modelo.
+**Depende de.** Nada; si B-044 ya trajo el primer test del harness, se apoya
+en él.
+
+### B-053: `npx skills` y el target `shared` en `~/.agents/`
+
+**Qué se busca.** Saber si un usuario que usa `npx skills` y este catálogo
+termina con skills pisadas. `npx skills` 1.7.2 copia las skills a
+`~/.agents/skills` y lleva su lockfile en `~/.agents/.skill-lock.json`
+(leído del código fuente; ESTADO-DEL-ARTE §3); el target `shared` de
+`install.py` también escribe en `~/.agents/`.
+
+**Criterios de aceptación.**
+- Medido en un `HOME` descartable, nunca en el del usuario: instalar con
+  `npx skills` una skill pública cualquiera, después `install.py --tool
+  shared`, y al revés. Se anota qué sobrevive, qué se pisa, y qué dicen
+  `npx skills list` e `install.py --status`.
+- También se mide qué pasa con una skill del catálogo instalada por `npx
+  skills add` directo desde este repo: la hipótesis es que los links entre
+  skills quedan muertos (las copia sin transformar). Se confirma o se refuta.
+- El resultado va a la tabla de hosts de ESTADO-DEL-ARTE con la versión de
+  `skills` y la fecha. Si chocan, `install.py --status` lo avisa (como ya
+  hace `shadow_report`) o INSTALL.md lo documenta, y se registra cuál de las
+  dos y por qué.
+- Ningún comando de `npx skills` corre con la telemetría prendida
+  (`DO_NOT_TRACK=1`).
+
+**Costo.** Cero en modelo.
 **Depende de.** Nada.
 
 ## Cerrados
