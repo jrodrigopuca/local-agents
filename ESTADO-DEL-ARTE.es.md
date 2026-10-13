@@ -192,6 +192,11 @@ aclara.
   skill guarda el origen, el `ref` que escribió el usuario y un hash de la
   carpeta. **No guarda el commit resuelto.** Un lockfile global de una versión
   vieja del formato se borra sin avisar.
+- **Identidad: el nombre.** El lockfile indexa por nombre de skill; de
+  `metadata` lee una sola clave, `internal` (oculta skills internas), y no
+  compara `author` (`skills.ts:120`, `skill-lock.ts:184`). Dos skills con el
+  mismo nombre y distinto dueño son, para él, la misma. Por eso B-058 marca
+  las nuestras con un ID propio en `metadata`.
 - **Actualizar.** `check`, `update` y `upgrade` son el mismo comando: `check`
   también actualiza. Compara hashes de carpeta y reinstala solo las skills que
   cambiaron.
