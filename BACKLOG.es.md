@@ -43,7 +43,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-032 | P3 | pendiente | El chequeo `skill` de la suite de humo en opencode pasa viendo una copia GLOBAL de la skill, no la que escribió la instalación del proyecto | opencode elige una copia por nombre (a veces la global), así que ese PASS no prueba lo que el chequeo dice probar | El chequeo verifica la copia del proyecto (o se aísla de las globales) y lo dice en su detalle |
 | B-028 | P3 | en espera | Publicar las skills como plugin de Agent Plugins | La 1.0 no porta agentes y no define dónde se publica; Claude Code no la soporta | La especificación suma agentes o un registro común: entonces se reevalúa |
 | B-029 | P3 | en espera | Modo opcional con enlaces simbólicos para las skills | Los cuatro hosts siguen los enlaces, pero el destino no puede ser el catálogo (las skills se instalan transformadas) y `--refresh` ya cubre el problema | Aparece un caso que `--refresh` no resuelve |
-| B-044 | P1 | pendiente | Harness: tope de costo por corrida (`--max-cost-usd`) | Hoy solo hay una estimación en `--dry-run`; B-038, B-041 y B-045 multiplican el gasto y nada corta una corrida que se dispara | Las muestras pasan por una compuerta de presupuesto; al llegar al tope, `run.json` registra `capped: true` y el exceso, `viz.py` nunca usa esa corrida como línea base aunque cubra todos los IDs, y un test en `tests/` del harness lo demuestra sin modelo |
+| B-044 | P1 | en curso | Harness: tope de costo por corrida, por muestra y por ventana de cuota | B-038, B-041 y B-045 multiplican el gasto; hasta (a) nada cortaba una corrida que se disparaba ni miraba la cuota de la suscripción | (a) hecha en `harness:4d8f192`. Falta (b): `--resume` completa una corrida `capped` pagando solo las muestras que faltan; la estimación es la última medida de cada escenario con la misma huella y el mismo modelo, con lo no medido aparte; `--quota` pronostica la ventana de 5 h y la semanal; y el formato real de un corte por `--max-budget-usd`, con delegación, está medido |
 | B-039 | P1 | pendiente | Harness: calibrar el juez contra etiquetas humanas | Ningún veredicto del juez se comparó nunca con un humano; toda la evidencia del catálogo descansa en él (ESTADO-DEL-ARTE §3 y §5.7) | Cada muestra persiste lo que leyó el juez; hay ≥ 20 PASS y ≥ 20 FAIL etiquetados a mano; TPR y TNR medidos sobre un 40 % reservado, por modelo de juez, anotados en ESTADO-DEL-ARTE; TNR ≥ 0,90 o un ítem abierto para corregirlo |
 | B-038 | P1 | pendiente | Harness: rama sin agente para medir cuánto aporta cada persona (Δ) | Un escenario que pasa igual sin agente mide al modelo base, no al catálogo (ESTADO-DEL-ARTE §5.8); `claude plugin eval` y skill-creator reportan Δ, nosotros no | La rama SIN corre sin agentes ni skills en el workspace, queda como `branch: without` y nunca es línea base; `viz.py` muestra CON, SIN y Δ; cada Δ = 0 confirmado en N/3 quedó reformulado o con `protects:` y su motivo |
 | B-040 | P2 | pendiente | Harness: veredicto INDETERMINADO del juez | Hoy un caso ambiguo se fuerza a PASS o FAIL; superpowers y Anthropic le dan al juez la opción "no se puede saber" | El juez puede responder INDETERMINADO, que nunca cuenta como PASS y con `--repeat` deja el escenario INDETERMINADO; `viz.py` lo muestra aparte; una respuesta ambigua fija, vuelta a juzgar, lo produce 3/3; o el ítem se descarta si B-039 no encontró ambiguas |
@@ -54,6 +54,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
 | B-057 | P3 | pendiente | Pasar el comportamiento de `install.py` de `check_installer` a `tests/` | `check_installer` (~110 líneas de `validate.py`) instala de verdad en un `HOME` temporal y prueba conducta del script (`--refresh`, el aviso de copias viejas, la negativa a mezclar `shared` y `antigravity`), no convenciones del catálogo; es el mismo caso que separó a `update.py` de `validate.py` (regla 12). Hoy varios escenarios son un solo chequeo, y una falla no dice cuál | Cada conducta de `install.py` que prueba hoy `check_installer` es un test con nombre en `tests/test_install.py`, que corre en el paso sin PyYAML del CI; en `validate.py` queda solo lo que es convención (por ejemplo, que un agente de solo lectura se renderice sin `memory:`), y `validate.py` y los tests pasan |
+| B-060 | P2 | pendiente | `project.py` sin tope de costo | Cada invocación es una tarea con delegación (USD 3 o más, hasta 6,86 medido en una muestra) y no tiene ni tope ni `--max-budget-usd`: es el único camino del harness que gasta sin el freno de B-044 | `project.py` no arranca sin `--max-cost-usd`, se lo pasa a la llamada como `--max-budget-usd`, un corte queda en la traza como ERROR "budget" con su costo, hay un test en `tests/` del harness sin modelo, y README y GUIA lo dicen |
 
 ### Orden de trabajo
 
@@ -92,8 +93,9 @@ en cualquier orden.
 
 **Fase 1: el tope de costo.**
 
-5. **B-044.** Sin modelo; su test va a `tests/` del harness. Protege todas las
-   corridas que siguen, así que ninguna fase posterior arranca sin él.
+5. **B-044.** (a) hecha: el tope, la compuerta y el freno por cuota protegen
+   las corridas que siguen. (b) queda pendiente: `--resume`, la estimación
+   medida y `--quota`. **B-060** pone el mismo tope en `project.py`.
 
 **Fase 2: medir al instrumento.**
 
@@ -135,6 +137,31 @@ editar.
 **Qué se busca.** Que ninguna corrida pueda gastar más de lo autorizado. El
 tope es la contraparte mecánica de la regla de trabajo "ninguna corrida sin
 preguntar": la pregunta fija el monto y el flag lo hace cumplir.
+
+**Avance (2026-10-14).** El diseño creció con la discusión: además del tope
+por corrida, un tope por muestra y un freno por la cuota de la suscripción,
+que cada respuesta del CLI reporta (`rate_limit_event`, ventanas de 5 h y
+semanal). Una suite completa consume 15 a 19 puntos de la ventana de 5 h y ~1
+de la semanal; la corrida `20261012-131428` terminó al 97 %. Se partió en dos
+entregas:
+
+- **(a), hecha en `harness:4d8f192`.** `--max-cost-usd` obligatorio; no
+  arranca si la estimación no entra; compuerta antes de cada lanzamiento por
+  tope o por la ventana de 5 h al 90 %; las muestras en vuelo terminan con su
+  juez; `--max-budget-usd` por muestra (1 / 12 USD por tipo, sobre 0,40 y 6,86
+  medidos), y un corte es ERROR "budget" con su costo contado; `capped` en
+  `run.json`, código 2, nunca línea base; `--applicability` solo usa los
+  escenarios con todas sus muestras. La estimación pasó a 0,15 / 3,00 por
+  escenario (12,45 contra 11,83 reales). 11 tests nuevos y 7 mutaciones
+  detectadas.
+- **(b), pendiente.** `--resume`; estimación medida por escenario, huella y
+  modelo (un modelo sin historia se marca "sin calibrar"); `--quota`, que
+  cuesta una llamada mínima, con el pronóstico de las dos ventanas y la
+  negativa a arrancar si alguna pasaría del 100 %; y medir con una muestra
+  con delegación (~USD 3, con OK) si `--max-budget-usd` cuenta los subagentes
+  y cómo llega el corte.
+
+Los criterios de abajo son los originales y los cubre (a).
 
 **Criterios de aceptación.**
 - Las muestras dejan de encolarse de una vez (`pool.map` sobre todas las
