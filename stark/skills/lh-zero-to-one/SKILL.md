@@ -3,10 +3,11 @@ name: lh-zero-to-one
 description: >
   Taking a product from nothing to shipped v1: phase rules, riskiest
   assumption first, walking skeletons, and honest prototype-to-production
-  transitions. Trigger: load when starting a product from scratch (greenfield:
-  nothing exists yet), planning an MVP, or when a prototype is being promoted
-  to production. A new feature inside an existing codebase is senior-dev's,
-  not this.
+  transitions. Trigger: load when nothing exists yet and nobody depends on it
+  (a new product or an MVP), or when a prototype is being promoted to
+  production. Not for new work inside a product that already has users —
+  even a module built from scratch or kept separate: its users set the phase,
+  and that work is senior-dev's.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
