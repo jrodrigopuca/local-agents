@@ -442,15 +442,24 @@ se carga, el agente sigue el método equivocado con total convicción.
   versión con prefijo comparten `local-agents-id`, y `--status` reporta la
   vieja como nuestra y retirada.
 - **El prefijo se elige con datos**, con la medición de B-053 sobre cuántos de
-  nuestros nombres ya existen afuera. Si chocan muy pocos, este ítem puede
-  cerrarse como `descartado`, con el ID de B-058 como protección suficiente.
+  nuestros nombres ya existen afuera: 26 de 48. El ID de B-058 no alcanza, así
+  que el ítem sigue.
+- **Prefijo: `lh-`** (decidido 2026-10-13). `local-hero` es el producto que ve
+  el usuario: instala, actualiza, y es el repo de todos los launchers (B-051,
+  B-054), así que su marca en las skills es coherente con lo que se usa.
+  Medido contra el índice de skills.sh ese día: ninguna skill pública empieza
+  con `lh-`, ninguno de los 48 nombres con el prefijo existe, y el más largo
+  queda en 23 de 64 caracteres. Descartados, también medidos:
+  `local-agents-` (ya lo usan dos proyectos ajenos: "local agents" es una
+  frase genérica, no un nombre nuestro); `hero-` (se confunde con `heroui-*`,
+  una librería con más de 26 mil instalaciones); `lag-` y `lax-` (libres,
+  pero son palabras: "demora" y "poco riguroso", lo contrario de lo que
+  enseña el catálogo); `la-` (libre y corto, pero opaco). Quien use
+  `install.py` sin `local-hero` ve `lh-` sin contexto: el README lo explica.
 
 **Criterios de aceptación.**
-- **El prefijo**, registrado aquí con su motivo. Respeta la especificación
-  (minúsculas, números y guiones, sin `--`, hasta 64 caracteres, igual al
-  nombre de la carpeta) y es corto, porque aparece en cada tabla de Skills de
-  cada agente. Candidatos para discutir: `la-` (corto, poco explícito) y
-  `local-agents-` (explícito, largo).
+- **El prefijo `lh-`** aplicado a las 48 skills, y una línea en el README del
+  catálogo que diga qué significa.
 - **Las 48 skills renombradas**: carpeta y `name`, con el `local-agents-id`
   intacto (`validate.py` de B-058 lo verifica).
 - **Ninguna referencia con el nombre viejo**: links `skills/<nombre>/SKILL.md`
