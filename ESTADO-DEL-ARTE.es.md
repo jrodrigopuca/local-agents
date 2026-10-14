@@ -112,7 +112,7 @@ en filosofía.
 | Qué define a un agente | El stack (`python-pro`, agentes de Django, de Kubernetes…) | El criterio; el stack lo traen las skills (regla 5) |
 | Fuente única y generación por host | Sí: adaptadores para Codex, Cursor, OpenCode, Copilot, Antigravity y Pi sobre una matriz común (`capabilities.py`); lo generado no se versiona | Sí: `install.py` para 5 hosts, con sello de procedencia (`--status`, `--refresh`) |
 | Distribución | Marketplace de plugins de Claude Code; se instala por plugin | Copia por host o por proyecto; sin marketplace (B-028, en espera) |
-| Topes de tamaño | Archivos de contexto de ~150 líneas; cuerpo de skill de ~8 KB, el límite que le atribuyen a Codex; lo que sobra se parte en `references/` | Ninguno. `llm-integration` pesa 10.999 bytes (*medido*); ver B-042 |
+| Topes de tamaño | Archivos de contexto de ~150 líneas; cuerpo de skill de ~8 KB, el límite que le atribuyen a Codex; lo que sobra se parte en `references/` | Ninguno, y en Codex no hace falta: recibe entera la copia instalada de `lh-llm-integration`, de 10.907 bytes (*medido*, 0.162.1, B-042) |
 | Modelo por agente | `model:` en cada agente: 70 sonnet, 54 opus, 52 inherit, 24 haiku, 2 fable | `inherit`; en B-036, el único caso donde Sonnet fallaba y Opus no se resolvió reescribiendo la regla, sin cambiar de modelo |
 | Acceso | `tools:` por agente | `access: read\|full`, traducido a lo que cada host hace cumplir (regla 16) |
 | Orquestación | Cadenas fijas en slash commands (p. ej. backend → base de datos → frontend → tests → seguridad → deploy → observabilidad) | `eng-manager` rutea según dónde está el peso del trabajo; delegar costó ~4× (medido una vez: USD 3,06 contra 0,69) |
@@ -277,10 +277,9 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 | Juez calibrado contra etiquetas humanas | evals-skills, superpowers, Anthropic | B-039 |
 | Veredicto indeterminado | superpowers (Quorum), Anthropic | B-040 |
 | Evals de disparo con casi-aciertos | skill-creator | B-041, B-043 |
-| Usar la herramienta oficial antes que construir | `claude plugin eval` | B-047 |
+| Usar la herramienta oficial antes que construir | `claude plugin eval` | B-047, descartado: exige un plugin (§4) |
 | Actualizar con un comando, sin gestionar el clon | `npx skills` | B-050, B-051 |
 | Tope de costo por corrida | `claude plugin eval` | B-044 |
-| Topes de tamaño por host | wshobson | B-042 |
 | Humo con CLI reales en CI | wshobson | B-046 |
 | Escenarios bajo presión con excusas registradas | superpowers | B-045 |
 
@@ -319,13 +318,28 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 | Host | Agentes | Skills | Solo lectura | Sorpresas |
 |---|---|---|---|---|
 | **opencode 1.18.11** | `~/.config/opencode/agents`, `.opencode/agents`. **No** lee `.agents/agents` | propia + `~/.claude/skills` + `~/.agents/skills` + `skill/` (legacy); por proyecto `.agents/skills` y `.claude/skills` | `permission` (documentado) | Con la misma skill en varias carpetas **elige una copia distinta en cada corrida** (32, 10 y 4 de 48 del proyecto en tres corridas idénticas) |
-| **Codex 0.144.5** | TOML en `~/.codex/agents`, `.codex/agents` | `~/.codex/skills`; `~/.agents/skills` (documentado) | `sandbox_mode = "read-only"` | El flag `--sandbox` pisa el modo de cada agente; `-c sandbox_mode=...` y `config.toml` no. `codex exec` espera stdin si no se cierra |
+| **Codex 0.144.5** | TOML en `~/.codex/agents`, `.codex/agents` | `~/.codex/skills`; `~/.agents/skills` (documentado) | `sandbox_mode = "read-only"` | Una skill de más de 8 KB llega entera (0.162.1, B-042). El flag `--sandbox` pisa el modo de cada agente; `-c sandbox_mode=...` y `config.toml` no. `codex exec` espera stdin si no se cierra |
 | **Antigravity (agy 1.3.3)** | `~/.gemini/config/agents`, `.agents/agents`; con el mismo nombre **gana el del proyecto** | `~/.gemini/config/skills`, `.agents/skills` | allowlist `tools:` | La doc da `~/.gemini/antigravity-cli/skills/` para el CLI y **no se lee**. Sin `tools:` el agente recibe un set mínimo (sin escribir ni buscar). Un nombre de herramienta desconocido aborta el arranque. Un agente sin frontmatter se ignora: `--agent` usa el global de ese nombre si existe, o el agente principal, sin avisar |
 | **Claude Code 2.1.296** | `~/.claude/agents`, `.claude/agents` | `~/.claude/skills`, `.claude/skills`. **No** lee `~/.agents/skills` ni `.agents/skills` | allowlist `tools:` | Se puede medir gratis: el evento `init` de `claude -p --output-format stream-json --verbose` lista las skills cargadas antes de consultar al modelo. El comportamiento de los agentes lo prueba el harness |
 | **Kiro (kiro-cli 2.29.1)** | JSON en `~/.kiro/agents`, `.kiro/agents` | `~/.kiro/skills`, `.kiro/skills`, vía `resources` `skill://` (el `~` funciona también por proyecto) | lista `tools`, que se hace cumplir | **Lee solo la primera línea de la descripción de una skill**: con `description: >` la ve vacía, y la skill no se dispara nunca. `code` modifica archivos (AST rewrite) y `subagent` delega en un agente que escribe. `kiro-cli agent validate` acepta herramientas y campos inventados |
 
 ### Otros hallazgos medidos
 
+- **Codex no corta una skill de más de 8 KB** (0.162.1, 2026-10-13, B-042).
+  No mete el cuerpo en el prompt: `codex debug prompt-input`, que es gratis,
+  muestra solo nombre, descripción y ruta, aun con `$skill` en el pedido. El
+  modelo lee el archivo con el shell, con un presupuesto de salida de 10.000
+  tokens por defecto. En una consulta, el `cat` de la copia instalada de
+  `lh-llm-integration` (10.907 bytes) quedó registrado entero, idéntico byte a
+  byte. El ~8 KB que le atribuye wshobson no aplica a esta versión.
+- **`claude plugin eval` no evalúa lo instalado** (Claude Code 2.1.296,
+  2026-10-13, B-047). Solo carga un plugin con `.claude-plugin/plugin.json`:
+  sin manifiesto, el directorio se acepta como raíz de la suite pero el JSON
+  sale con `plugins: []`. Cada corrida va aislada de `~/.claude`, y no hay
+  forma de correr un caso COMO un agente: solo se puede delegar en él con
+  `Agent`, y ahí pierde `permissionMode`. Se mide gratis con
+  `--max-cost-usd 0`, que corta antes de la primera corrida y deja igual el
+  JSON con lo que se cargó.
 - **Claude Code no lee `~/.agents/skills` ni `.agents/skills`**: el aviso de
   `shadowing` no lo incluye (2.1.296; se mide gratis con el evento `init`).
 - **En agy gana el agente del proyecto** sobre el global del mismo nombre, y uno
