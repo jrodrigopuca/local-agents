@@ -675,9 +675,12 @@ def with_legacy_records(tool: Tool, stamp: dict) -> dict:
         print(f"    note   → {tool.label}: installed before install records existed, "
               f"from a commit this catalog does not have — hand edits there cannot be "
               f"told apart, and catalog files are updated")
-        return stamp
+        return {**stamp, "suite": stamp.get("suite", True)}
     skills, agents = rebuilt
-    return {**stamp, "skills": stamp.get("skills", skills), "agents": stamp.get("agents", agents)}
+    # Before B-058 every refresh reinstalled the whole catalog; a stamp from
+    # then means exactly that.
+    return {**stamp, "skills": stamp.get("skills", skills),
+            "agents": stamp.get("agents", agents), "suite": stamp.get("suite", True)}
 
 
 def legacy_records(tool: Tool, commit: Optional[str]):
@@ -863,6 +866,11 @@ def relink_skills(tool: Tool, skills_by_name: dict, dry_run: bool):
 
 
 def install_skill(skill: Skill, tool: Tool, policy: str, interactive: bool, dry_run: bool):
+    # Already written in this run (an agent's dependency met again): it is ours
+    # and fresh. Classifying it again against the stamp from BEFORE the run
+    # would read our own write as a hand edit.
+    if skill.name in run_for(tool).skills_written:
+        return skill.name
     dest = tool.skills_dir / skill.name
     if not (dest.exists() or dest.is_symlink()):
         return copy_skill(skill, tool, skill.name, dry_run)
@@ -1081,6 +1089,12 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
             if nm:
                 installed_skill_names.append(nm)
         relink_skills(tool, skills_by_name, dry_run)
+        # A dependency left alone because it was edited is still ours and still
+        # there: the agent must keep pointing at it (Kiro lists them).
+        if not dry_run:
+            present = present_skills(tool.skills_dir, skills_by_name)
+            installed_skill_names += [s.name for s in dep_skills
+                                      if s.name in present and s.name not in installed_skill_names]
 
     if tool.agents_dir is None:
         print(f"    note   → {tool.label} has nowhere to put an agent body. "

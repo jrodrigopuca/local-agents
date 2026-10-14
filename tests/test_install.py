@@ -225,9 +225,7 @@ class InstallTest(unittest.TestCase):
                                     if "local-agents-id" not in l))
         self.commit("a catalog from before ids")
         self.install_all()
-        stamp = json.loads(self.stamp.read_text())
-        del stamp["skills"], stamp["agents"]
-        self.stamp.write_text(json.dumps(stamp))
+        self.make_legacy(self.stamp)
         for md, text in with_ids.items():
             md.write_text(text)
         self.commit("the catalog gains its ids")
@@ -311,9 +309,16 @@ class InstallTest(unittest.TestCase):
     # -- found by review: migrating from a stamp without records --------- #
 
     def strip_records(self):
-        stamp = json.loads(self.stamp.read_text())
-        del stamp["skills"], stamp["agents"]
-        self.stamp.write_text(json.dumps(stamp))
+        self.make_legacy(self.stamp)
+
+    @staticmethod
+    def make_legacy(stamp_file):
+        """A stamp exactly as install.py wrote it before B-058: commit, dirty,
+        path, time — no records and no `suite`."""
+        stamp = json.loads(stamp_file.read_text())
+        for k in ("skills", "agents", "suite"):
+            stamp.pop(k, None)
+        stamp_file.write_text(json.dumps(stamp))
 
     def test_a_pre_b058_install_keeps_its_hand_edits(self):
         self.own_copy_of_catalog()
@@ -332,8 +337,8 @@ class InstallTest(unittest.TestCase):
 
     def test_a_pre_b058_install_from_an_unknown_commit_says_so(self):
         self.install_all()
+        self.make_legacy(self.stamp)
         stamp = json.loads(self.stamp.read_text())
-        del stamp["skills"], stamp["agents"]
         stamp["catalog_commit"] = "0" * 40
         self.stamp.write_text(json.dumps(stamp))
         run = self.install("--refresh")
@@ -360,6 +365,58 @@ class InstallTest(unittest.TestCase):
         self.commit("add a skill")
         self.install("--refresh")
         self.assertTrue(self.is_ours(self.skills / "brand-new"))
+
+
+    # -- found migrating a real install --------------------------------- #
+
+    def legacy_install_from_a_catalog_without_ids(self, tool):
+        """What a real install from before B-058 looks like: installed from a
+        commit without ids, stamped without records; then the catalog moves on."""
+        catalog = self.own_copy_of_catalog()
+        mds = sorted(catalog.glob("*/skills/*/SKILL.md"))
+        with_ids = {md: md.read_text() for md in mds}
+        for md in mds:
+            md.write_text("\n".join(l for l in with_ids[md].split("\n")
+                                    if "local-agents-id" not in l))
+        self.commit("before ids")
+        run = self.install("--all", "--tool", tool, "--on-conflict", "overwrite")
+        self.assertEqual(run.returncode, 0, run.stderr[-300:])
+        for md, text in with_ids.items():
+            md.write_text(text)
+        self.commit("ids")
+
+    def test_refreshing_a_legacy_whole_install_takes_the_whole_catalog_path(self):
+        # Measured on a real machine: a legacy stamp took the partial path, met
+        # each shared skill once per agent, and called our own fresh writes
+        # "edited by hand" — 1482 times over six hosts.
+        self.legacy_install_from_a_catalog_without_ids("claude")
+        self.make_legacy(self.stamp)
+        run = self.install("--refresh")
+        self.assertIn("Installing the WHOLE SUITE", run.stdout)
+        self.assertNotIn("left alone", run.stdout)
+        self.assertTrue(json.loads(self.stamp.read_text())["suite"])
+
+    def test_kiro_agents_list_all_their_skills_after_a_legacy_refresh(self):
+        self.legacy_install_from_a_catalog_without_ids("kiro")
+        kiro_stamp = self.home / ".kiro" / ".local-agents.json"
+        self.make_legacy(kiro_stamp)
+        self.install("--refresh")
+        kiro = self.status().split("Kiro CLI")[1].split("\nCodex")[0]
+        self.assertNotIn("stale", kiro)
+        self.assertNotIn("edited", kiro.replace("(it updates only", ""))
+
+    def test_a_partial_refresh_with_shared_dependencies_warns_about_nothing(self):
+        # Two agents that share a skill, and that skill changed upstream: the
+        # second agent meets our fresh write, which differs from the record.
+        catalog = self.own_copy_of_catalog()
+        self.install("--agent", "qa", "--agent", "security", "--tool", "claude")
+        src = catalog / "generalist" / "skills" / SKILL / "SKILL.md"
+        src.write_text(src.read_text() + "\nnew in the catalog\n")
+        self.commit("change a shared skill")
+        run = self.install("--refresh")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertNotIn("left alone", run.stdout)
+        self.assertIn("new in the catalog", (self.skills / SKILL / "SKILL.md").read_text())
 
 
 if __name__ == "__main__":
