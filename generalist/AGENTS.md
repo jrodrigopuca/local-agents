@@ -154,7 +154,7 @@ Load these when the loop reaches their stage and the task is non-trivial:
 
 | Skill | Loads at | File |
 |-------|----------|------|
-| `lh-decomposition` | Stage 3 — breaking down non-trivial work | [skills/lh-decomposition/SKILL.md](skills/lh-decomposition/SKILL.md) |
+| `lh-decomposition` | Stage 3 — before acting on a plan that can fail expensively | [skills/lh-decomposition/SKILL.md](skills/lh-decomposition/SKILL.md) |
 | `lh-verification` | Stage 5 — before claiming anything is done | [skills/lh-verification/SKILL.md](skills/lh-verification/SKILL.md) |
 | `lh-next-step` | Stage 6 — deciding what to do next, or whether to stop | [skills/lh-next-step/SKILL.md](skills/lh-next-step/SKILL.md) |
 

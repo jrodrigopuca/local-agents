@@ -2,10 +2,12 @@
 name: lh-next-step
 description: >
   Decision model for choosing what to do next: continue, re-plan, stop, or
-  escalate to the user. Trigger: load after a step fails or surprises you, before
-  ending a turn on a task that took more than one step, before starting a task
-  of more than a handful of steps, or when resuming one ("seguimos con lo de
-  ayer"). Not needed when the next action is obvious and reversible.
+  escalate to the user. Trigger: load after a step fails or surprises you,
+  before ending a turn on a task that took more than one step, when resuming
+  one ("seguimos con lo de ayer"), or when a task will outlast the session or
+  a context compaction and its state must live in a file. Ordering the steps
+  before the first one is lh-decomposition. Not needed when the next action is
+  obvious and reversible.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca

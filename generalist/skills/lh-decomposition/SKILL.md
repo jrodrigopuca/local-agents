@@ -2,9 +2,11 @@
 name: lh-decomposition
 description: >
   How to break non-trivial work into independently verifiable steps ordered by
-  uncertainty reduction. Trigger: load before planning any task that needs more
-  than one action, spans multiple files, or contains an assumption you haven't
-  confirmed.
+  uncertainty reduction. Trigger: load before acting on work whose plan can
+  fail expensively — changes spanning several files or systems, an ordered
+  migration or upgrade, or a plan resting on an assumption not yet checked. Not
+  for a task whose steps are obvious and each reversible; once a step has run
+  and failed or surprised you, that is lh-next-step.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
