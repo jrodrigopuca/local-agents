@@ -104,5 +104,5 @@ reasoning model of the [generalist agent](../generalist/AGENTS.md).
 | Skill             | Loads when                                                           | File                                                               |
 | ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
 | `lh-brutal-critique` | Analyzing a product/feature and delivering the honest verdict        | [skills/lh-brutal-critique/SKILL.md](skills/lh-brutal-critique/SKILL.md) |
-| `lh-focus`           | Deciding what to kill, what to say no to, what the ONE thing is      | [skills/lh-focus/SKILL.md](skills/lh-focus/SKILL.md)                     |
+| `lh-focus`           | Deciding what to kill, what to say no to, what the ONE thing is — a roadmap included | [skills/lh-focus/SKILL.md](skills/lh-focus/SKILL.md)                     |
 | `lh-inspire`         | Motivating creation: vision, story, and lessons from product history | [skills/lh-inspire/SKILL.md](skills/lh-inspire/SKILL.md)                 |

@@ -54,6 +54,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
 | B-057 | P3 | pendiente | Pasar el comportamiento de `install.py` de `check_installer` a `tests/` | `check_installer` (~110 líneas de `validate.py`) instala de verdad en un `HOME` temporal y prueba conducta del script (`--refresh`, el aviso de copias viejas, la negativa a mezclar `shared` y `antigravity`), no convenciones del catálogo; es el mismo caso que separó a `update.py` de `validate.py` (regla 12). Hoy varios escenarios son un solo chequeo, y una falla no dice cuál | Cada conducta de `install.py` que prueba hoy `check_installer` es un test con nombre en `tests/test_install.py`, que corre en el paso sin PyYAML del CI; en `validate.py` queda solo lo que es convención (por ejemplo, que un agente de solo lectura se renderice sin `memory:`), y `validate.py` y los tests pasan |
 | B-061 | P3 | pendiente | Medir si el tier de solo lectura carga skills en Antigravity | En Claude Code no podía (sin `Skill` en su allowlist, arreglado en `98ecee5`); opencode, Kiro y Codex no tienen ese hueco por cómo cargan skills, pero en agy no se pudo confirmar gratis (su binario menciona `skill_search` y no sabemos si es una herramienta que `AGY_TOOLS["read"]` debería incluir) | El chequeo `read skill` de `smoke.py` corrió pago en agy con su versión anotada en ESTADO-DEL-ARTE §4, y si falla, `AGY_TOOLS["read"]` suma la herramienta medida y `validate.py` lo exige |
+| B-062 | P2 | en curso | Evaluar uso y necesidad de las skills que se pisan o no se cargan nunca | B-041 encontró cuatro fronteras ambiguas entre skills vecinas y, en las 136 corridas guardadas, 9 skills que no se cargaron nunca. Una skill que nadie carga o que compite con su vecina se paga en tokens en cada sesión (su descripción viaja siempre) sin aportar método | Cada skill de la lista tiene una decisión registrada con su motivo y su evidencia en las dos preguntas del detalle: el **disparo** medido con `--category skill-trigger` sin perder contra la línea base de B-041, y el **valor** medido con la comparación con y sin la skill (después de B-039); ninguna se quita, fusiona o mueve al cuerpo sin esa segunda medición |
 
 ### Orden de trabajo
 
@@ -110,6 +111,8 @@ en cualquier orden.
 
 > **Decisión 2:** ¿el juez llega a TNR ≥ 0,90? Si no llega, se arregla el juez
 > antes de la fase 3. Un Δ medido con un juez que aprueba fallas no dice nada.
+> Vale para el Δ por agente (B-038) y para el Δ por skill, la pregunta de
+> valor de B-062.
 
 **Fase 3: medir al catálogo.**
 
@@ -316,6 +319,65 @@ agente dice qué contra-argumento le falta a la regla.
 
 **Costo.** ~7 escenarios × 3, unos USD 4 al costo de B-034.
 **Depende de.** B-044.
+
+### B-062: uso y necesidad de las skills
+
+**Qué se busca.** Decidir, con datos, si cada skill problemática gana su
+lugar. Una skill cuesta en cada sesión, porque su descripción viaja siempre, y
+aporta solo cuando se carga y trae método que el cuerpo del agente no tiene.
+
+**Dos preguntas distintas** (separadas el 2026-10-14, a pedido del usuario):
+
+1. **Disparo: ¿se carga cuando corresponde, y no en un casi-acierto?** Se mide
+   con `skill-triggers.yaml`. Sirve para decidir si un disparador se afila. No
+   dice si la skill vale la pena: una skill puede cargarse 4 de 4 y no aportar
+   nada que el modelo no supiera. Y los escenarios escritos leyendo la
+   descripción la miden contra sí misma, así que una descripción nueva se mide
+   con consultas escritas por alguien que no vio el análisis que la propuso.
+2. **Valor: ¿la respuesta sale mejor gracias a la skill?** Se mide comparando
+   la misma tarea con el catálogo completo y con esa skill quitada de la
+   carpeta de trabajo (B-038 aplicado a una skill). Las tareas se escriben "a
+   ciegas", desde lo que un usuario le pediría al agente, y el criterio juzga
+   el resultado (para `lh-code-audit`, "¿siguió el dato desde la entrada hasta
+   donde se usa?"), no la carga. Sin diferencia, la skill es candidata a
+   fusionarse, a quitarse o a dejar una línea en el cuerpo. Es la única
+   pregunta que decide conservar, fusionar o quitar, y depende de B-039: un Δ
+   medido con un juez que aprueba fallas no dice nada. Costo: ~24 muestras por
+   skill (4 tareas × 2 ramas × 3), unos USD 3,60; se prioriza.
+
+**El análisis de architect** (gratis, 2026-10-14, verificado contra las
+trazas). No recomienda quitar ninguna:
+
+| Skill | Propuesta | Estado |
+|---|---|---|
+| `lh-discovery`, `lh-stakeholders` | Conservar sin cambios: su frontera aguantó (en `discovery-near-3` cargó stakeholders) | **decidido** |
+| `lh-verification` | Conservar: la cita como "escalera de evidencia" una treintena de archivos y dos tests | **decidido** |
+| `lh-focus`, `lh-brutal-critique` | Afilar: "roadmap" pasa a ser solo de focus (cargaron las dos para el mismo pedido en `20261014-005306`) | descripciones cambiadas; falta medir el disparo |
+| `lh-zero-to-one` | Afilar: el criterio pasa de "no hay codebase" a "nadie depende de esto" | pendiente |
+| `lh-decomposition`, `lh-next-step` | Afilar y separar por momento: antes del primer paso, o después de uno que falló | pendiente |
+| `lh-mentoring` | Afilar: quitarle "una decisión cara tomada a la ligera", que es de `lh-tradeoffs`; la usa el cuerpo de apple-dev | pendiente |
+| `lh-orchestration` | Sin dato válido: eng-manager no podía cargar skills antes de `98ecee5` | medir |
+| `lh-pairing`, `lh-code-audit` | Conservar; cubren el pedido típico de su agente, medir con prioridad alta | medir |
+| `lh-code-health`, `lh-fullstack-boundaries`, `lh-query-performance` | Conservar por ahora; la última quizás deje una línea en el cuerpo de dba | medir |
+
+Las descripciones propuestas para las pendientes están en el reporte de
+architect y se aplican de a una, de menor a mayor radio: el par de generalist
+lo ven los 15 agentes. Cada cambio reclasifica sus escenarios de
+`skill-triggers.yaml` si la frontera se movió.
+
+**Criterios de aceptación.**
+- Cada skill de la tabla tiene una decisión con su motivo en la fila de
+  cierre, y la evidencia de la pregunta que la decide.
+- Ninguna se quita, fusiona o mueve al cuerpo sin la medición de valor.
+- Cada descripción cambiada se midió en disparo sin perder contra la línea base
+  de B-041.
+- Una skill que se quita: antes se revisa quién la enlaza (`GRAPH.md`) y
+  `validate.py` pasa.
+
+**Costo.** Disparo: ~USD 1 por skill cambiada y ~USD 9 para medir las que
+nunca se cargaron. Valor: ~USD 3,60 por skill, priorizadas. Cada corrida, con
+su OK y su tope.
+**Depende de.** B-041 (hecho); la pregunta de valor, de B-039.
 
 ## Cerrados
 

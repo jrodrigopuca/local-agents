@@ -2,9 +2,10 @@
 name: lh-focus
 description: >
   The discipline of saying no: killing features, cutting product lines, finding
-  the one thing, and shipping with practical sense. Trigger: load when a
-  roadmap is bloated, priorities are "everything", a feature list needs
-  cutting, or scope and dates collide.
+  the one thing, and shipping with practical sense. Trigger: load when the
+  question is what to keep and what to cut — a roadmap, backlog or feature list
+  (an opinion on one included), everything marked top priority, a product
+  spreading into adjacent products, or scope colliding with a date.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca

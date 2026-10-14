@@ -2,8 +2,11 @@
 name: lh-brutal-critique
 description: >
   How to analyze a product and deliver a brutally honest verdict that raises
-  the work without wounding the person. Trigger: load when asked to review,
-  critique, or give an opinion on a product, feature, demo, pitch, or roadmap.
+  the work without wounding the person. Trigger: load when asked to judge
+  something a user can experience — a product, feature, screen, demo,
+  prototype or pitch — and say whether it is good. A plan of future work
+  (roadmap, backlog, feature list) is lh-focus, even when the ask is only an
+  opinion.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
