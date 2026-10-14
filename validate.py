@@ -843,7 +843,8 @@ BACKLOG_CLOSED = {"hecho", "descartado"}
 
 def check_backlog(cat: Catalog):
     """BACKLOG.es.md keeps its own rules: stable unique IDs, a priority and a
-    checkable "done when" on every open item, and a commit on every `hecho`.
+    checkable "done when" on every open item, a commit on every `hecho`, and
+    one `### B-NNN` detail at most, only for an open row.
 
     The backlog used to live as a table inside the survey, and rows kept saying
     "este cambio" long after the change was committed — nothing tied a done
@@ -854,11 +855,14 @@ def check_backlog(cat: Catalog):
         return ["BACKLOG.es.md is missing"]
     text = path.read_text(encoding="utf-8")
     errs, seen = [], set()
-    try:
-        open_part = text.split("## Abiertos", 1)[1].split("## Cerrados", 1)[0]
-        closed_part = text.split("## Cerrados", 1)[1]
-    except IndexError:
-        return ["BACKLOG.es.md: needs an `## Abiertos` and a `## Cerrados` section"]
+    # Headings are matched as whole lines: the section names also appear
+    # quoted in prose (a detail citing `## Cerrados`), and a substring split
+    # cuts there instead of at the heading.
+    heads = {m.group(1): m for m in re.finditer(r"^## (Abiertos|Cerrados)[ \t]*$", text, re.M)}
+    if set(heads) != {"Abiertos", "Cerrados"} or heads["Abiertos"].start() > heads["Cerrados"].start():
+        return ["BACKLOG.es.md: needs an `## Abiertos` and then a `## Cerrados` section"]
+    open_part = text[heads["Abiertos"].end():heads["Cerrados"].start()]
+    closed_part = text[heads["Cerrados"].end():]
 
     def rows(part):
         for line in part.splitlines():
@@ -921,6 +925,20 @@ def check_backlog(cat: Catalog):
                     errs.append(f"BACKLOG.es.md: {i} cites `{c}`, which is not a commit here")
         if state == "descartado" and len(ref) < 15:
             errs.append(f"BACKLOG.es.md: {i} is descartado without a reason")
+
+    # A `### B-NNN` detail belongs to one open row and dies with it. The rows
+    # alone cannot see a detail left behind at closing, one with no row, or
+    # one duplicated by an edit that cut in the wrong place (B-053's was).
+    open_ids = {cells[0] for cells in rows(open_part)}
+    closed_ids = {cells[0] for cells in rows(closed_part)}
+    details = re.findall(r"^### (B-\d{3})\b", text, re.M)
+    for i in sorted(set(details)):
+        if details.count(i) > 1:
+            errs.append(f"BACKLOG.es.md: detail ### {i} appears {details.count(i)} times")
+        if i in closed_ids:
+            errs.append(f"BACKLOG.es.md: {i} is closed but keeps its ### detail (delete it on closing)")
+        elif i not in open_ids:
+            errs.append(f"BACKLOG.es.md: detail ### {i} has no open row")
 
     survey = cat.root / "ESTADO-DEL-ARTE.es.md"
     if survey.is_file():
