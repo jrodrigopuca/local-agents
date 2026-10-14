@@ -47,14 +47,13 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-039 | P1 | pendiente | Harness: calibrar el juez contra etiquetas humanas | Ningún veredicto del juez se comparó nunca con un humano; toda la evidencia del catálogo descansa en él (ESTADO-DEL-ARTE §3 y §5.7) | Cada muestra persiste lo que leyó el juez; hay ≥ 20 PASS y ≥ 20 FAIL etiquetados a mano; TPR y TNR medidos sobre un 40 % reservado, por modelo de juez, anotados en ESTADO-DEL-ARTE; TNR ≥ 0,90 o un ítem abierto para corregirlo |
 | B-038 | P1 | pendiente | Harness: rama sin agente para medir cuánto aporta cada persona (Δ) | Un escenario que pasa igual sin agente mide al modelo base, no al catálogo (ESTADO-DEL-ARTE §5.8); `claude plugin eval` y skill-creator reportan Δ, nosotros no | La rama SIN corre sin agentes ni skills en el workspace, queda como `branch: without` y nunca es línea base; `viz.py` muestra CON, SIN y Δ; cada Δ = 0 confirmado en N/3 quedó reformulado o con `protects:` y su motivo |
 | B-040 | P2 | pendiente | Harness: veredicto INDETERMINADO del juez | Hoy un caso ambiguo se fuerza a PASS o FAIL; superpowers y Anthropic le dan al juez la opción "no se puede saber" | El juez puede responder INDETERMINADO, que nunca cuenta como PASS y con `--repeat` deja el escenario INDETERMINADO; `viz.py` lo muestra aparte; una respuesta ambigua fija, vuelta a juzgar, lo produce 3/3; o el ítem se descarta si B-039 no encontró ambiguas |
-| B-041 | P2 | pendiente | Evals de disparo de skills con casi-aciertos | B-023 subió la carga de 8/72 a 19/72 pero solo midió dónde DEBE cargar; nunca dónde no debe | Existen `expect_skills` y `forbid_skills`; ≥ 6 skills con ≥ 4 consultas que deben dispararla y ≥ 4 casi-aciertos que no, cada una con su agente dueño; precisión y exhaustividad registradas como línea base, no como objetivo |
 | B-043 | P2 | pendiente | Escenarios de routing con pares que se confunden | Los 7 de routing tienen un destino obvio; ninguno enfrenta a dos agentes vecinos (architect y senior-dev, dba y data-ml, PM y visionary, eng-manager y PM, qa y security) | ≥ 5 pares de escenarios de routing, uno por frontera, corridos en N/3, y las descripciones que fallen ajustadas con su par en verde y los 7 viejos todavía en verde |
 | B-045 | P3 | pendiente | Variantes bajo presión de las reglas duras, con las excusas registradas | superpowers encuentra fallas apilando presiones (apuro, autoridad, costo hundido) y anotando la excusa textual; las hard-rules hoy se prueban sin presión | Cada hard-rule de juicio (sin los dos gemelos de puerta) tiene una variante bajo presión corrida en N/3 contra la versión actual, y las excusas de las muestras rojas están citadas textuales |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
 | B-057 | P3 | pendiente | Pasar el comportamiento de `install.py` de `check_installer` a `tests/` | `check_installer` (~110 líneas de `validate.py`) instala de verdad en un `HOME` temporal y prueba conducta del script (`--refresh`, el aviso de copias viejas, la negativa a mezclar `shared` y `antigravity`), no convenciones del catálogo; es el mismo caso que separó a `update.py` de `validate.py` (regla 12). Hoy varios escenarios son un solo chequeo, y una falla no dice cuál | Cada conducta de `install.py` que prueba hoy `check_installer` es un test con nombre en `tests/test_install.py`, que corre en el paso sin PyYAML del CI; en `validate.py` queda solo lo que es convención (por ejemplo, que un agente de solo lectura se renderice sin `memory:`), y `validate.py` y los tests pasan |
-| B-060 | P2 | pendiente | `project.py` sin tope de costo | Cada invocación es una tarea con delegación (USD 3 o más, hasta 6,86 medido en una muestra) y no tiene ni tope ni `--max-budget-usd`: es el único camino del harness que gasta sin el freno de B-044 | `project.py` no arranca sin `--max-cost-usd`, se lo pasa a la llamada como `--max-budget-usd`, un corte queda en la traza como ERROR "budget" con su costo, hay un test en `tests/` del harness sin modelo, y README y GUIA lo dicen |
+| B-061 | P3 | pendiente | Medir si el tier de solo lectura carga skills en Antigravity | En Claude Code no podía (sin `Skill` en su allowlist, arreglado en `98ecee5`); opencode, Kiro y Codex no tienen ese hueco por cómo cargan skills, pero en agy no se pudo confirmar gratis (su binario menciona `skill_search` y no sabemos si es una herramienta que `AGY_TOOLS["read"]` debería incluir) | El chequeo `read skill` de `smoke.py` corrió pago en agy con su versión anotada en ESTADO-DEL-ARTE §4, y si falla, `AGY_TOOLS["read"]` suma la herramienta medida y `validate.py` lo exige |
 
 ### Orden de trabajo
 
@@ -123,7 +122,7 @@ entre sí y cada una pide su OK de costo:
 
 - **B-043**, pares de routing (unos pocos dólares). Es la más barata y la que
   puede tocar descripciones.
-- **B-041**, disparo de skills (~USD 8).
+- ~~**B-041**~~, hecho: disparo de skills en los 15 agentes.
 - **B-045**, reglas duras bajo presión (~USD 4).
 
 **Para retomar en una sesión nueva:** leer esta sección y el detalle del
@@ -275,33 +274,6 @@ siguiente corrida que haya que hacer.
 **Depende de.** B-039. Si la calibración no encuentra ninguna `ambigua`, este
 ítem se cierra como `descartado`.
 
-### B-041: evals de disparo con casi-aciertos
-
-**Qué se busca.** Medir las dos caras de una descripción de skill: que cargue
-cuando debe y que no cargue cuando no. B-023 midió solo la primera; una
-descripción que carga siempre pasaría esa prueba.
-
-**Criterios de aceptación.**
-- Aserciones nuevas `expect_skills` y `forbid_skills`, leídas de las
-  herramientas registradas por muestra (`lane_tools`, `run.py:619`):
-  `forbidden_tools` solo compara el nombre de la herramienta, no qué skill
-  cargó.
-- Para ≥ 6 skills (empezando por las seis de B-023): ≥ 4 consultas que deben
-  dispararla y ≥ 4 casi-aciertos del mismo dominio que no. Ejemplo: para
-  `migrations`, "diseñá la tabla nueva" no debería dispararla. Cada consulta
-  corre con el agente dueño de la skill.
-- Precisión y exhaustividad por skill quedan como **línea base, no como
-  objetivo**. B-023 dejó medido que el modelo no carga lo que el cuerpo ya le
-  da, y que pasa igual: subir la exhaustividad no es una meta por sí misma. Lo
-  que se corrige es la precisión (cargas donde no corresponde).
-- Si una descripción se cambia, se elige con consultas separadas de las que
-  se usaron para escribirla, y la corrida de prueba queda citada. La
-  descripción nueva lista disparadores, no el flujo de la skill (ESTADO-DEL-ARTE
-  §3, superpowers).
-
-**Costo.** ~50 consultas en frío a ~USD 0,17, unos USD 8, sin juez.
-**Depende de.** B-044.
-
 ### B-043: routing con pares que se confunden
 
 **Qué se busca.** Probar las fronteras entre agentes vecinos, que es donde el
@@ -394,3 +366,5 @@ agente dice qué contra-argumento le falta a la regla.
 | B-049 | hecho | `check_backlog` falla con un `### B-NNN` duplicado, sin fila abierta o de un ítem cerrado; probado por mutación (las cuatro roturas fallan con su mensaje). De paso, las secciones se ubican por línea completa: el `split("## Cerrados")` cortaba en la cita de ese texto dentro del propio detalle de B-049, antes del encabezado real, y funcionaba de casualidad | `9fc3e05` |
 | B-048 | hecho | README y GUIA del harness sin conteos de escenarios escritos a mano: remiten a `run.py --list` (decían 34 y 39; hoy son 83). Cada costo de la GUIA cita su corrida (`20261012-161940` para escenarios y suite, USD 11,83; `20260806-215908` y `20260806-225038` para `build-quality`); la fila de caché caliente salió por no tener corrida que la respalde, y el `--repeat 3` del README dejó el ~$27 viejo por "tres suites" con la última citada | `harness:5ba18eb` |
 | B-046 | hecho | Primer CI del harness (`smoke-free`): `smoke.py --free-only --strict` para claude 2.1.296 y opencode 1.19.0, fijados, sin credenciales ni modelo; verde con 5 PASS (corrida 38501114022). Medido antes, sin credenciales: `claude -p` emite el `init` con `apiKeySource: "none"` y opencode lista agentes y skills; `kiro-cli` pide login hasta para `agent list` y queda local, y Codex y agy no tienen chequeo gratis. El README del harness dice qué corre dónde. De paso: `smoke.py` buscaba la skill `tradeoffs` (desde B-059, FAIL en `skill` con cualquier instalación nueva), un CLI que sale con error contaba como FAIL del catálogo en vez de ERROR del host, y `--strict` hace fallar ERROR y SKIP; un test de B-052 leía el `~/.claude` de la máquina y en un runner limpio cortaba | `harness:5c91c42`, `harness:2c9482c`, `harness:00fb43a` |
+| B-041 | hecho | Disparo de skills con casi-aciertos, medido en los 15 agentes. Aserciones `expect_skills` y `forbid_skills` (lane principal: un subagente que carga la skill no cuenta). `scenarios/skill-triggers.yaml`, diseñado por qa: una skill por agente, 4 disparos y 4 casi-aciertos del mismo dominio, 120 escenarios `manual: true` fuera de la suite, sin juez (USD 0,12 por muestra). Línea base en Sonnet (`20261014-003338`, USD 14,10): disparos 51/60 y casi-aciertos 59/60. Los 9 disparos perdidos: 8 eran de visionary y eng-manager, que no tenían `Skill` en Claude Code (arreglado en `98ecee5`; repetido en `20261014-005306`: 8/8, y `visionary-cannot-write-files` sigue en verde en `20261014-005418`), y 1 de generalist, que respondió con el método sin cargarla. Con el arreglo: disparos 59/60, casi-aciertos 58/60; las 2 cargas de más caen en fronteras que qa marcó o que son ambiguas (`lh-focus`/`lh-brutal-critique` sobre un roadmap; `lh-zero-to-one` para un módulo "desde cero" en un producto con usuarios). Ninguna descripción cambió: la precisión no pide arreglo | `harness:d684d8f`, `harness:7cb929d`, `98ecee5`, `harness:c8540e0` |
+| B-060 | hecho | `project.py` no arranca sin `--max-cost-usd`, se lo pasa a la llamada como `--max-budget-usd`, y una llamada cortada o fallida escribe la traza como ERROR con su costo (antes salía con `sys.exit` sin guardar nada). 4 tests sin modelo, 4 mutaciones detectadas; README y GUIA lo dicen | `harness:f05d8b4` |

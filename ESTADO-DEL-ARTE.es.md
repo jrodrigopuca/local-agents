@@ -276,7 +276,7 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 | Comparar contra no usar ningún agente (Δ) | `claude plugin eval`, skill-creator | B-038 |
 | Juez calibrado contra etiquetas humanas | evals-skills, superpowers, Anthropic | B-039 |
 | Veredicto indeterminado | superpowers (Quorum), Anthropic | B-040 |
-| Evals de disparo con casi-aciertos | skill-creator | B-041, B-043 |
+| Evals de disparo con casi-aciertos | skill-creator | B-041 hecho; B-043 (routing) pendiente |
 | Usar la herramienta oficial antes que construir | `claude plugin eval` | B-047, descartado: exige un plugin (§4) |
 | Actualizar con un comando, sin gestionar el clon | `npx skills` | B-050, B-051 |
 | Tope de costo por corrida | `claude plugin eval` | B-044 |
@@ -325,6 +325,17 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 
 ### Otros hallazgos medidos
 
+- **En Claude Code, un agente con allowlist de `tools:` sin `Skill` no carga
+  skills** (2.1.299, 2026-10-14, B-041). visionary y eng-manager, de solo
+  lectura, cargaron 0 de 8 skills pedidas; encontraban el archivo con `Glob` y
+  `Read` solo porque el harness copia las skills a su carpeta de trabajo. Con
+  `Skill` en la lista: 8 de 8, y sin herramientas de escritura. El chequeo
+  pago `skill` de `smoke.py` le preguntaba solo al agente de escritura, y por
+  eso el hueco no se vio antes.
+- **Disparo de skills, línea base** (Sonnet, 2026-10-14, B-041): con una skill
+  por agente, 4 consultas que deben cargarla y 4 casi-aciertos, los 15 agentes
+  cargan 59 de 60 y evitan 58 de 60. Las dos cargas de más son fronteras
+  ambiguas entre skills vecinas, no descripciones que disparen de más.
 - **Codex no corta una skill de más de 8 KB** (0.162.1, 2026-10-13, B-042).
   No mete el cuerpo en el prompt: `codex debug prompt-input`, que es gratis,
   muestra solo nombre, descripción y ruta, aun con `$skill` en el pedido. El
