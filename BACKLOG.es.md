@@ -50,7 +50,6 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-041 | P2 | pendiente | Evals de disparo de skills con casi-aciertos | B-023 subió la carga de 8/72 a 19/72 pero solo midió dónde DEBE cargar; nunca dónde no debe | Existen `expect_skills` y `forbid_skills`; ≥ 6 skills con ≥ 4 consultas que deben dispararla y ≥ 4 casi-aciertos que no, cada una con su agente dueño; precisión y exhaustividad registradas como línea base, no como objetivo |
 | B-043 | P2 | pendiente | Escenarios de routing con pares que se confunden | Los 7 de routing tienen un destino obvio; ninguno enfrenta a dos agentes vecinos (architect y senior-dev, dba y data-ml, PM y visionary, eng-manager y PM, qa y security) | ≥ 5 pares de escenarios de routing, uno por frontera, corridos en N/3, y las descripciones que fallen ajustadas con su par en verde y los 7 viejos todavía en verde |
 | B-045 | P3 | pendiente | Variantes bajo presión de las reglas duras, con las excusas registradas | superpowers encuentra fallas apilando presiones (apuro, autoridad, costo hundido) y anotando la excusa textual; las hard-rules hoy se prueban sin presión | Cada hard-rule de juicio (sin los dos gemelos de puerta) tiene una variante bajo presión corrida en N/3 contra la versión actual, y las excusas de las muestras rojas están citadas textuales |
-| B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
@@ -84,8 +83,7 @@ en cualquier orden.
    plugin con manifiesto.
 2. ~~**B-042**~~, hecho: Codex recibe la skill entera.
 3. ~~**B-049**~~ y ~~**B-048**~~, hechos.
-4. **B-046**, la medición previa: si el chequeo gratis de claude corre sin
-   credenciales. El job de CI viene después.
+4. ~~**B-046**~~, hecho: humo gratis de claude y opencode en el CI del harness.
 
 > **Decisión 1, tomada el 2026-10-13:** `run.py`. `claude plugin eval` solo
 > evalúa un plugin con manifiesto, aislado de lo instalado, y no corre un caso
@@ -320,25 +318,6 @@ agente dice qué contra-argumento le falta a la regla.
 **Costo.** ~7 escenarios × 3, unos USD 4 al costo de B-034.
 **Depende de.** B-044.
 
-### B-046: humo gratis en CI
-
-**Qué se busca.** Detectar en CI las regresiones del instalador contra los
-hosts reales, que `validate.py` no puede ver.
-
-**Criterios de aceptación.**
-- Corre en el CI del repo del harness, que es donde vive `smoke.py`; el CI del
-  catálogo no tiene el harness.
-- Usa `smoke.py --free-only`, que ya existe y tiene chequeos gratis para
-  claude, opencode y kiro, con versiones fijadas de los tres CLI.
-- Antes de armar el job se mide si el chequeo gratis de claude (abre
-  `claude -p` y lee el evento `init`) funciona sin credenciales. Si no, ese
-  host queda local y el job corre con los otros dos.
-- El README del harness dice qué chequeos corren en CI y cuáles solo en local.
-
-**Costo.** Cero en modelo; minutos de CI.
-**Depende de.** Nada. Si ningún chequeo gratis corre sin credenciales, se
-cierra como `descartado` con el dato.
-
 ## Cerrados
 
 | ID | Estado | Qué | Commits |
@@ -387,3 +366,4 @@ cierra como `descartado` con el dato.
 | B-042 | hecho | Codex no corta las skills de más de 8 KB, medido sobre la copia que deja `install.py` (`lh-llm-integration`, 10.907 bytes). Codex 0.162.1 no mete el cuerpo en el prompt (`codex debug prompt-input`, gratis: solo lista nombre, descripción y ruta, aun con `$lh-llm-integration` en el pedido); el modelo lee el archivo con el shell, y el presupuesto de salida de `exec` es de 10.000 tokens por defecto. Una consulta (`codex exec`, ~16 mil tokens): la salida del `cat` registrada en la sesión es el archivo entero, idéntico byte a byte y sin marca de recorte. Sin cambios de código: el ~8 KB de wshobson no aplica a esta versión | `0af02b2` |
 | B-049 | hecho | `check_backlog` falla con un `### B-NNN` duplicado, sin fila abierta o de un ítem cerrado; probado por mutación (las cuatro roturas fallan con su mensaje). De paso, las secciones se ubican por línea completa: el `split("## Cerrados")` cortaba en la cita de ese texto dentro del propio detalle de B-049, antes del encabezado real, y funcionaba de casualidad | `9fc3e05` |
 | B-048 | hecho | README y GUIA del harness sin conteos de escenarios escritos a mano: remiten a `run.py --list` (decían 34 y 39; hoy son 83). Cada costo de la GUIA cita su corrida (`20261012-161940` para escenarios y suite, USD 11,83; `20260806-215908` y `20260806-225038` para `build-quality`); la fila de caché caliente salió por no tener corrida que la respalde, y el `--repeat 3` del README dejó el ~$27 viejo por "tres suites" con la última citada | `harness:5ba18eb` |
+| B-046 | hecho | Primer CI del harness (`smoke-free`): `smoke.py --free-only --strict` para claude 2.1.296 y opencode 1.19.0, fijados, sin credenciales ni modelo; verde con 5 PASS (corrida 38501114022). Medido antes, sin credenciales: `claude -p` emite el `init` con `apiKeySource: "none"` y opencode lista agentes y skills; `kiro-cli` pide login hasta para `agent list` y queda local, y Codex y agy no tienen chequeo gratis. El README del harness dice qué corre dónde. De paso: `smoke.py` buscaba la skill `tradeoffs` (desde B-059, FAIL en `skill` con cualquier instalación nueva), un CLI que sale con error contaba como FAIL del catálogo en vez de ERROR del host, y `--strict` hace fallar ERROR y SKIP; un test de B-052 leía el `~/.claude` de la máquina y en un runner limpio cortaba | `harness:5c91c42`, `harness:2c9482c`, `harness:00fb43a` |
