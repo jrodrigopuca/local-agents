@@ -26,7 +26,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
   `descartado` dice por qué.
 - Si un ítem resulta ser otra cosa al investigarlo, se cierra como
   `descartado` con el motivo y se abre uno nuevo. No se reescribe la historia.
-- Si un ítem abierto no entra en una fila, lleva un detalle debajo de la tabla
+- ✓ Si un ítem abierto no entra en una fila, lleva un detalle debajo de la tabla
   (`### B-NNN`): qué se busca, criterios de aceptación, costo y dependencias.
   La fila es el resumen; el corte es la fila MÁS todos los criterios del
   detalle, salvo los marcados como opcionales. Al cerrar el ítem, el detalle se
@@ -52,7 +52,6 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-045 | P3 | pendiente | Variantes bajo presión de las reglas duras, con las excusas registradas | superpowers encuentra fallas apilando presiones (apuro, autoridad, costo hundido) y anotando la excusa textual; las hard-rules hoy se prueban sin presión | Cada hard-rule de juicio (sin los dos gemelos de puerta) tiene una variante bajo presión corrida en N/3 contra la versión actual, y las excusas de las muestras rojas están citadas textuales |
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
-| B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, si un ítem cerrado conserva su detalle o si un detalle aparece dos veces, y `validate.py` pasa |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
@@ -85,7 +84,7 @@ en cualquier orden.
 1. ~~**Paso 0 de B-047**~~, descartado: la herramienta oficial exige un
    plugin con manifiesto.
 2. ~~**B-042**~~, hecho: Codex recibe la skill entera.
-3. **B-049**, y **B-048** en el repo del harness.
+3. ~~**B-049**~~, hecho; falta **B-048**, en el repo del harness.
 4. **B-046**, la medición previa: si el chequeo gratis de claude corre sin
    credenciales. El job de CI viene después.
 
@@ -353,25 +352,6 @@ cierra como `descartado` con el dato.
 **Costo.** Cero.
 **Depende de.** Nada.
 
-### B-049: chequeo de los detalles del backlog
-
-**Qué se busca.** Que la convención de detalles `### B-NNN` no derive: un
-detalle de un ítem cerrado o con un ID que no existe es la misma deriva que el
-chequeo `backlog` ya evita en las filas.
-
-**Criterios de aceptación.**
-- `check_backlog` falla si un `### B-NNN` no tiene su fila en `## Abiertos`.
-- `check_backlog` falla si un ítem en `## Cerrados` conserva su detalle.
-- `check_backlog` falla si un `### B-NNN` aparece dos veces. Pasó el
-  2026-10-13: una edición buscó el texto `## Cerrados`, que también aparece
-  citado dentro de este mismo detalle, cortó en el lugar equivocado y duplicó
-  el detalle de B-053; el chequeo `backlog` pasó igual, porque solo mira las
-  filas.
-- `validate.py` pasa sobre el backlog actual.
-
-**Costo.** Cero.
-**Depende de.** Nada.
-
 ## Cerrados
 
 | ID | Estado | Qué | Commits |
@@ -418,3 +398,4 @@ chequeo `backlog` ya evita en las filas.
 | B-059 | hecho | Prefijo `lh-` (local-hero) en las 48 skills, elegido contra el índice de skills.sh (libre; `local-agents-` ya lo usaban dos proyectos ajenos). Carpetas movidas con `git mv` conservando cada `local-agents-id`; 269 rutas, 136 links entre hermanas, 118 backticks y 233 textos de link actualizados, más 2 menciones en texto plano que nombraban la skill (4 que eran el concepto, intactas); BACKLOG y ESTADO-DEL-ARTE intactos por ser historia; el README explica el prefijo. `--refresh` retira las copias viejas que son nuestras, reemplazadas e intactas (sello con registro bajo el nombre viejo); lo editado o sin registro se conserva y se reporta. Medido: carga de skills 11/18 antes y después (corridas `20261013-214734` y `20261013-220105`, USD 6,22), y la migración real de 6 hosts retiró 288 copias viejas sin tocar las skills propias del usuario. El paso previo encontró dos bugs de `--refresh` con sellos viejos (camino parcial, falsos "editados"), corregidos con su test | `afa74fa`, `9571e8f`, `harness:e7b13d1` |
 | B-047 | descartado | Comparar `claude plugin eval` con `run.py` | Paso 0 (Claude Code 2.1.296, 2026-10-13, sondas con tope de costo 0, USD 0): solo carga un plugin con `.claude-plugin/plugin.json`. Un directorio con `agents/` y `skills/` sin manifiesto se acepta como raíz de la suite pero sale con `plugins: []`; con manifiesto, carga. Cada corrida va aislada, sin `~/.claude` ni lo instalado, así que mide un plugin y no la copia instalada. Tampoco corre un caso COMO un agente (el `--agent` de `run.py`): un agente del plugin solo se alcanza delegando con `Agent` por su nombre con namespace, y pierde `permissionMode`. Empaquetar el catálogo es B-028, en espera. B-044 y B-038 siguen en `run.py`, con el `--max-cost-usd` y el `--ablation with-without` oficiales como referencia de diseño |
 | B-042 | hecho | Codex no corta las skills de más de 8 KB, medido sobre la copia que deja `install.py` (`lh-llm-integration`, 10.907 bytes). Codex 0.162.1 no mete el cuerpo en el prompt (`codex debug prompt-input`, gratis: solo lista nombre, descripción y ruta, aun con `$lh-llm-integration` en el pedido); el modelo lee el archivo con el shell, y el presupuesto de salida de `exec` es de 10.000 tokens por defecto. Una consulta (`codex exec`, ~16 mil tokens): la salida del `cat` registrada en la sesión es el archivo entero, idéntico byte a byte y sin marca de recorte. Sin cambios de código: el ~8 KB de wshobson no aplica a esta versión | `0af02b2` |
+| B-049 | hecho | `check_backlog` falla con un `### B-NNN` duplicado, sin fila abierta o de un ítem cerrado; probado por mutación (las cuatro roturas fallan con su mensaje). De paso, las secciones se ubican por línea completa: el `split("## Cerrados")` cortaba en la cita de ese texto dentro del propio detalle de B-049, antes del encabezado real, y funcionaba de casualidad | `9fc3e05` |
