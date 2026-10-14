@@ -48,7 +48,7 @@ Load the skills it references when their triggers fire.
   `name` + `description` (the description decides when Claude delegates —
   write it focusing on the trigger, not marketing).
 - Optional: `tools:` to restrict tools and `model:` to pin a model.
-  The installer writes `tools: Read, Grep, Glob, WebFetch, WebSearch, Agent`
+  The installer writes `tools: Read, Grep, Glob, WebFetch, WebSearch, Agent, Skill`
   for catalog agents with `access: read`; `full` access agents inherit everything.
 - Invoked explicitly ("use the architect agent") or Claude delegates automatically
   when the task matches the description.

@@ -624,8 +624,14 @@ def check_installer(cat: Catalog):
             if re.search(r"^memory:", head, re.M):
                 errs.append(f"{agent}.md (Claude Code): a read-tier agent must not get "
                             f"`memory:` — the host then adds Edit and Write")
-            if not re.search(r"^tools: ", head, re.M):
+            tools = re.search(r"^tools: (.*)$", head, re.M)
+            if not tools:
                 errs.append(f"{agent}.md (Claude Code): a read-tier agent needs a `tools:` allowlist")
+            elif "Skill" not in [t.strip() for t in tools.group(1).split(",")]:
+                # Without it the agent cannot load its own skills (measured,
+                # harness run 20261014-003338).
+                errs.append(f"{agent}.md (Claude Code): a read-tier agent needs `Skill` in "
+                            f"its allowlist, or it cannot load its skills")
 
         # Codex agents are TOML, and `sandbox_mode = "read-only"` is the only
         # enforcement of the read tier there (measured on codex-cli 0.144.5).

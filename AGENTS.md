@@ -156,7 +156,7 @@ Rules for this catalog:
     `sandbox_mode` in Codex, a stated limit in the shared roster. `read` is
     for the two agents whose deliverable is never an artifact — `visionary`
     (a verdict) and `eng-manager` (a route) — for whom building is a ROLE
-    error, not a rarity; they read, search, fetch and delegate. Everyone else
+    error, not a rarity; they read, search, fetch, load their skills and delegate. Everyone else
     is `full`: an architect who writes the example or the spike, a product
     manager who writes the backlog file, a designer who writes the mockup.
     Measured before choosing: with the tools inherited, `architect` applied a

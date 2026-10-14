@@ -389,11 +389,17 @@ def rewrite_skill_name(skill_md_text: str, new_name: str) -> str:
 # exfiltrates" — cannot be expressed by tool name on any host and stay in the
 # prompt, guarded by the behavioural harness. A tier is a floor, not the rule.
 ACCESS_TIERS = ("read", "full")
-CLAUDE_READ_TOOLS = "Read, Grep, Glob, WebFetch, WebSearch, Agent"
+# `Skill` loads an instruction file; it writes and runs nothing. Without it a
+# read-tier agent cannot load its own skills: measured on Claude Code 2.1.299
+# (harness run 20261014-003338), visionary and eng-manager loaded none in 8 of
+# 8 prompts that called for one. They found the file with Glob and Read only
+# because the harness copies skills into its workspace; in a real project the
+# skills live in ~/.claude/skills, out of a Glob's reach.
+CLAUDE_READ_TOOLS = "Read, Grep, Glob, WebFetch, WebSearch, Agent, Skill"
 # Measured on kiro-cli 2.29.1, which enforces this list (an agent with
 # ["read"] could not write). `full` is every tool, as a full agent inherits
 # everything in Claude Code. `read` mirrors CLAUDE_READ_TOOLS: read, search,
-# fetch and delegate. `code` is left out because its AST rewrite edits files;
+# fetch and delegate (skills arrive as `skill://` resources, not as a tool). `code` is left out because its AST rewrite edits files;
 # `subagent` stays, and a delegated agent can write — the same as `Agent` in
 # Claude Code, and what rule 16 means by "delegate".
 # `kiro-cli agent validate` accepts unknown tags, so it cannot check this.
@@ -438,8 +444,8 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
     # list alone, architect could no longer edit but never said so. The note
     # goes into the body on every host, enforced or not.
     if tier == "read":
-        body = ("> **Access: read-only.** On this host you read, search, fetch and "
-                "delegate; you do not edit files or run commands. When a task needs "
+        body = ("> **Access: read-only.** On this host you read, search, fetch, "
+                "load your skills and delegate; you do not edit files or run commands. When a task needs "
                 "a change made, say so in one line and hand the exact change to the "
                 "user or to the agent that builds — never narrate an edit you cannot "
                 "make.\n\n") + body
