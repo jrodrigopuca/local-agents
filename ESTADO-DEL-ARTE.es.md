@@ -414,6 +414,22 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
     que el instalador escribió en ese commit reconoció las 48 skills y los 15
     agentes como nuestros en los 6 hosts, sin ningún falso "editado", y las 15
     skills propias del usuario en `~/.claude/skills` como ajenas.
+- **Prefijo `lh-` en las 48 skills** (B-059, 2026-10-13). Elegido contra el
+  índice de skills.sh: ninguna skill pública empieza con `lh-` y ninguno de
+  los 48 nombres con el prefijo existe; `local-agents-` ya lo usan dos
+  proyectos ajenos, así que una frase descriptiva no es un nombre propio.
+  - **Carga de skills, antes y después** (los 6 escenarios de B-023, ×3,
+    Sonnet; corridas `20261013-214734` y `20261013-220105`): **11/18 cargas
+    en las dos**, y cargan las versiones con prefijo. El prefijo no cambia
+    cuándo un agente carga sus skills. Escenario por escenario la carga varía
+    entre corridas sin que nada cambie (de 0/3 a 2/3), así que con 3 muestras
+    solo el total dice algo.
+  - **Migración real** (6 hosts): `--refresh` instaló las 48 con prefijo y
+    retiró 288 copias viejas (48 por host), las que eran nuestras, estaban
+    reemplazadas e intactas según el sello; las 15 skills propias del usuario
+    quedaron idénticas byte a byte. El paso previo, un `--refresh` desde un
+    sello anterior a B-058, encontró dos bugs que 37 tests no veían, porque su
+    simulación de un sello viejo tenía un campo que uno real no tiene.
 - **`npx github:…` necesita npm 11** (2026-10-13). Con npm 10 falla dentro
   de npm, antes de que corra el paquete: `GitFetcher requires an Arborist
   constructor to pack a tarball`. Medido con npm 10.8.2 (el que trae node 18

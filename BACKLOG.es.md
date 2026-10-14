@@ -55,7 +55,6 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
 | B-048 | P3 | pendiente | Harness: los conteos de escenarios en la doc quedaron viejos | El README dice 34 escenarios y la GUIA 39; `run.py --list` da 83 | Ningún número de escenarios escrito a mano en README ni GUIA (se genera desde `--list` o se remite a él), y cada costo de la GUIA cita la corrida de la que sale |
 | B-049 | P3 | pendiente | `validate.py` revisa los detalles `### B-NNN` del backlog | La convención es nueva y la regla 12 pide chequear las convenciones; un detalle huérfano o que sobrevive al cierre es exactamente la deriva que el chequeo `backlog` ya evita en las filas | `check_backlog` falla si un `### B-NNN` no tiene fila abierta, si un ítem cerrado conserva su detalle o si un detalle aparece dos veces, y `validate.py` pasa |
-| B-059 | P2 | pendiente | Prefijo de namespace en todas las skills | Nuestros nombres son genéricos (`debugging`, `code-review`, `verification`…) y `~/.claude/skills` es una carpeta plana y compartida: un agente nuestro que pide `debugging` recibe la que esté instalada con ese nombre, aunque sea de otro, sin ningún error; y al revés, otra herramienta recibe la nuestra. Claude Code resuelve esto solo para plugins (`anthropic-skills:skill-creator` convive con un `skill-creator` suelto) | Prefijo elegido con la medición de B-053 y registrado con su motivo; las 48 skills renombradas con su ID intacto; ningún link, tabla de agente ni escenario del harness con el nombre viejo; y una instalación previa migrada en un `HOME` de prueba, con las copias viejas reportadas como retiradas |
 | B-054 | P3 | en espera | Launcher `uvx` en `local-hero` | Misma puerta de entrada para quien vive en Python y no tiene node; el diseño en capas lo permite sin tocar `update.py` | Aparece un usuario que lo pide; entonces se reevalúa |
 | B-055 | P3 | en espera | Publicar `local-hero` en npm | `npx local-hero update` es más corto que `github:…` y, desde el registro, no pasa por el fetcher de git: funcionaría con npm 10 y bajaría el piso de node 24 a cualquier LTS (ESTADO-DEL-ARTE §4, 2026-10-13). Suma una cuenta, publicación, 2FA y un vector de cadena de suministro | `npx github:…` está en uso y alguien pide el comando corto; entonces se publica solo desde CI con `--provenance` |
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
@@ -73,8 +72,7 @@ abajo y no depende de ninguna de ellas.
 3. ~~**B-052**~~, hecho.
 4. ~~**B-053**~~, hecho: el baseline está en ESTADO-DEL-ARTE §4.
 5. ~~**B-058**~~, hecho.
-6. **B-059**, el prefijo en todas las skills. Después de B-058 a propósito:
-   el ID es lo que vuelve segura la migración de las instalaciones existentes.
+6. ~~**B-059**~~, hecho.
 
 B-054 y B-055 quedan en espera, con su condición escrita.
 
@@ -422,67 +420,6 @@ chequeo `backlog` ya evita en las filas.
 **Costo.** Cero.
 **Depende de.** Nada.
 
-### B-059: prefijo de namespace en todas las skills
-
-**Qué se busca.** Que una skill nuestra y una ajena no puedan llamarse igual.
-El ID de B-058 evita que `install.py` pise lo ajeno, pero no evita que un
-agente nuestro **cargue** la skill de otro: el agente la pide por nombre
-(por ejemplo, `debugging` en la tabla de apple-dev, `apple-dev/AGENTS.md:147`)
-y el host le da la que esté instalada con ese nombre. No falla: hace otra cosa
-sin avisar. El daño está acotado porque el criterio que decide vive en el
-cuerpo del agente y las skills se cargan poco (B-023: 19 de 72), pero cuando
-se carga, el agente sigue el método equivocado con total convicción.
-
-**Decisiones tomadas (2026-10-13).**
-- **Prefijo en todas, no solo en las "genéricas".** Decidir cuáles son
-  genéricas es una regla con excepciones, y esas se erosionan.
-- **Después de B-058, a propósito.** Hoy, renombrar dejaría a cada usuario con
-  48 copias con el nombre viejo, que `install.py` vería como ajenas por el
-  nombre y que los hosts seguirían cargando. Con el ID, `debugging` y su
-  versión con prefijo comparten `local-agents-id`, y `--status` reporta la
-  vieja como nuestra y retirada.
-- **El prefijo se elige con datos**, con la medición de B-053 sobre cuántos de
-  nuestros nombres ya existen afuera: 26 de 48. El ID de B-058 no alcanza, así
-  que el ítem sigue.
-- **Prefijo: `lh-`** (decidido 2026-10-13). `local-hero` es el producto que ve
-  el usuario: instala, actualiza, y es el repo de todos los launchers (B-051,
-  B-054), así que su marca en las skills es coherente con lo que se usa.
-  Medido contra el índice de skills.sh ese día: ninguna skill pública empieza
-  con `lh-`, ninguno de los 48 nombres con el prefijo existe, y el más largo
-  queda en 23 de 64 caracteres. Descartados, también medidos:
-  `local-agents-` (ya lo usan dos proyectos ajenos: "local agents" es una
-  frase genérica, no un nombre nuestro); `hero-` (se confunde con `heroui-*`,
-  una librería con más de 26 mil instalaciones); `lag-` y `lax-` (libres,
-  pero son palabras: "demora" y "poco riguroso", lo contrario de lo que
-  enseña el catálogo); `la-` (libre y corto, pero opaco). Quien use
-  `install.py` sin `local-hero` ve `lh-` sin contexto: el README lo explica.
-
-**Criterios de aceptación.**
-- **El prefijo `lh-`** aplicado a las 48 skills, y una línea en el README del
-  catálogo que diga qué significa.
-- **Las 48 skills renombradas**: carpeta y `name`, con el `local-agents-id`
-  intacto (`validate.py` de B-058 lo verifica).
-- **Ninguna referencia con el nombre viejo**: links `skills/<nombre>/SKILL.md`
-  (unos 217 en los `.md` del catálogo), tablas de Skills de los agentes, la
-  skill `orchestration`, GRAPH.md y README (regenerados por `validate.py
-  --write`), y los escenarios del harness que nombran skills (unas 34
-  menciones). Las skills del host referidas por nombre (`react-19`,
-  `playwright`…) no cambian: no son nuestras.
-- **Migración medida**: en un `HOME` de prueba con una instalación previa al
-  renombre, `local-hero update` (o `update.py update`) deja las skills nuevas,
-  y `--status` reporta las viejas como retiradas, con el comando para
-  borrarlas.
-- **Comportamiento**: los escenarios del harness que miden carga de skills
-  (los de B-023) se corren antes y después del renombre, con costo y OK
-  previos, para confirmar que el prefijo no cambia cuándo el agente carga sus
-  skills.
-- ESTADO-DEL-ARTE registra la decisión y la medición de B-053 que la
-  sostiene.
-
-**Costo.** Cero en modelo para el renombre; la corrida de los escenarios de
-carga de skills, con su costo, se propone antes.
-**Depende de.** B-058 (el ID) y la medición de nombres de B-053.
-
 ## Cerrados
 
 | ID | Estado | Qué | Commits |
@@ -526,3 +463,4 @@ carga de skills, con su costo, se propone antes.
 | B-052 | hecho | Una corrida durante la que se reinstaló el catálogo queda inválida: `run.py` relee el sello de instalación al terminar (commit, marca de sucio, fecha; reinstalar el mismo commit también cuenta), registra `catalog_changed: true` con los dos sellos en `run.json` y lo dice en la última línea (`INVALID RUN`); `--applicability` la saltea como a un experimento y `viz.py` la marca y nunca la usa como línea base. Primeros tests del harness (`tests/`, unittest, sin modelo): 5, con prueba de mutación (sin las correcciones fallan los 2 que deben). El cableado en `main()` se verificó leyendo, no ejecutando: una corrida real cuesta | `harness:64960b5` |
 | B-053 | hecho | Medido qué choca entre `npx skills` 1.7.2 y el catálogo, en `HOME` descartables: 26 de 48 nombres ya existen afuera (piso; `code-review` choca con una skill de 723 mil instalaciones); `install.py` pisa la ajena con `overwrite`/`--refresh`, y con `ask` sin TTY renombra la nuestra pero `relink_skills` deja la carpeta ajena mezclada; `npx skills` pisa la nuestra y `--status` la llama "stale"; un enlace simbólico de `npx skills` (dos hosts) hace caer `install.py` a mitad de la instalación; el ida y vuelta queda latente; nuestra skill vía `npx skills add` deja 10 de 10 links muertos. Baseline en ESTADO-DEL-ARTE §4; los bugs pasan a B-058, que decidió no parchar antes | `43d77c1` |
 | B-058 | hecho | Identidad e integridad de lo instalado. Cada skill lleva `metadata.local-agents-id` (único, inmutable, chequeo `skill-ids`, aceptado por `skills-ref`); el sello registra el hash de cada skill y agente que escribe, en todos los caminos (también `--skill`, el menú y un catálogo sin git) y si fue el catálogo completo (`suite`). `install.py` decide por identidad: lo nuestro e intacto se actualiza; lo editado, lo ajeno y los enlaces no se tocan sin `--on-conflict overwrite` (los enlaces, nunca); lo retirado se reporta para borrar y lo nuestro con otro nombre se actualiza en su lugar. `--refresh` usa la política `update` y respeta la forma de lo instalado (lo parcial sigue parcial). `ask` sin TTY ya no duplica el catálogo (antes, 48→96 skills y 15→30 agentes al correr dos veces). Migración exacta desde sellos viejos: reconstruye lo que instaló ese commit y compara archivo por archivo; medida sobre una instalación real de 6 hosts sin falsos "editados". Repetidos los casos de B-053: sin carpeta mezclada, sin caída por enlace, `--status` veraz, y nuestra skill copiada por `npx skills` adoptada con 0 links muertos. 37 tests sin red, con mutación; la revisión con contexto limpio encontró 3 bloqueantes y 3 importantes, todos con su test | `2b1c19d`, `762d496`, `harness:6e62cda` |
+| B-059 | hecho | Prefijo `lh-` (local-hero) en las 48 skills, elegido contra el índice de skills.sh (libre; `local-agents-` ya lo usaban dos proyectos ajenos). Carpetas movidas con `git mv` conservando cada `local-agents-id`; 269 rutas, 136 links entre hermanas, 118 backticks y 233 textos de link actualizados, más 2 menciones en texto plano que nombraban la skill (4 que eran el concepto, intactas); BACKLOG y ESTADO-DEL-ARTE intactos por ser historia; el README explica el prefijo. `--refresh` retira las copias viejas que son nuestras, reemplazadas e intactas (sello con registro bajo el nombre viejo); lo editado o sin registro se conserva y se reporta. Medido: carga de skills 11/18 antes y después (corridas `20261013-214734` y `20261013-220105`, USD 6,22), y la migración real de 6 hosts retiró 288 copias viejas sin tocar las skills propias del usuario. El paso previo encontró dos bugs de `--refresh` con sellos viejos (camino parcial, falsos "editados"), corregidos con su test | `afa74fa`, `9571e8f`, `harness:e7b13d1` |
