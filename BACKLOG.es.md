@@ -352,7 +352,7 @@ trazas). No recomienda quitar ninguna:
 |---|---|---|
 | `lh-discovery`, `lh-stakeholders` | Conservar sin cambios: su frontera aguantó (en `discovery-near-3` cargó stakeholders) | **decidido** |
 | `lh-verification` | Conservar: la cita como "escalera de evidencia" una treintena de archivos y dos tests | **decidido** |
-| `lh-focus`, `lh-brutal-critique` | Afilar: "roadmap" pasa a ser solo de focus (cargaron las dos para el mismo pedido en `20261014-005306`) | descripciones cambiadas; falta medir el disparo |
+| `lh-focus`, `lh-brutal-critique` | Afilar: "roadmap" pasa a ser solo de focus (cargaron las dos para el mismo pedido en `20261014-005306`) | **disparo medido** (`d0a5247`, corrida `20261014-091525`): el roadmap carga solo focus; focus 5/5 disparos y 3/4 casi-aciertos; critique 3/4 disparos (el cuarto era un escenario sin la demo, corregido) y 4/4 casi-aciertos, todos a focus. Frontera conocida: "¿seguimos?" tras un fracaso carga `lh-inspire` siempre y focus de vez en cuando (1 de 3 en `20261014-091911`). Falta la pregunta de valor |
 | `lh-zero-to-one` | Afilar: el criterio pasa de "no hay codebase" a "nadie depende de esto" | pendiente |
 | `lh-decomposition`, `lh-next-step` | Afilar y separar por momento: antes del primer paso, o después de uno que falló | pendiente |
 | `lh-mentoring` | Afilar: quitarle "una decisión cara tomada a la ligera", que es de `lh-tradeoffs`; la usa el cuerpo de apple-dev | pendiente |
