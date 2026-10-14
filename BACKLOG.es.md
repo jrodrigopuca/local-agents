@@ -43,13 +43,11 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-032 | P3 | pendiente | El chequeo `skill` de la suite de humo en opencode pasa viendo una copia GLOBAL de la skill, no la que escribió la instalación del proyecto | opencode elige una copia por nombre (a veces la global), así que ese PASS no prueba lo que el chequeo dice probar | El chequeo verifica la copia del proyecto (o se aísla de las globales) y lo dice en su detalle |
 | B-028 | P3 | en espera | Publicar las skills como plugin de Agent Plugins | La 1.0 no porta agentes y no define dónde se publica; Claude Code no la soporta | La especificación suma agentes o un registro común: entonces se reevalúa |
 | B-029 | P3 | en espera | Modo opcional con enlaces simbólicos para las skills | Los cuatro hosts siguen los enlaces, pero el destino no puede ser el catálogo (las skills se instalan transformadas) y `--refresh` ya cubre el problema | Aparece un caso que `--refresh` no resuelve |
-| B-047 | P1 | pendiente | Comparar `claude plugin eval` con `run.py`, empezando por si puede evaluar agentes instalados | La herramienta oficial ya trae ramas CON y SIN, 2 de 3 votos, tope de costo y JSON versionado; si sirve para el catálogo, B-038 y B-044 no se construyen en `run.py` | El paso 0 está respondido con evidencia; si responde que sí, 3 escenarios corridos en ambas herramientas, comparación en ESTADO-DEL-ARTE y una decisión registrada (adoptar, adaptar su formato o no usarla) |
 | B-044 | P1 | pendiente | Harness: tope de costo por corrida (`--max-cost-usd`) | Hoy solo hay una estimación en `--dry-run`; B-038, B-041 y B-045 multiplican el gasto y nada corta una corrida que se dispara | Las muestras pasan por una compuerta de presupuesto; al llegar al tope, `run.json` registra `capped: true` y el exceso, `viz.py` nunca usa esa corrida como línea base aunque cubra todos los IDs, y un test en `tests/` del harness lo demuestra sin modelo |
 | B-039 | P1 | pendiente | Harness: calibrar el juez contra etiquetas humanas | Ningún veredicto del juez se comparó nunca con un humano; toda la evidencia del catálogo descansa en él (ESTADO-DEL-ARTE §3 y §5.7) | Cada muestra persiste lo que leyó el juez; hay ≥ 20 PASS y ≥ 20 FAIL etiquetados a mano; TPR y TNR medidos sobre un 40 % reservado, por modelo de juez, anotados en ESTADO-DEL-ARTE; TNR ≥ 0,90 o un ítem abierto para corregirlo |
 | B-038 | P1 | pendiente | Harness: rama sin agente para medir cuánto aporta cada persona (Δ) | Un escenario que pasa igual sin agente mide al modelo base, no al catálogo (ESTADO-DEL-ARTE §5.8); `claude plugin eval` y skill-creator reportan Δ, nosotros no | La rama SIN corre sin agentes ni skills en el workspace, queda como `branch: without` y nunca es línea base; `viz.py` muestra CON, SIN y Δ; cada Δ = 0 confirmado en N/3 quedó reformulado o con `protects:` y su motivo |
 | B-040 | P2 | pendiente | Harness: veredicto INDETERMINADO del juez | Hoy un caso ambiguo se fuerza a PASS o FAIL; superpowers y Anthropic le dan al juez la opción "no se puede saber" | El juez puede responder INDETERMINADO, que nunca cuenta como PASS y con `--repeat` deja el escenario INDETERMINADO; `viz.py` lo muestra aparte; una respuesta ambigua fija, vuelta a juzgar, lo produce 3/3; o el ítem se descarta si B-039 no encontró ambiguas |
 | B-041 | P2 | pendiente | Evals de disparo de skills con casi-aciertos | B-023 subió la carga de 8/72 a 19/72 pero solo midió dónde DEBE cargar; nunca dónde no debe | Existen `expect_skills` y `forbid_skills`; ≥ 6 skills con ≥ 4 consultas que deben dispararla y ≥ 4 casi-aciertos que no, cada una con su agente dueño; precisión y exhaustividad registradas como línea base, no como objetivo |
-| B-042 | P2 | pendiente | Medir el tope de tamaño de skill en Codex | wshobson parte las skills en ~8 KB porque Codex corta ahí; `llm-integration` pesa 10.999 bytes en la fuente (medido) y no sabemos si Codex la recibe entera | El comportamiento de Codex con la copia INSTALADA de una skill > 8 KB está medido con versión en la tabla de hosts y, si corta, hay un chequeo de tamaño en `validate.py` o el instalador lo resuelve |
 | B-043 | P2 | pendiente | Escenarios de routing con pares que se confunden | Los 7 de routing tienen un destino obvio; ninguno enfrenta a dos agentes vecinos (architect y senior-dev, dba y data-ml, PM y visionary, eng-manager y PM, qa y security) | ≥ 5 pares de escenarios de routing, uno por frontera, corridos en N/3, y las descripciones que fallen ajustadas con su par en verde y los 7 viejos todavía en verde |
 | B-045 | P3 | pendiente | Variantes bajo presión de las reglas duras, con las excusas registradas | superpowers encuentra fallas apilando presiones (apuro, autoridad, costo hundido) y anotando la excusa textual; las hard-rules hoy se prueban sin presión | Cada hard-rule de juicio (sin los dos gemelos de puerta) tiene una variante bajo presión corrida en N/3 contra la versión actual, y las excusas de las muestras rojas están citadas textuales |
 | B-046 | P3 | pendiente | Humo gratis de `smoke.py` en CI | `smoke.py` corre solo local; wshobson instala los CLI reales en CI | `smoke.py --free-only` corre en el CI del harness para claude, opencode y kiro con versiones fijadas, o el ítem se descarta con el dato de qué chequeo pide credenciales |
@@ -84,18 +82,17 @@ dónde hay que frenar a decidir.
 **Fase 0: gratis, sin consultar al modelo.** Se puede hacer en una sesión,
 en cualquier orden.
 
-1. **Paso 0 de B-047.** Va primero porque cambia el plan. Si
-   `claude plugin eval` evalúa agentes y skills instalados sin empaquetarlos,
-   B-044 y B-038 se rediseñan sobre la herramienta oficial antes de escribir
-   código en `run.py`.
-2. **B-042.** Medir qué ve Codex de la copia instalada de `llm-integration`.
+1. ~~**Paso 0 de B-047**~~, descartado: la herramienta oficial exige un
+   plugin con manifiesto.
+2. ~~**B-042**~~, hecho: Codex recibe la skill entera.
 3. **B-049**, y **B-048** en el repo del harness.
 4. **B-046**, la medición previa: si el chequeo gratis de claude corre sin
    credenciales. El job de CI viene después.
 
-> **Decisión 1:** con la respuesta del paso 0 de B-047, ¿la herramienta
-> oficial o `run.py`? Si es la oficial, se completa B-047 (unos pocos dólares,
-> con OK) y se reescriben los detalles de B-044 y B-038 antes de seguir.
+> **Decisión 1, tomada el 2026-10-13:** `run.py`. `claude plugin eval` solo
+> evalúa un plugin con manifiesto, aislado de lo instalado, y no corre un caso
+> COMO el agente (detalle en la fila de B-047). B-044 y B-038 se construyen en
+> `run.py`, tomando de la herramienta oficial el diseño del tope y del Δ.
 
 **Fase 1: el tope de costo.**
 
@@ -137,34 +134,6 @@ próximo ítem; correr `git log` en los dos repos para ver qué se cerró
 (`run.py:885`, `viz.py:292`…) son del 2026-10-12: se vuelven a ubicar antes de
 editar.
 
-### B-047: `claude plugin eval` frente a `run.py`
-
-**Qué se busca.** Decidir con datos si la herramienta oficial reemplaza,
-complementa o solo inspira al harness, antes de construir en `run.py` lo que
-ella ya trae (Δ, tope de costo).
-
-**Criterios de aceptación.**
-- **Paso 0, gratis.** Verificar con la doc y la versión instalada de Claude
-  Code si `claude plugin eval` puede evaluar agentes y skills instalados sin
-  empaquetar el catálogo como plugin, que hoy no es (B-028 en espera). Queda
-  anotado con versión y fecha.
-- Si exige plugin, el ítem se cierra como `descartado` con ese dato, y B-038 y
-  B-044 siguen en `run.py`.
-- Si no lo exige, tres escenarios de categorías distintas (una hard-rule
-  que NO dependa del tier de acceso, un handoff y uno con `expect_files`) se
-  portan a su formato y se corren en ambas herramientas. Las hard-rules de
-  acceso no se comparan, porque un agente dentro de un plugin pierde
-  `permissionMode` (ESTADO-DEL-ARTE §3).
-- La comparación queda anotada en ESTADO-DEL-ARTE: veredictos, costo,
-  aislamiento y lo que cada una no puede expresar. La decisión se registra
-  en este backlog.
-
-**Costo.** El paso 0 es gratis. La comparación: dos herramientas × 3
-escenarios × 3 corridas, unos pocos dólares; del lado oficial con su propio
-`--max-cost-usd`.
-**Depende de.** Nada. Va primero porque puede cambiar el alcance de B-038 y
-B-044.
-
 ### B-044: tope de costo por corrida
 
 **Qué se busca.** Que ninguna corrida pueda gastar más de lo autorizado. El
@@ -190,8 +159,11 @@ preguntar": la pregunta fija el monto y el flag lo hace cumplir.
   de costo fijo y no llama al modelo.
 
 **Costo.** Cero: no necesita corridas reales.
-**Depende de.** Paso 0 de B-047. Si la herramienta oficial sirve, este ítem se
-reevalúa antes de construirlo.
+**Depende de.** Nada. (El paso 0 de B-047 decidió construirlo en `run.py`.)
+Como referencia de diseño, el `--max-cost-usd` de `claude plugin eval` hace lo
+mismo: mira el gasto antes de lanzar cada corrida, el exceso queda acotado a
+las que están en vuelo y el JSON sale con `partial: true` y
+`partialReason: "cost_ceiling"`.
 
 ### B-039: calibrar el juez
 
@@ -254,7 +226,7 @@ ese PASS no prueba la regla de qa.
 **Costo.** Una pasada SIN cuesta como mucho lo que una suite, unos USD 10 al
 costo registrado (menos, por los escenarios que se saltean); las repeticiones
 N/3 solo para los Δ = 0. Se propone con su costo antes de correr.
-**Depende de.** Paso 0 de B-047, B-044 y B-039 (para creerle al juez en ambas
+**Depende de.** B-044 y B-039 (para creerle al juez en ambas
 ramas).
 
 ### B-040: veredicto INDETERMINADO
@@ -306,26 +278,6 @@ descripción que carga siempre pasaría esa prueba.
 
 **Costo.** ~50 consultas en frío a ~USD 0,17, unos USD 8, sin juez.
 **Depende de.** B-044.
-
-### B-042: tope de tamaño de skill en Codex
-
-**Qué se busca.** Pasar el ~8 KB de wshobson de *reportado* a *medido*.
-Si Codex corta, `llm-integration` hoy llega incompleta, sin aviso, a quien
-la instale ahí.
-
-**Criterios de aceptación.**
-- Se mide sobre la copia que `install.py` deja para Codex, no sobre la fuente:
-  el instalador transforma las skills (B-029), así que el tamaño puede cambiar.
-- Se mide con la prueba más barata posible (mirar qué texto de la skill ve
-  Codex; consultar al modelo solo si no hay otra forma), con versión y fecha.
-  El dato va a la tabla de hosts de ESTADO-DEL-ARTE.
-- Si corta: `validate.py` suma un chequeo de tamaño por host, o el instalador
-  parte la skill en `references/` para Codex, y `llm-integration` deja de
-  pasar el tope.
-- Si no corta: el hecho queda medido y el ítem se cierra sin cambiar código.
-
-**Costo.** Cero o una consulta.
-**Depende de.** Nada.
 
 ### B-043: routing con pares que se confunden
 
@@ -464,3 +416,5 @@ chequeo `backlog` ya evita en las filas.
 | B-053 | hecho | Medido qué choca entre `npx skills` 1.7.2 y el catálogo, en `HOME` descartables: 26 de 48 nombres ya existen afuera (piso; `code-review` choca con una skill de 723 mil instalaciones); `install.py` pisa la ajena con `overwrite`/`--refresh`, y con `ask` sin TTY renombra la nuestra pero `relink_skills` deja la carpeta ajena mezclada; `npx skills` pisa la nuestra y `--status` la llama "stale"; un enlace simbólico de `npx skills` (dos hosts) hace caer `install.py` a mitad de la instalación; el ida y vuelta queda latente; nuestra skill vía `npx skills add` deja 10 de 10 links muertos. Baseline en ESTADO-DEL-ARTE §4; los bugs pasan a B-058, que decidió no parchar antes | `43d77c1` |
 | B-058 | hecho | Identidad e integridad de lo instalado. Cada skill lleva `metadata.local-agents-id` (único, inmutable, chequeo `skill-ids`, aceptado por `skills-ref`); el sello registra el hash de cada skill y agente que escribe, en todos los caminos (también `--skill`, el menú y un catálogo sin git) y si fue el catálogo completo (`suite`). `install.py` decide por identidad: lo nuestro e intacto se actualiza; lo editado, lo ajeno y los enlaces no se tocan sin `--on-conflict overwrite` (los enlaces, nunca); lo retirado se reporta para borrar y lo nuestro con otro nombre se actualiza en su lugar. `--refresh` usa la política `update` y respeta la forma de lo instalado (lo parcial sigue parcial). `ask` sin TTY ya no duplica el catálogo (antes, 48→96 skills y 15→30 agentes al correr dos veces). Migración exacta desde sellos viejos: reconstruye lo que instaló ese commit y compara archivo por archivo; medida sobre una instalación real de 6 hosts sin falsos "editados". Repetidos los casos de B-053: sin carpeta mezclada, sin caída por enlace, `--status` veraz, y nuestra skill copiada por `npx skills` adoptada con 0 links muertos. 37 tests sin red, con mutación; la revisión con contexto limpio encontró 3 bloqueantes y 3 importantes, todos con su test | `2b1c19d`, `762d496`, `harness:6e62cda` |
 | B-059 | hecho | Prefijo `lh-` (local-hero) en las 48 skills, elegido contra el índice de skills.sh (libre; `local-agents-` ya lo usaban dos proyectos ajenos). Carpetas movidas con `git mv` conservando cada `local-agents-id`; 269 rutas, 136 links entre hermanas, 118 backticks y 233 textos de link actualizados, más 2 menciones en texto plano que nombraban la skill (4 que eran el concepto, intactas); BACKLOG y ESTADO-DEL-ARTE intactos por ser historia; el README explica el prefijo. `--refresh` retira las copias viejas que son nuestras, reemplazadas e intactas (sello con registro bajo el nombre viejo); lo editado o sin registro se conserva y se reporta. Medido: carga de skills 11/18 antes y después (corridas `20261013-214734` y `20261013-220105`, USD 6,22), y la migración real de 6 hosts retiró 288 copias viejas sin tocar las skills propias del usuario. El paso previo encontró dos bugs de `--refresh` con sellos viejos (camino parcial, falsos "editados"), corregidos con su test | `afa74fa`, `9571e8f`, `harness:e7b13d1` |
+| B-047 | descartado | Comparar `claude plugin eval` con `run.py` | Paso 0 (Claude Code 2.1.296, 2026-10-13, sondas con tope de costo 0, USD 0): solo carga un plugin con `.claude-plugin/plugin.json`. Un directorio con `agents/` y `skills/` sin manifiesto se acepta como raíz de la suite pero sale con `plugins: []`; con manifiesto, carga. Cada corrida va aislada, sin `~/.claude` ni lo instalado, así que mide un plugin y no la copia instalada. Tampoco corre un caso COMO un agente (el `--agent` de `run.py`): un agente del plugin solo se alcanza delegando con `Agent` por su nombre con namespace, y pierde `permissionMode`. Empaquetar el catálogo es B-028, en espera. B-044 y B-038 siguen en `run.py`, con el `--max-cost-usd` y el `--ablation with-without` oficiales como referencia de diseño |
+| B-042 | hecho | Codex no corta las skills de más de 8 KB, medido sobre la copia que deja `install.py` (`lh-llm-integration`, 10.907 bytes). Codex 0.162.1 no mete el cuerpo en el prompt (`codex debug prompt-input`, gratis: solo lista nombre, descripción y ruta, aun con `$lh-llm-integration` en el pedido); el modelo lee el archivo con el shell, y el presupuesto de salida de `exec` es de 10.000 tokens por defecto. Una consulta (`codex exec`, ~16 mil tokens): la salida del `cat` registrada en la sesión es el archivo entero, idéntico byte a byte y sin marca de recorte. Sin cambios de código: el ~8 KB de wshobson no aplica a esta versión | `0af02b2` |
