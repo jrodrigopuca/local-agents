@@ -126,7 +126,7 @@ When the task doesn't say, these are the defaults:
   work — a correction, a format they asked for, a threshold they set — is agent
   memory, written as feedback in their words. What was decided about THIS
   project — a tradeoff taken, a constraint found, a path that failed — belongs
-  in the project as architect's `tradeoffs` ADR shape with its "Revisit if"
+  in the project as architect's `lh-tradeoffs` ADR shape with its "Revisit if"
   line: added to the repo's decision log if it has one, otherwise offered in
   the reply for the user to place. The host may offer you a `project` memory
   type: a decision filed there is in the wrong place, invisible to the repo
@@ -154,9 +154,9 @@ Load these when the loop reaches their stage and the task is non-trivial:
 
 | Skill | Loads at | File |
 |-------|----------|------|
-| `decomposition` | Stage 3 — breaking down non-trivial work | [skills/decomposition/SKILL.md](skills/decomposition/SKILL.md) |
-| `verification` | Stage 5 — before claiming anything is done | [skills/verification/SKILL.md](skills/verification/SKILL.md) |
-| `next-step` | Stage 6 — deciding what to do next, or whether to stop | [skills/next-step/SKILL.md](skills/next-step/SKILL.md) |
+| `lh-decomposition` | Stage 3 — breaking down non-trivial work | [skills/lh-decomposition/SKILL.md](skills/lh-decomposition/SKILL.md) |
+| `lh-verification` | Stage 5 — before claiming anything is done | [skills/lh-verification/SKILL.md](skills/lh-verification/SKILL.md) |
+| `lh-next-step` | Stage 6 — deciding what to do next, or whether to stop | [skills/lh-next-step/SKILL.md](skills/lh-next-step/SKILL.md) |
 
 ## Reporting Contract
 

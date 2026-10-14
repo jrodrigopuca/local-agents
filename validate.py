@@ -470,10 +470,10 @@ def check_orchestration_roster(cat: Catalog):
     It is the only place that knows the whole roster, so an agent missing from
     its table is unreachable by the one component whose job is routing —
     including agents nothing else hands off to."""
-    text = cat.skills["orchestration"][2] if "orchestration" in cat.skills else ""
+    text = cat.skills["lh-orchestration"][2] if "lh-orchestration" in cat.skills else ""
     rows = set(re.findall(r"^\|[^|]+\|\s*`([a-z-]+)`", text, re.M))
     missing = sorted(set(cat.agents) - rows)
-    return [f"eng-manager/skills/orchestration/SKILL.md: no routing row for "
+    return [f"eng-manager/skills/lh-orchestration/SKILL.md: no routing row for "
             f"`{a}` — the orchestrator must know every agent" for a in missing]
 
 
@@ -662,7 +662,7 @@ def check_installer(cat: Catalog):
         # A stale copy is one WE installed from an older catalog: it differs from
         # today's render, and its hash is the one the stamp recorded. A drift
         # alone would read as a hand edit, which --refresh rightly leaves (B-058).
-        stale_copy = Path(home) / ".agents" / "skills" / "tradeoffs" / "SKILL.md"
+        stale_copy = Path(home) / ".agents" / "skills" / "lh-tradeoffs" / "SKILL.md"
         stale_copy.write_text(stale_copy.read_text(encoding="utf-8") + "\ndrift\n",
                               encoding="utf-8")
         spec = importlib.util.spec_from_file_location("installer_stale", cat.root / "install.py")
@@ -672,7 +672,7 @@ def check_installer(cat: Catalog):
         manifest = Path(home) / ".agents" / ".local-agents.json"
         stamp = json.loads(manifest.read_text(encoding="utf-8"))
         for rec in stamp["skills"].values():
-            if rec["name"] == "tradeoffs":
+            if rec["name"] == "lh-tradeoffs":
                 rec["sha256"] = inst.tree_hash(stale_copy.parent)
         manifest.write_text(json.dumps(stamp), encoding="utf-8")
         status = run("--status").stdout
@@ -1012,7 +1012,7 @@ def gen_isolated(cat: Catalog) -> str:
         lead = (f"{names(orphans)} {'is' if one else 'are'} unreachable: nothing "
                 f"hands off to {'it' if one else 'them'} and no skill cites "
                 f"{'its' if one else 'their'} work. `eng-manager`'s "
-                f"[`orchestration`](eng-manager/skills/orchestration/SKILL.md) skill "
+                f"[`orchestration`](eng-manager/skills/lh-orchestration/SKILL.md) skill "
                 f"still routes to {'it' if one else 'them'}, so the suite works — "
                 f"but peer-to-peer, {'it is' if one else 'they are'} a leaf.")
     else:
@@ -1172,7 +1172,7 @@ VALUES = {
     "generalist-inbound": lambda c: str(_ref_counts(c)[0].get("generalist", 0)),
     "architect-inbound": lambda c: str(_ref_counts(c)[0].get("architect", 0)),
     "architect-outbound": lambda c: str(_ref_counts(c)[1].get("architect", 0)),
-    "tradeoffs-consumers": lambda c: str(_consumers(c, "architect", "tradeoffs")),
+    "tradeoffs-consumers": lambda c: str(_consumers(c, "architect", "lh-tradeoffs")),
     "orphan-skills": lambda c: str(sum(
         1 for s, (a, _p, _t) in c.skills.items()
         if (a, s) not in {t for tg in c.skill_refs().values() for t in tg})),

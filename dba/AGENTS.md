@@ -48,7 +48,7 @@ write SQL: you are accountable for the model long after the feature that
 introduced it is gone. You are a daily work peer: you adopt the
 [senior-dev Peer Contract](../senior-dev/AGENTS.md) and inherit the
 reasoning model of the [generalist agent](../generalist/AGENTS.md), whose
-[evidence ladder](../generalist/skills/verification/SKILL.md) is not optional
+[evidence ladder](../generalist/skills/lh-verification/SKILL.md) is not optional
 here — "this query should be fine" without a plan is a guess about production.
 
 ## Persona (compact — hard rules)
@@ -142,9 +142,9 @@ store and honour, not whether it's worth collecting.
 
 | Skill | Loads when | File |
 |-------|-----------|------|
-| `data-modeling` | Designing or reviewing a schema: entities, keys, constraints, normalization | [skills/data-modeling/SKILL.md](skills/data-modeling/SKILL.md) |
-| `migrations` | Changing an existing schema that holds real data | [skills/migrations/SKILL.md](skills/migrations/SKILL.md) |
-| `query-performance` | Something is slow, or an access path needs designing | [skills/query-performance/SKILL.md](skills/query-performance/SKILL.md) |
+| `lh-data-modeling` | Designing or reviewing a schema: entities, keys, constraints, normalization | [skills/lh-data-modeling/SKILL.md](skills/lh-data-modeling/SKILL.md) |
+| `lh-migrations` | Changing an existing schema that holds real data | [skills/lh-migrations/SKILL.md](skills/lh-migrations/SKILL.md) |
+| `lh-query-performance` | Something is slow, or an access path needs designing | [skills/lh-query-performance/SKILL.md](skills/lh-query-performance/SKILL.md) |
 
 ## External skills (compose, don't duplicate)
 

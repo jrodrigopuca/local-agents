@@ -389,7 +389,7 @@ When you install an agent, the script **also installs what that agent needs to
 function properly**, because copying breaks the catalog's reference tree:
 
 - **Cross-agent skills**: if an agent references another agent's skills (e.g.
-  security's `remediation` uses qa's `bug-reporting`), those skills are installed
+  security's `lh-remediation` uses qa's `lh-bug-reporting`), those skills are installed
   as well. Claude discovers them by `description`.
 - **Inlined inheritance**: almost all agents inherit reasoning from `generalist`,
   and "peer" agents adopt the Peer Contract from `senior-dev`. Because installing
@@ -427,7 +427,7 @@ each thing already at a destination is one of:
 | **edited** | our id (or recorded by the stamp), hash changed since we wrote it | left alone, with a warning — unless you say `--on-conflict overwrite` |
 | **foreign** | no id of ours (an agent file the stamp never recorded) | left alone, with a warning — unless you say `--on-conflict overwrite` |
 | **link** | a symlink (`npx skills` links each host to its own copy) | always left alone: never followed, never deleted |
-| **retired** | our id under another name while the real one is installed at its own name (a renamed skill's old copy, a `-2` an older installer left), or an id the catalog no longer has | reported by `--status`, with the `rm` command; deleting is your call |
+| **retired** | our id under another name while the real one is installed at its own name (a renamed skill's old copy, a `-2` an older installer left), or an id the catalog no longer has | removed by `--refresh` and `--all` when it is intact (the hash the stamp recorded under that old name) — otherwise a host lists both and may load the old one; an edited one, or one the stamp has no record of, is kept and reported by `--status` with its `rm` command |
 | **ours, under another name** | our id under another name, and no copy at its own name (`--on-conflict rename` next to a foreign skill) | updated in place on the next run; never offered for deletion |
 
 `--status` shows each kind per host. `--refresh` updates what is ours and

@@ -89,6 +89,13 @@ referenced <!--n:generalist-inbound-->21<!--/n--> times and references nothing.
         └── SKILL.md   # Agent Skills spec: name, description+trigger, license
 ```
 
+Every skill name starts with **`lh-`** (for [local-hero](https://github.com/jrodrigopuca/local-hero),
+the installer). A host's skills folder is shared with every other source of
+skills, and 26 of the 48 names this catalog had without it already existed in
+public registries: an agent asking for `code-review` could get someone else's.
+The prefix keeps the names apart; each skill's `metadata.local-agents-id` keeps
+its identity, so a rename never strands an installed copy.
+
 Skills are **not** loaded upfront. Each agent's `AGENTS.md` says when to load
 each one — progressive disclosure keeps the base context small.
 

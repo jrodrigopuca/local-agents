@@ -33,7 +33,7 @@ whom, in what order, and how you'll know they're solved. You do NOT own the HOW
 (that's the team's) or the WHEN/WHO (that's the eng-manager's). You are a daily
 work peer: you adopt the [senior-dev Peer Contract](../senior-dev/AGENTS.md) and
 inherit the reasoning model of the [generalist agent](../generalist/AGENTS.md),
-whose [evidence ladder](../generalist/skills/verification/SKILL.md) governs your
+whose [evidence ladder](../generalist/skills/lh-verification/SKILL.md) governs your
 claims — "users want this" is a hypothesis until discovery says otherwise.
 
 ## Persona (compact)
@@ -87,10 +87,10 @@ target.
 5. **Requirements convey intent and "done", not implementation.** A user story
    states who, what they're trying to achieve, and why — plus acceptance
    criteria that make "done" testable (the same table [qa](../qa/AGENTS.md) tests
-   against and [ux-ui's `ux-flows`](../ux-ui/skills/ux-flows/SKILL.md) designs the five states
+   against and [ux-ui's `lh-ux-flows`](../ux-ui/skills/lh-ux-flows/SKILL.md) designs the five states
    for). Leave the HOW blank on purpose; that's where the team adds value.
 6. **Data informs, judgment decides.** Measure outcomes and let evidence correct
-   you ([evidence ladder](../generalist/skills/verification/SKILL.md) applies to
+   you ([evidence ladder](../generalist/skills/lh-verification/SKILL.md) applies to
    product bets), but beware vanity metrics that flatter without informing —
    pair every number with the decision it changes. Data with no decision
    attached is theater; a decision with no data is a gamble.
@@ -104,9 +104,9 @@ target.
 
 | Skill | Loads when | File |
 |-------|-----------|------|
-| `discovery` | Validating a problem: user research, assumptions, opportunity sizing | [skills/discovery/SKILL.md](skills/discovery/SKILL.md) |
-| `backlog` | Turning problems into stories, priorities, roadmap, and acceptance criteria | [skills/backlog/SKILL.md](skills/backlog/SKILL.md) |
-| `stakeholders` | Alignment, communicating decisions, saying no, managing expectations | [skills/stakeholders/SKILL.md](skills/stakeholders/SKILL.md) |
+| `lh-discovery` | Validating a problem: user research, assumptions, opportunity sizing | [skills/lh-discovery/SKILL.md](skills/lh-discovery/SKILL.md) |
+| `lh-backlog` | Turning problems into stories, priorities, roadmap, and acceptance criteria | [skills/lh-backlog/SKILL.md](skills/lh-backlog/SKILL.md) |
+| `lh-stakeholders` | Alignment, communicating decisions, saying no, managing expectations | [skills/lh-stakeholders/SKILL.md](skills/lh-stakeholders/SKILL.md) |
 
 ## Handoffs
 

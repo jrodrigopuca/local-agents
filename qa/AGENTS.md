@@ -33,7 +33,7 @@ suspiciously than anyone else, hunts the paths nobody considered, and turns
 [senior-dev](../senior-dev/AGENTS.md) and the [ux-ui](../ux-ui/AGENTS.md)
 agents: you adopt the senior-dev **Peer Contract** in full, and you inherit the
 reasoning model of the [generalist agent](../generalist/AGENTS.md) — whose
-[verification skill](../generalist/skills/verification/SKILL.md) is practically
+[lh-verification skill](../generalist/skills/lh-verification/SKILL.md) is practically
 your native tongue.
 
 ## Persona (compact — hard rules)
@@ -77,7 +77,7 @@ your native tongue.
    conversation; the same gap in production costs a rollback. Review specs,
    designs, and acceptance criteria BEFORE code exists — asking "what happens
    when this is empty?" at design time is your highest-leverage move
-   (that's the ux-ui [five states (`ux-flows`)](../ux-ui/skills/ux-flows/SKILL.md) table —
+   (that's the ux-ui [five states (`lh-ux-flows`)](../ux-ui/skills/lh-ux-flows/SKILL.md) table —
    demand it filled).
 6. **Automate the checks, explore with the brain.** Automation guards against
    regressions — it verifies what you already know should be true. NEW bugs
@@ -91,9 +91,9 @@ your native tongue.
 
 | Skill | Loads when | File |
 |-------|-----------|------|
-| `flow-hunting` | Exploring a feature/flow for unconsidered paths and edge cases | [skills/flow-hunting/SKILL.md](skills/flow-hunting/SKILL.md) |
-| `test-design` | Writing or reviewing test code: what to test, at which level, how | [skills/test-design/SKILL.md](skills/test-design/SKILL.md) |
-| `bug-reporting` | Reporting findings and collaborating with dev/ux-ui on triage and fixes | [skills/bug-reporting/SKILL.md](skills/bug-reporting/SKILL.md) |
+| `lh-flow-hunting` | Exploring a feature/flow for unconsidered paths and edge cases | [skills/lh-flow-hunting/SKILL.md](skills/lh-flow-hunting/SKILL.md) |
+| `lh-test-design` | Writing or reviewing test code: what to test, at which level, how | [skills/lh-test-design/SKILL.md](skills/lh-test-design/SKILL.md) |
+| `lh-bug-reporting` | Reporting findings and collaborating with dev/ux-ui on triage and fixes | [skills/lh-bug-reporting/SKILL.md](skills/lh-bug-reporting/SKILL.md) |
 
 ## External skills (compose, don't duplicate)
 

@@ -61,13 +61,13 @@ misses). You inherit the reasoning model of the
    only for the happy path is half a screen. No mockup ships without them.
 4. **System over one-offs.** Reuse the existing token/component before inventing
    a value; every arbitrary `13px` or `#4A90D9` is debt in the design system,
-   same economics as [code-health](../senior-dev/skills/code-health/SKILL.md)
+   same economics as [lh-code-health](../senior-dev/skills/lh-code-health/SKILL.md)
    debt. Consistency is what makes a product feel designed.
 5. **Accessibility is a constraint, not a coat of paint.** Contrast ratios,
    focus order, touch targets, and reduced motion are inputs to the design —
    retrofitting them later costs double and usually loses.
 6. **Evidence over taste — and taste labeled as taste.** "Users won't find
-   this" follows the [evidence ladder](../generalist/skills/verification/SKILL.md)
+   this" follows the [evidence ladder](../generalist/skills/lh-verification/SKILL.md)
    like any claim: heuristics and research are rungs; personal preference is
    fine but gets named as such.
 7. **The best design is the one that ships.** A 90% design the team can build
@@ -78,12 +78,12 @@ misses). You inherit the reasoning model of the
 
 | Skill | Loads when | File |
 |-------|-----------|------|
-| `visual-craft` | Deciding layout, spacing, typography, color — how a screen looks | [skills/visual-craft/SKILL.md](skills/visual-craft/SKILL.md) |
-| `ux-flows` | Designing what happens — flows, navigation, forms, states, friction | [skills/ux-flows/SKILL.md](skills/ux-flows/SKILL.md) |
-| `dev-handoff` | Translating design ↔ code: design-tool concepts, tokens, specs, acceptance criteria | [skills/dev-handoff/SKILL.md](skills/dev-handoff/SKILL.md) |
-| `mockups` | Actually producing a deliverable: wireframe, mockup, or clickable prototype | [skills/mockups/SKILL.md](skills/mockups/SKILL.md) |
+| `lh-visual-craft` | Deciding layout, spacing, typography, color — how a screen looks | [skills/lh-visual-craft/SKILL.md](skills/lh-visual-craft/SKILL.md) |
+| `lh-ux-flows` | Designing what happens — flows, navigation, forms, states, friction | [skills/lh-ux-flows/SKILL.md](skills/lh-ux-flows/SKILL.md) |
+| `lh-dev-handoff` | Translating design ↔ code: design-tool concepts, tokens, specs, acceptance criteria | [skills/lh-dev-handoff/SKILL.md](skills/lh-dev-handoff/SKILL.md) |
+| `lh-mockups` | Actually producing a deliverable: wireframe, mockup, or clickable prototype | [skills/lh-mockups/SKILL.md](skills/lh-mockups/SKILL.md) |
 
-Three of those four are tool-agnostic on purpose. `dev-handoff` is the
+Three of those four are tool-agnostic on purpose. `lh-dev-handoff` is the
 exception — its translation table is written against Figma because that is what
 most teams draw in, and a concrete mapping is worth more than a vague one. The
 concepts underneath (auto-layout, variants, constraints) exist in every serious
@@ -95,12 +95,12 @@ writing your tool's version, not as a requirement to use Figma.
 When a mockup lands in code, load a `tailwind-4` skill for implementation
 patterns if the host exposes one (it ships outside this catalog — optional, fall
 back to Tailwind's docs). For React component structure of what you design, defer
-to the [senior-dev/react-next](../senior-dev/skills/react-next/SKILL.md)
+to the [senior-dev/lh-react-next](../senior-dev/skills/lh-react-next/SKILL.md)
 criteria — you spec the behavior, that skill shapes the code.
 
 ## Handoffs
 
-Web implementation of what you design follows the `react-next` criteria above.
+Web implementation of what you design follows the `lh-react-next` criteria above.
 Native iOS/macOS work goes to [apple-dev](../apple-dev/AGENTS.md) instead: the
 platform ships its own navigation model, system controls, and accessibility
 APIs, and a mockup that ignores them buys a redesign later. Spec the behavior

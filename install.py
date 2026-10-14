@@ -865,6 +865,29 @@ def relink_skills(tool: Tool, skills_by_name: dict, dry_run: bool):
             run.skills_written.add(name)
 
 
+def sweep_retired(tool: Tool, dry_run: bool):
+    """Remove our old copies that a renamed skill left behind — but only those
+    that are ours (our id), replaced (that id is installed at its current
+    name) and intact (the hash the stamp recorded under THIS old name). Until
+    then a host lists both, with the same description, and may load the old
+    one. Anything short of all three is kept and reported by --status: a
+    duplicate costs less than a lost edit. A stamp from before B-058 has no
+    record under the old name, so nothing is removed there."""
+    if dry_run or not tool.skills_dir.is_dir():
+        return
+    recs = (run_for(tool).stamp or {}).get("skills") or {}
+    for d in sorted(tool.skills_dir.iterdir()):
+        if d.is_symlink():
+            continue
+        kind, sk = classify_skill(d, None)
+        if kind != RETIRED or sk is None:
+            continue
+        rec = recs.get(sk.id)
+        if rec and rec.get("name") == d.name and rec.get("sha256") == tree_hash(d):
+            shutil.rmtree(d)
+            print(f"    retired → removed {d.name} (now {sk.name})")
+
+
 def install_skill(skill: Skill, tool: Tool, policy: str, interactive: bool, dry_run: bool):
     # Already written in this run (an agent's dependency met again): it is ours
     # and fresh. Classifying it again against the stamp from BEFORE the run
@@ -941,7 +964,7 @@ def resolve_deps(agent: Agent, agents: dict, skills_by_name: dict):
 def deref_skill_links(body: str) -> str:
     """Turn skill links into skill NAMES for the installed copy.
 
-    In the catalog `[visual-craft](skills/visual-craft/SKILL.md)` is navigable.
+    In the catalog `[visual-craft](skills/lh-visual-craft/SKILL.md)` is navigable.
     Installed, the agent is a flat file and skills live in a sibling directory,
     so that path resolves to nothing. Observed consequence, from a real trace:
     an agent searched for its own skills, failed, and answered "no pude leer los
@@ -1417,6 +1440,7 @@ def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
     for name in sorted(skills_by_name):
         install_skill(skills_by_name[name], tool, policy, interactive, dry_run)
     relink_skills(tool, skills_by_name, dry_run)
+    sweep_retired(tool, dry_run)
 
     if tool.agents_dir is None:
         print(f"  — {tool.label} has no named-agent slot: skills above are the install. —")
@@ -1458,6 +1482,7 @@ def refresh_tool(tool: Tool, dry_run: bool, agents: dict, skills_by_name: dict,
         if sk is not None:
             install_skill(sk, tool, "update", False, dry_run)
     relink_skills(tool, skills_by_name, dry_run)
+    sweep_retired(tool, dry_run)
     write_manifest(tool, catalog, dry_run)
 
 

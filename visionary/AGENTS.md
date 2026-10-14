@@ -83,7 +83,7 @@ reasoning model of the [generalist agent](../generalist/AGENTS.md).
    the second. Your job is to see the leap the incremental request is hiding
    ("faster horse" → car). But this is a license for VISION, not for ignoring
    evidence: once it ships, behavior data is the verdict
-   ([evidence ladder](../generalist/skills/verification/SKILL.md) applies to
+   ([evidence ladder](../generalist/skills/lh-verification/SKILL.md) applies to
    vision too).
 5. **Sell the benefit, never the spec.** Nobody wants a 5GB drive; everybody
    wants their music everywhere. Every description of the product — in the UI,
@@ -103,6 +103,6 @@ reasoning model of the [generalist agent](../generalist/AGENTS.md).
 
 | Skill             | Loads when                                                           | File                                                               |
 | ----------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `brutal-critique` | Analyzing a product/feature and delivering the honest verdict        | [skills/brutal-critique/SKILL.md](skills/brutal-critique/SKILL.md) |
-| `focus`           | Deciding what to kill, what to say no to, what the ONE thing is      | [skills/focus/SKILL.md](skills/focus/SKILL.md)                     |
-| `inspire`         | Motivating creation: vision, story, and lessons from product history | [skills/inspire/SKILL.md](skills/inspire/SKILL.md)                 |
+| `lh-brutal-critique` | Analyzing a product/feature and delivering the honest verdict        | [skills/lh-brutal-critique/SKILL.md](skills/lh-brutal-critique/SKILL.md) |
+| `lh-focus`           | Deciding what to kill, what to say no to, what the ONE thing is      | [skills/lh-focus/SKILL.md](skills/lh-focus/SKILL.md)                     |
+| `lh-inspire`         | Motivating creation: vision, story, and lessons from product history | [skills/lh-inspire/SKILL.md](skills/lh-inspire/SKILL.md)                 |

@@ -119,9 +119,9 @@ as text, before the first edit:
 
 | Skill | Loads when | File |
 |-------|-----------|------|
-| `tradeoffs` | An expensive-to-reverse decision needs analysis or an ADR | [skills/tradeoffs/SKILL.md](skills/tradeoffs/SKILL.md) |
-| `design-review` | Reviewing an existing design, codebase structure, or PR architecture | [skills/design-review/SKILL.md](skills/design-review/SKILL.md) |
-| `mentoring` | A teachable moment fired on the escalation ladder | [skills/mentoring/SKILL.md](skills/mentoring/SKILL.md) |
+| `lh-tradeoffs` | An expensive-to-reverse decision needs analysis or an ADR | [skills/lh-tradeoffs/SKILL.md](skills/lh-tradeoffs/SKILL.md) |
+| `lh-design-review` | Reviewing an existing design, codebase structure, or PR architecture | [skills/lh-design-review/SKILL.md](skills/lh-design-review/SKILL.md) |
+| `lh-mentoring` | A teachable moment fired on the escalation ladder | [skills/lh-mentoring/SKILL.md](skills/lh-mentoring/SKILL.md) |
 
 ## Handoffs
 

@@ -1,0 +1,100 @@
+---
+name: lh-code-health
+description: >
+  Clean code judgment and technical debt management: what to improve while
+  touching code, when to take debt consciously, and which debt to pay first.
+  Trigger: load when deciding whether an improvement belongs in this diff or
+  in a ticket, when tempted to take a shortcut, or when choosing which debt to
+  pay first. The clean-code baseline is always on and needs no skill.
+license: Apache-2.0
+metadata:
+  author: jrodrigopuca
+  version: "1.1"
+  local-agents-id: "sk-09fb64"
+---
+
+## Critical Patterns
+
+### 1. Clean code = the next reader understands it without you
+
+That's the whole definition, and the clean-code canon (names, one reason to
+change, guard clauses, no dead code) follows from it without needing a list
+here. Two diagnostics are worth keeping because they catch design, not style:
+if naming something is HARD, the design is usually wrong — the naming
+difficulty is the finding, don't paper over it; and a comment that explains
+WHAT the next line does is an apology for unclear code, while one that states
+a constraint the code can't express (why NOT the obvious approach, an
+invariant, the decision's link) is the only kind that earns its place.
+
+### 2. The boy scout rule — scoped to the diff
+
+Leave every file you touch slightly better: a clearer name, an extracted
+function, a deleted dead branch. But "better" stays INSIDE the task's blast
+radius — improving lines you're already changing is hygiene; rewriting the
+module you passed through is scope creep (flag it, per the
+[peer contract](../../AGENTS.md)). The test: would the reviewer see the cleanup
+as part of this change, or as a second change hiding in the diff? When it is
+its own change, it gets its own commit inside the same PR — that is how this
+rule and "never refactor and change behavior in one commit" (#6) coexist: same
+review, separate diffs.
+
+### 3. Debt is a loan, not a sin — but only when it's taken consciously
+
+There are two kinds of technical debt and only one is legitimate:
+
+| Kind | How it happens | Verdict |
+|------|---------------|---------|
+| Deliberate | "We ship the simple version now because X; the cost is Y" — said out loud, recorded | Legitimate tool |
+| Accidental rot | Shortcuts nobody chose, accumulated silently | Just decay |
+
+When taking deliberate debt: say it in the report, and leave a trace at the
+site — `// DEBT: <what's owed, why deferred, what triggers repayment>` (plus a
+ticket if the team tracks them). Debt with no record converts to rot the moment
+you forget it.
+
+### 4. Prioritize debt by interest rate, not by ugliness
+
+The debt worth paying first is where **change frequency × failure cost** is
+highest. Ugly code that nobody touches and never fails charges almost no
+interest — leave it alone; refactoring it is aesthetics, not engineering. The
+mediocre code in the file the team edits every week is what's actually taxing
+you. Check `git log --format=%H -- <path> | wc -l` before campaigning to
+refactor something.
+
+### 5. Smell → response table
+
+Not every smell triggers a refactor; each has its threshold. A threshold is a
+signal to LOOK, not a trigger to act: four parameters on a constructor that
+mirrors a record are fine, and two genuinely independent toggles can be the
+clearest API. Crossing one means "check"; the response column is what to do
+when the check confirms the smell.
+
+| Smell | Threshold | Response |
+|-------|-----------|----------|
+| Duplication | Third occurrence (rule of three) | Extract — two instances is often coincidence, not pattern |
+| Boolean flag params | Second flag | Split the function or use composition |
+| Long param list | 4+ | Group into an object that names the concept |
+| Deep nesting | 3+ levels | Guard clauses, early returns, extract |
+| God function/module | You can't name it honestly without "and" | Split by responsibility |
+| Speculative abstraction | Abstraction with one consumer "for the future" | Inline it — YAGNI applies to abstractions too |
+
+Premature abstraction IS debt: the wrong abstraction costs more than
+duplication, because it's harder to see and harder to unwind.
+
+### 6. Refactor with a net, never mid-flight
+
+- Never refactor and change behavior in the same commit — reviewer can't tell
+  which diff lines are "same behavior, better shape" and which are the feature.
+- Green tests before, green tests after; if the code has no tests, the refactor
+  starts by adding the characterization test that pins current behavior.
+- Small mechanical steps (rename → extract → move), each one shippable. A
+  refactor you can't pause halfway is a rewrite wearing a refactor's name.
+
+## Resources
+
+- Sibling skills: [lh-pairing](../lh-pairing/SKILL.md) (how to raise debt findings in
+  review), [lh-react-next](../lh-react-next/SKILL.md) and
+  [lh-fullstack-boundaries](../lh-fullstack-boundaries/SKILL.md) (what "good shape"
+  means in each layer)
+- For debt whose repayment is an expensive-to-reverse decision:
+  [architect/lh-tradeoffs](../../../architect/skills/lh-tradeoffs/SKILL.md)

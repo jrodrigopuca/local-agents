@@ -200,26 +200,26 @@ wide — they're the catalog's shared vocabulary.
 <!-- BEGIN:hubs -->
 | Skill | Consumed by | Consumers |
 |-------|------------:|-----------|
-| [`generalist/verification`](generalist/skills/verification/SKILL.md) | 8 agents | apple-dev, architect, data-ml, dba, gamification, product-manager, qa, security |
-| [`architect/tradeoffs`](architect/skills/tradeoffs/SKILL.md) | 6 agents | data-ml, devops, gamification, product-manager, senior-dev, stark |
-| [`ux-ui/ux-flows`](ux-ui/skills/ux-flows/SKILL.md) | 6 agents | apple-dev, gamification, product-manager, qa, stark, visionary |
-| [`senior-dev/fullstack-boundaries`](senior-dev/skills/fullstack-boundaries/SKILL.md) | 5 agents | data-ml, dba, qa, security, ux-ui |
-| [`generalist/decomposition`](generalist/skills/decomposition/SKILL.md) | 4 agents | eng-manager, product-manager, stark, visionary |
-| [`qa/test-design`](qa/skills/test-design/SKILL.md) | 4 agents | data-ml, devops, product-manager, security |
+| [`generalist/lh-verification`](generalist/skills/lh-verification/SKILL.md) | 8 agents | apple-dev, architect, data-ml, dba, gamification, product-manager, qa, security |
+| [`architect/lh-tradeoffs`](architect/skills/lh-tradeoffs/SKILL.md) | 6 agents | data-ml, devops, gamification, product-manager, senior-dev, stark |
+| [`ux-ui/lh-ux-flows`](ux-ui/skills/lh-ux-flows/SKILL.md) | 6 agents | apple-dev, gamification, product-manager, qa, stark, visionary |
+| [`senior-dev/lh-fullstack-boundaries`](senior-dev/skills/lh-fullstack-boundaries/SKILL.md) | 5 agents | data-ml, dba, qa, security, ux-ui |
+| [`generalist/lh-decomposition`](generalist/skills/lh-decomposition/SKILL.md) | 4 agents | eng-manager, product-manager, stark, visionary |
+| [`qa/lh-test-design`](qa/skills/lh-test-design/SKILL.md) | 4 agents | data-ml, devops, product-manager, security |
 <!-- END:hubs -->
 
 Why each one carries weight:
 
-- **`verification`** — the evidence ladder every agent stands on before claiming
+- **`lh-verification`** — the evidence ladder every agent stands on before claiming
   anything is done. The single most reused idea in the catalog.
-- **`tradeoffs`** — the shared method for decisions that are expensive to
+- **`lh-tradeoffs`** — the shared method for decisions that are expensive to
   reverse. <!--n:tradeoffs-consumers-->6<!--/n--> agents defer to it rather than improvising their own.
-- **`ux-flows`** — flows and states: the common language for what a product
+- **`lh-ux-flows`** — flows and states: the common language for what a product
   *does*, borrowed even by agents that never draw a screen.
-- **`decomposition`** — breaking work into independently verifiable steps.
-- **`bug-reporting`** — reproduction-first reporting, reused by security for
+- **`lh-decomposition`** — breaking work into independently verifiable steps.
+- **`lh-bug-reporting`** — reproduction-first reporting, reused by security for
   vulnerabilities and by management for triage.
-- **`fullstack-boundaries`** — where the contract between client and server
+- **`lh-fullstack-boundaries`** — where the contract between client and server
   lives, which is also where QA and security go looking for holes.
 
 ### What composition looks like in practice
@@ -256,14 +256,14 @@ genuinely domain-bound. But `security/threat-modeling` and
 
 <!-- BEGIN:orphan-skills -->
 ```
-apple-dev/       code-review · debugging · shipping · state-architecture
-data-ml/         ml-modeling
-dba/             query-performance
-eng-manager/     team-health
-gamification/    game-mechanics
-product-manager/ backlog · stakeholders
-ux-ui/           visual-craft
-visionary/       inspire
+apple-dev/       lh-code-review · lh-debugging · lh-shipping · lh-state-architecture
+data-ml/         lh-ml-modeling
+dba/             lh-query-performance
+eng-manager/     lh-team-health
+gamification/    lh-game-mechanics
+product-manager/ lh-backlog · lh-stakeholders
+ux-ui/           lh-visual-craft
+visionary/       lh-inspire
 ```
 <!-- END:orphan-skills -->
 

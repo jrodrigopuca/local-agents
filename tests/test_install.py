@@ -17,8 +17,8 @@ import unittest
 from pathlib import Path
 
 CATALOG = Path(__file__).resolve().parents[1]
-NAME = "code-review"           # apple-dev's; 723k installs of a same-name skill exist (B-053)
-SKILL = "verification"         # generalist's
+NAME = "lh-code-review"        # apple-dev's. Unprefixed, 723k installs of a same-name skill existed (B-053)
+SKILL = "lh-verification"      # generalist's
 
 
 def clean_env(**extra):
@@ -197,20 +197,46 @@ class InstallTest(unittest.TestCase):
 
     # -- retired ---------------------------------------------------------- #
 
-    def test_a_renamed_skill_leaves_a_retired_copy_that_status_reports(self):
-        catalog = self.own_copy_of_catalog()
-        self.install_all()
-        old = catalog / "generalist" / "skills" / SKILL
-        new = old.with_name("verification-method")
+    def rename_in_catalog(self, catalog, old_name, new_name):
+        old = catalog / "generalist" / "skills" / old_name
+        new = old.with_name(new_name)
         old.rename(new)
         md = new / "SKILL.md"
-        md.write_text(md.read_text().replace("name: verification", "name: verification-method", 1))
+        md.write_text(md.read_text().replace(f"name: {old_name}", f"name: {new_name}", 1))
         self.commit("rename a skill, keeping its id")
+
+    def test_a_renamed_skill_replaces_its_intact_old_copy(self):
+        # Ours, replaced, and untouched since we wrote it: refresh removes it,
+        # so the host does not list two skills with the same description.
+        catalog = self.own_copy_of_catalog()
         self.install_all()
-        self.assertTrue(self.is_ours(self.skills / "verification-method"))
+        self.rename_in_catalog(catalog, SKILL, "lh-verification-method")
+        run = self.install("--refresh")
+        self.assertIn(f"retired → removed {SKILL}", run.stdout)
+        self.assertFalse((self.skills / SKILL).exists())
+        self.assertTrue(self.is_ours(self.skills / "lh-verification-method"))
+        self.assertNotIn("retired", self.status())
+
+    def test_an_edited_old_copy_of_a_renamed_skill_is_kept_and_reported(self):
+        catalog = self.own_copy_of_catalog()
+        self.install_all()
+        md = self.skills / SKILL / "SKILL.md"
+        md.write_text(md.read_text() + "\nmy own note\n")
+        self.rename_in_catalog(catalog, SKILL, "lh-verification-method")
+        self.install("--refresh")
+        self.assertIn("my own note", md.read_text())
         status = self.status()
         self.assertIn("retired", status)
         self.assertIn(f"rm -r {self.skills / SKILL}", status)
+
+    def test_a_pre_b058_stamp_removes_no_old_copy(self):
+        # No record under the old name: nothing proves the copy is untouched.
+        catalog = self.own_copy_of_catalog()
+        self.install_all()
+        self.make_legacy(self.stamp)
+        self.rename_in_catalog(catalog, SKILL, "lh-verification-method")
+        self.install("--refresh")
+        self.assertTrue((self.skills / SKILL).exists())
 
     # -- an install from before B-058 ------------------------------------- #
 
@@ -243,10 +269,10 @@ class InstallTest(unittest.TestCase):
     # -- found by review: every path records what it wrote ---------------- #
 
     def test_a_skill_installed_alone_is_recorded_and_its_edit_survives(self):
-        run = self.install("--skill", "data-modeling", "--tool", "claude")
+        run = self.install("--skill", "lh-data-modeling", "--tool", "claude")
         self.assertEqual(run.returncode, 0, run.stderr)
         self.assertTrue(self.stamp.is_file(), "--skill installed and left no record")
-        md = self.skills / "data-modeling" / "SKILL.md"
+        md = self.skills / "lh-data-modeling" / "SKILL.md"
         md.write_text(md.read_text() + "\nMY EDIT\n")
         refresh = self.install("--refresh")
         # It must have run on this host — surviving because refresh skipped the
@@ -258,7 +284,7 @@ class InstallTest(unittest.TestCase):
     def test_an_agent_then_skills_leave_nothing_marked_edited(self):
         # A relink after the stamp was written used to read as a hand edit.
         self.install("--agent", "qa", "--tool", "claude")
-        self.install("--skill", "threat-modeling", "--skill", "remediation", "--tool", "claude")
+        self.install("--skill", "lh-threat-modeling", "--skill", "lh-remediation", "--tool", "claude")
         self.assertNotIn("edited by hand", self.status())
 
     def test_an_interactive_one_agent_install_is_recorded(self):
@@ -280,7 +306,7 @@ class InstallTest(unittest.TestCase):
         stamp = json.loads(self.stamp.read_text())
         self.assertNotIn("catalog_commit", stamp)
         self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (48, 15))
-        md = self.skills / "tradeoffs" / "SKILL.md"
+        md = self.skills / "lh-tradeoffs" / "SKILL.md"
         md.write_text(md.read_text() + "\nMY EDIT\n")
         self.install_all()
         self.assertIn("MY EDIT", md.read_text())
@@ -290,20 +316,20 @@ class InstallTest(unittest.TestCase):
 
     def test_rename_twice_updates_the_same_copy_and_is_not_retired(self):
         self.skills.mkdir(parents=True)
-        foreign_skill(self.skills, "tradeoffs")
+        foreign_skill(self.skills, "lh-tradeoffs")
         self.install_all("--on-conflict", "rename")
         self.install_all("--on-conflict", "rename")
-        self.assertTrue(self.is_ours(self.skills / "tradeoffs-2"))
-        self.assertFalse((self.skills / "tradeoffs-3").exists())
+        self.assertTrue(self.is_ours(self.skills / "lh-tradeoffs-2"))
+        self.assertFalse((self.skills / "lh-tradeoffs-3").exists())
         status = self.status()
         self.assertNotIn("rm -r", status, "our only copy must never be offered for deletion")
-        self.assertIn("tradeoffs as tradeoffs-2", status)
+        self.assertIn("lh-tradeoffs as lh-tradeoffs-2", status)
 
     # -- found by review: what counts as an edit ------------------------- #
 
     def test_a_dotfile_does_not_make_a_skill_edited(self):
         self.install_all()
-        (self.skills / "pairing" / ".DS_Store").write_bytes(b"\0finder")
+        (self.skills / "lh-pairing" / ".DS_Store").write_bytes(b"\0finder")
         self.assertNotIn("edited by hand", self.status())
 
     # -- found by review: migrating from a stamp without records --------- #
@@ -349,9 +375,9 @@ class InstallTest(unittest.TestCase):
     # -- refresh keeps the shape of what was installed ------------------- #
 
     def test_refresh_of_a_partial_install_stays_partial(self):
-        self.install("--skill", "data-modeling", "--tool", "claude")
+        self.install("--skill", "lh-data-modeling", "--tool", "claude")
         self.install("--refresh")
-        self.assertEqual([p.name for p in self.skills.iterdir()], ["data-modeling"])
+        self.assertEqual([p.name for p in self.skills.iterdir()], ["lh-data-modeling"])
         self.assertFalse(self.agents.exists() and list(self.agents.iterdir()))
 
     def test_refresh_of_a_whole_install_brings_new_catalog_skills(self):

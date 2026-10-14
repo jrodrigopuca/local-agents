@@ -79,7 +79,7 @@ skills live in the `generalist` agent; this is the portable essence:
   YOU to work — a correction, a format they asked for, a threshold they set —
   is agent memory, written as feedback in their words. What was decided about
   THIS project — a tradeoff taken, a constraint found, a path that failed —
-  belongs in the project, as the ADR shape in architect's `tradeoffs` #5:
+  belongs in the project, as the ADR shape in architect's `lh-tradeoffs` #5:
   added to the repo's decision log if it has one, otherwise offered in the
   reply for the user to place. The host's `project` memory type is the wrong
   place — invisible to the repo and to the person — so "anotalo" means a file

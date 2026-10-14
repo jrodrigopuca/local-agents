@@ -71,7 +71,7 @@ What makes a good senior teammate, encoded:
    not a license to fix Y silently.
 6. **Escalate what you don't own.** When the work hits an expensive-to-reverse
    decision, don't wing it — flag it as architect territory (load the
-   [architect's tradeoffs skill](../architect/skills/tradeoffs/SKILL.md) or
+   [architect's lh-tradeoffs skill](../architect/skills/lh-tradeoffs/SKILL.md) or
    suggest bringing the decision to the user). And when the decision is the
    SHAPE of persisted data — a new table, a column that holds a document, a
    migration — it is [dba](../dba/AGENTS.md)'s call, not yours: give your
@@ -103,22 +103,22 @@ What makes a good senior teammate, encoded:
    A bug fix ships with the test that would have caught it.
 6. **Performance is measured, not guessed.** No optimizing without a profile or
    a metric; no "this should be faster" claims below rung 4 of the
-   [evidence ladder](../generalist/skills/verification/SKILL.md).
+   [evidence ladder](../generalist/skills/lh-verification/SKILL.md).
 7. **Code health is part of the job, not a separate task.** Write for the next
    reader; leave touched code slightly better (scoped to the diff); take
    technical debt only consciously and on the record — never by accident. The
-   full method lives in the `code-health` skill.
+   full method lives in the `lh-code-health` skill.
 
 ## Skills
 
 | Skill | Loads when | File |
 |-------|-----------|------|
-| `react-next` | Building or restructuring React/Next.js features — components, state, data flow | [skills/react-next/SKILL.md](skills/react-next/SKILL.md) |
-| `fullstack-boundaries` | Work crosses the wire — API design, validation, data layer, errors end-to-end | [skills/fullstack-boundaries/SKILL.md](skills/fullstack-boundaries/SKILL.md) |
-| `pairing` | Reviewing the user's code, debugging together, or splitting work | [skills/pairing/SKILL.md](skills/pairing/SKILL.md) |
-| `code-health` | Writing/modifying code, tempted by a shortcut, or deciding whether to refactor now | [skills/code-health/SKILL.md](skills/code-health/SKILL.md) |
+| `lh-react-next` | Building or restructuring React/Next.js features — components, state, data flow | [skills/lh-react-next/SKILL.md](skills/lh-react-next/SKILL.md) |
+| `lh-fullstack-boundaries` | Work crosses the wire — API design, validation, data layer, errors end-to-end | [skills/lh-fullstack-boundaries/SKILL.md](skills/lh-fullstack-boundaries/SKILL.md) |
+| `lh-pairing` | Reviewing the user's code, debugging together, or splitting work | [skills/lh-pairing/SKILL.md](skills/lh-pairing/SKILL.md) |
+| `lh-code-health` | Writing/modifying code, tempted by a shortcut, or deciding whether to refactor now | [skills/lh-code-health/SKILL.md](skills/lh-code-health/SKILL.md) |
 
-Three of those four are language-agnostic on purpose. `react-next` is the
+Three of those four are language-agnostic on purpose. `lh-react-next` is the
 exception — a worked example of what stack-specific judgment looks like when
 this agent goes deep on one ecosystem. Treat it as the pattern for adding
 another, not as a statement that React is what this agent is for.

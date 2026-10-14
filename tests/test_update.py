@@ -24,7 +24,7 @@ from unittest import mock
 
 CATALOG = Path(__file__).resolve().parents[1]
 UPDATER = CATALOG / "update.py"
-SKILL = Path("generalist/skills/verification/SKILL.md")
+SKILL = Path("generalist/skills/lh-verification/SKILL.md")
 
 
 def clean_env(**extra):
@@ -44,12 +44,20 @@ class UpdateTest(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        # Seeded from the WORKING TREE, not from HEAD: the code under test may
+        # be uncommitted, and a seed from HEAD would test the last commit
+        # instead (a rename not yet committed broke these tests exactly so).
         cls._seed_dir = tempfile.TemporaryDirectory()
-        cls.seed = Path(cls._seed_dir.name) / "seed.git"
+        root = Path(cls._seed_dir.name)
+        cls.seed, work = root / "seed.git", root / "tree"
+        shutil.copytree(CATALOG, work, ignore=shutil.ignore_patterns(".git", "__pycache__"))
         env = clean_env(XDG_CONFIG_HOME=cls._seed_dir.name)
         for cmd in (["git", "init", "--quiet", "--bare", str(cls.seed)],
                     ["git", "--git-dir", str(cls.seed), "symbolic-ref", "HEAD", "refs/heads/main"],
-                    ["git", "-C", str(CATALOG), "push", "--quiet", str(cls.seed),
+                    ["git", "-C", str(work), "init", "--quiet"],
+                    ["git", "-C", str(work), "add", "-A"],
+                    ["git", "-C", str(work), "commit", "--quiet", "-m", "working tree"],
+                    ["git", "-C", str(work), "push", "--quiet", str(cls.seed),
                      "HEAD:refs/heads/main"]):
             proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
             if proc.returncode != 0:
@@ -69,7 +77,7 @@ class UpdateTest(unittest.TestCase):
         self.work = self.tmp / "work"
         self.managed = self.tmp / "data" / "local-agents"
         self.stamp = self.home / ".claude" / ".local-agents.json"
-        self.installed = self.home / ".claude" / "skills" / "verification" / "SKILL.md"
+        self.installed = self.home / ".claude" / "skills" / "lh-verification" / "SKILL.md"
         self.env = clean_env(HOME=str(self.home), USERPROFILE=str(self.home),
                              XDG_DATA_HOME=str(self.tmp / "data"),
                              XDG_CONFIG_HOME=str(self.tmp / "config"),
@@ -159,7 +167,7 @@ class UpdateTest(unittest.TestCase):
         chk = self.upd("check")
         self.assertEqual(chk.returncode, 0, chk.stderr)
         self.assertIn("2 commits behind", chk.stdout)
-        self.assertIn("skill verification", chk.stdout)
+        self.assertIn("skill lh-verification", chk.stdout)
         self.assertEqual(self.head(self.managed), head, "check moved the clone")
         self.assertEqual(self.installed.read_text(encoding="utf-8"), skill, "check changed an install")
 

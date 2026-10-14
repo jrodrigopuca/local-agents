@@ -44,7 +44,7 @@ Rules for this catalog:
    explains the inheritance can be reworded freely. Inheriting from X means
    listing what X inherits too; `validate.py` checks it.
 4. Every new agent gets a row in the table below, and a routing row in
-   `eng-manager`'s [orchestration](eng-manager/skills/orchestration/SKILL.md)
+   `eng-manager`'s [lh-orchestration](eng-manager/skills/lh-orchestration/SKILL.md)
    skill — the only component that knows the whole roster.
 5. **Identity is stack-agnostic; skills carry the stack.** An agent is defined
    by how it thinks and decides, never by a language or vendor tool: the same
@@ -52,7 +52,7 @@ Rules for this catalog:
    Figma to Penpot. Naming a technology is fine in an `<example>` (that is how
    the delegation signal is taught) and in body prose as a concrete
    illustration — but not in the sentence that says what the agent IS. Deep
-   stack knowledge lives in a skill (`react-next`, `dev-handoff`), which is
+   stack knowledge lives in a skill (`lh-react-next`, `lh-dev-handoff`), which is
    swappable per project and is the pattern to copy when adding another.
    The exception is a PLATFORM agent whose name states its scope — `apple-dev`
    is Apple platforms and says so; the failure mode is a generic NAME hiding a
