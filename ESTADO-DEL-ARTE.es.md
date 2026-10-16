@@ -325,6 +325,49 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 
 ### Otros hallazgos medidos
 
+- **El juez, medido contra un humano** (2026-10-15/16, B-039, primera etapa;
+  `labels.py` del harness). 80 respuestas ya guardadas, etiquetadas a mano sin
+  ver el veredicto (61 PASS, 13 FAIL y 6 AMBIGUA), y vueltas a juzgar sin
+  correr ningún agente. Con las etiquetas tal como se dieron, ningún juez
+  llegó a TNR 0,90:
+
+  | Juez | TPR | TNR | USD por veredicto |
+  |---|---|---|---|
+  | El de las corridas | 0,76 | 0,67 | — |
+  | Opus (52 de 80, cortado por el tope) | 0,95 | 0,56 | 0,019 |
+  | Sonnet | 0,92 | 0,69 | 0,009 |
+  | Codex `gpt-6.1-sol` | 0,84 | 0,85 | tokens de suscripción |
+
+  Los desacuerdos se revisaron caso por caso contra el catálogo. **5 criterios
+  estaban mal escritos**: ejemplos entre paréntesis que el juez lee como lista
+  a cumplir, un PASS sin su FAIL simétrico, "revocar" con dos lecturas.
+  **6 ya se habían corregido** en los YAML, pero las respuestas se habían
+  juzgado y etiquetado con el texto viejo. **11 etiquetas se revisaron**,
+  guardando la original, y **2 se excluyeron** porque su escenario se
+  reescribió. Con los criterios corregidos, Sonnet coincide en 64 de 64 PASS
+  y 10 de 10 FAIL; Codex, en 60 de 64 y 10 de 10. Con las etiquetas
+  originales, la TNR de los dos es 0,64: parte de la mejora viene de la
+  revisión, que movió etiquetas hacia los jueces aunque cada cambio se apoyó
+  en el catálogo.
+
+  **Límites.** 10 FAIL es poco: un 10/10 es compatible con una TNR real
+  cercana a 0,7. La reserva del 40 % quedó sin ningún FAIL, así que no hay
+  TNR medida sobre ella.
+
+  **Perfil de cada juez.** Opus es el más indulgente y el más caro. Codex es
+  el más literal: exige lo que el criterio no pide (un costo, una skill por
+  nombre, un bug que ya estaba en el código). Opus juzgando dos veces las
+  mismas 46 respuestas no dio lo mismo (TNR 0,67 en las corridas, 0,56 al
+  volver a juzgar): un veredicto suelto tiene ruido propio.
+
+  **Codex como juez hay que aislarlo.** Sin flags, el modelo ve las 48 skills
+  del catálogo, que están en `~/.agents/skills` y `~/.codex/skills`;
+  `-c skills.include_instructions=false` las saca, y `codex debug
+  prompt-input` lo verifica gratis antes de cada corrida. Sin herramientas,
+  cada veredicto usa un 35 % menos de tokens (8.481 contra 12.953).
+
+  **Decisión:** Sonnet pasa a ser el juez por defecto del harness, y Codex
+  queda como segundo juez de otra familia, a pedido.
 - **En Claude Code, un agente con allowlist de `tools:` sin `Skill` no carga
   skills** (2.1.299, 2026-10-14, B-041). visionary y eng-manager, de solo
   lectura, cargaron 0 de 8 skills pedidas; encontraban el archivo con `Glob` y
@@ -498,10 +541,11 @@ Cómo se midió cada cosa, y cómo repetirlo, está en los comentarios de
    los hosts, y el formato propio de Claude Code. Publicar el catálogo como
    plugin implica, por ahora, mantener los dos.
 7. **El instrumento también se mide.** El harness mide bien al agente, pero
-   nunca se midió a sí mismo. No sabemos cuánto acierta el juez frente a un
-   humano, ni cuántos escenarios pasarían igual sin ningún agente. Es la regla
-   17 aplicada al evaluador: sin esas dos cifras, un PASS dice menos de lo que
-   parece. Ver B-038 y B-039.
+   nunca se midió a sí mismo. Del juez ya hay una primera cifra frente a un
+   humano (sección 4, B-039), con pocos FAIL todavía; de cuántos escenarios
+   pasarían igual sin ningún agente, ninguna. Es la regla 17 aplicada al
+   evaluador: sin esas dos cifras, un PASS dice menos de lo que parece. Ver
+   B-038 y B-039.
 8. **Un escenario que pasa sin agente no prueba al agente.** Mide al modelo
    base. Puede seguir sirviendo como protección contra regresiones, pero tiene
    que decirlo; no puede contarse como evidencia de que una regla del catálogo

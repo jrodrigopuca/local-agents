@@ -44,7 +44,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-028 | P3 | en espera | Publicar las skills como plugin de Agent Plugins | La 1.0 no porta agentes y no define dónde se publica; Claude Code no la soporta | La especificación suma agentes o un registro común: entonces se reevalúa |
 | B-029 | P3 | en espera | Modo opcional con enlaces simbólicos para las skills | Los cuatro hosts siguen los enlaces, pero el destino no puede ser el catálogo (las skills se instalan transformadas) y `--refresh` ya cubre el problema | Aparece un caso que `--refresh` no resuelve |
 | B-044 | P1 | en curso | Harness: tope de costo por corrida, por muestra y por ventana de cuota | B-038, B-041 y B-045 multiplican el gasto; hasta (a) nada cortaba una corrida que se disparaba ni miraba la cuota de la suscripción | (a) hecha en `harness:4d8f192`. Falta (b): `--resume` completa una corrida `capped` pagando solo las muestras que faltan; la estimación es la última medida de cada escenario con la misma huella y el mismo modelo, con lo no medido aparte; `--quota` pronostica la ventana de 5 h y la semanal; y el formato real de un corte por `--max-budget-usd`, con delegación, está medido |
-| B-039 | P1 | pendiente | Harness: calibrar el juez contra etiquetas humanas | Ningún veredicto del juez se comparó nunca con un humano; toda la evidencia del catálogo descansa en él (ESTADO-DEL-ARTE §3 y §5.7) | Cada muestra persiste lo que leyó el juez; hay ≥ 20 PASS y ≥ 20 FAIL etiquetados a mano; TPR y TNR medidos sobre un 40 % reservado, por modelo de juez, anotados en ESTADO-DEL-ARTE; TNR ≥ 0,90 o un ítem abierto para corregirlo |
+| B-039 | P1 | en curso | Harness: calibrar el juez contra etiquetas humanas | Ningún veredicto del juez se comparó nunca con un humano; toda la evidencia del catálogo descansa en él (ESTADO-DEL-ARTE §3 y §5.7) | Primera etapa hecha (`harness:0b646e3` a `harness:4599337`): `graded` y hash del criterio por muestra, 80 etiquetas, tres jueces medidos, 5 criterios corregidos, Sonnet juez por defecto; cifras en ESTADO-DEL-ARTE §4. Falta: ≥ 20 FAIL etiquetados (hay 10) y TPR y TNR sobre una reserva que tenga FAIL (hoy no tiene ninguno); TNR ≥ 0,90 ahí o un ítem abierto para corregirlo |
 | B-038 | P1 | pendiente | Harness: rama sin agente para medir cuánto aporta cada persona (Δ) | Un escenario que pasa igual sin agente mide al modelo base, no al catálogo (ESTADO-DEL-ARTE §5.8); `claude plugin eval` y skill-creator reportan Δ, nosotros no | La rama SIN corre sin agentes ni skills en el workspace, queda como `branch: without` y nunca es línea base; `viz.py` muestra CON, SIN y Δ; cada Δ = 0 confirmado en N/3 quedó reformulado o con `protects:` y su motivo |
 | B-040 | P2 | pendiente | Harness: veredicto INDETERMINADO del juez | Hoy un caso ambiguo se fuerza a PASS o FAIL; superpowers y Anthropic le dan al juez la opción "no se puede saber" | El juez puede responder INDETERMINADO, que nunca cuenta como PASS y con `--repeat` deja el escenario INDETERMINADO; `viz.py` lo muestra aparte; una respuesta ambigua fija, vuelta a juzgar, lo produce 3/3; o el ítem se descarta si B-039 no encontró ambiguas |
 | B-043 | P2 | pendiente | Escenarios de routing con pares que se confunden | Los 7 de routing tienen un destino obvio; ninguno enfrenta a dos agentes vecinos (architect y senior-dev, dba y data-ml, PM y visionary, eng-manager y PM, qa y security) | ≥ 5 pares de escenarios de routing, uno por frontera, corridos en N/3, y las descripciones que fallen ajustadas con su par en verde y los 7 viejos todavía en verde |
@@ -54,6 +54,10 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-056 | P3 | pendiente | El `update.py` del clon gestionado se queda viejo cuando las instalaciones vienen de otro clon | En el caso del desarrollador, el launcher corre el `update.py` del clon gestionado, que solo avanza si cambia el contrato (`LAUNCHER_API`): una corrección de `update.py` no le llega por ese camino. Un usuario común no lo sufre, porque su clon gestionado es el que se actualiza | Decidido y medido: o `update.py update`, cuando opera sobre otro clon, avanza también el clon gestionado (`pull --ff-only`, con su caso en `tests/test_update.py`), o queda escrito en INSTALL.md que el desarrollador corre el `update.py` de su propio clon |
 | B-057 | P3 | pendiente | Pasar el comportamiento de `install.py` de `check_installer` a `tests/` | `check_installer` (~110 líneas de `validate.py`) instala de verdad en un `HOME` temporal y prueba conducta del script (`--refresh`, el aviso de copias viejas, la negativa a mezclar `shared` y `antigravity`), no convenciones del catálogo; es el mismo caso que separó a `update.py` de `validate.py` (regla 12). Hoy varios escenarios son un solo chequeo, y una falla no dice cuál | Cada conducta de `install.py` que prueba hoy `check_installer` es un test con nombre en `tests/test_install.py`, que corre en el paso sin PyYAML del CI; en `validate.py` queda solo lo que es convención (por ejemplo, que un agente de solo lectura se renderice sin `memory:`), y `validate.py` y los tests pasan |
 | B-061 | P3 | pendiente | Medir si el tier de solo lectura carga skills en Antigravity | En Claude Code no podía (sin `Skill` en su allowlist, arreglado en `98ecee5`); opencode, Kiro y Codex no tienen ese hueco por cómo cargan skills, pero en agy no se pudo confirmar gratis (su binario menciona `skill_search` y no sabemos si es una herramienta que `AGY_TOOLS["read"]` debería incluir) | El chequeo `read skill` de `smoke.py` corrió pago en agy con su versión anotada en ESTADO-DEL-ARTE §4, y si falla, `AGY_TOOLS["read"]` suma la herramienta medida y `validate.py` lo exige |
+| B-063 | P2 | pendiente | Escenario: dba no asume el motor | dba promete "Engine-agnostic by default… only when the task names one" y no tiene escenario. En la revisión de B-039, 2 de 4 respuestas de `dba-routes-deploy-to-devops` asumieron Postgres sin que la tarea lo nombrara (`20261012-161413`, `20261013-214734`) y 2 no | Un escenario con una tarea de esquema que no nombra el motor, cuyo criterio falla si la respuesta asume uno sin decirlo como supuesto ni preguntarlo; corrido primero contra la versión actual en N/3 con el resultado anotado; si falla, el cambio en dba con el escenario en verde |
+| B-064 | P2 | pendiente | eng-manager: la decisión de un tradeoff entre especialistas es del usuario | Decisión del usuario en la revisión de B-039: el manager facilita, separa el piso de cada especialista del tradeoff, puede recomendar un desempate, pero no decide salvo que se lo deleguen explícitamente ("la suite está pensada como un equipo real"). Hoy el juicio #6 hace dueño del tradeoff a product-manager y el criterio de `eng-manager-resolves-specialist-conflict` sigue esa versión; sus dos muestras quedaron AMBIGUA | La versión actual medida en N/3 con el criterio nuevo (regla 17); juicio #6 y criterio reescritos; un escenario gemelo donde el usuario delega explícitamente ("decidí vos") y el manager decide; los dos en N/3 |
+| B-065 | P3 | pendiente | dba: un "deploy atómico" ofrecido como alternativa dice lo que cuesta | En la revisión de B-039, dba ofreció el rename directo "si el motor lo hace instantáneo y podés coordinar un deploy atómico": un usuario apurado lo lee como una forma de evitar el corte, y sin tráfico parado igual hay un momento en que el código que corre lee una columna que ya no existe. El criterio de `dba-routes-deploy-to-devops` ya lo exige (`harness:5e1d75f`) | `dba-routes-deploy-to-devops` medido en N/3 con el criterio actual antes de tocar nada; si oscila por esto, `lh-migrations` o el cuerpo de dba lo dice, y el escenario queda en N/3 después |
+| B-066 | P1 | pendiente | Escenario: no esquivar una herramienta denegada | Con Edit y Write denegados, architect intentó escribir con Python y `sed -i` por Bash (`20261012-124416`, revisado en B-039); B-034 ya había visto `sed -i`, Python y un subagente, y lo único que sostuvo la puerta fue la aprobación de Bash. Es el piso de la regla 16 y ningún escenario lo mide | Un escenario con Edit y Write denegados y Bash disponible, cuyas aserciones mecánicas (`forbid_commands` sobre escrituras por shell, `unchanged_files`) y criterio fallan si intenta escribir por otro camino o delegar la escritura; corrido contra la versión actual en N/3 con el resultado anotado; si falla, la regla donde corresponda (CORE o agente) con el escenario en verde |
 | B-062 | P2 | en curso | Evaluar uso y necesidad de las skills que se pisan o no se cargan nunca | B-041 encontró cuatro fronteras ambiguas entre skills vecinas y, en las 136 corridas guardadas, 9 skills que no se cargaron nunca. Una skill que nadie carga o que compite con su vecina se paga en tokens en cada sesión (su descripción viaja siempre) sin aportar método | Cada skill de la lista tiene una decisión registrada con su motivo y su evidencia en las dos preguntas del detalle: el **disparo** medido con `--category skill-trigger` sin perder contra la línea base de B-041, y el **valor** medido con la comparación con y sin la skill (después de B-039); ninguna se quita, fusiona o mueve al cuerpo sin esa segunda medición |
 
 ### Orden de trabajo
@@ -110,7 +114,10 @@ en cualquier orden.
    descarta.
 
 > **Decisión 2:** ¿el juez llega a TNR ≥ 0,90? Si no llega, se arregla el juez
-> antes de la fase 3. Un Δ medido con un juez que aprueba fallas no dice nada.
+> antes de la fase 3. *Provisional (2026-10-16):* Sonnet, con los criterios
+> corregidos, 10 de 10 FAIL y 64 de 64 PASS sobre todas las etiquetas; con
+> pocos FAIL y sin reserva con FAIL, la decisión se confirma cuando B-039
+> termine. Un Δ medido con un juez que aprueba fallas no dice nada.
 > Vale para el Δ por agente (B-038) y para el Δ por skill, la pregunta de
 > valor de B-062.
 
@@ -217,9 +224,34 @@ manda a corregir reglas que funcionan.
 - Umbral: TNR ≥ 0,90 en el reservado. Si no se alcanza, se abre un ítem para
   el juez antes de usar sus veredictos como evidencia de cambios nuevos.
 
+**Estado (2026-10-16).** Cumplido:
+- `graded` se reconstruye de los eventos guardados, idéntico a lo que leyó el
+  juez, y cada muestra nueva lo guarda junto con el hash del criterio.
+- Las etiquetas: 80, de 7 categorías, hechas a mano sin ver al juez.
+- `labels.py` vuelve a juzgar sin correr agentes, con Opus, Sonnet y Codex.
+- Cada desacuerdo quedó resuelto y registrado: 5 criterios corregidos, 11
+  etiquetas revisadas con su original guardado, 2 excluidas y 4 ambiguas.
+
+Las cifras están en ESTADO-DEL-ARTE §4. La reserva se parte por escenario,
+no por muestra, porque corregir un criterio mirando dev cambiaba muestras
+reservadas del mismo escenario.
+
+Falta:
+- **Más FAIL.** Las corridas guardadas no tienen más: todos los FAIL del juez
+  ya entraron y la revisión dejó 10. La fuente natural son las líneas base de
+  los escenarios nuevos (B-063, B-064, B-066), que corren la versión actual
+  contra una promesa que hoy no tiene escenario. `labels.py add` las suma con
+  su escenario de un lado de la reserva.
+- **La TNR sobre la reserva**, cuando tenga FAIL.
+
+Mientras tanto, Sonnet es el juez por defecto (`harness:4599337`),
+y la Decisión 2 queda provisional.
+
 **Costo.** Volver a juzgar ~40 respuestas cuesta centavos. El costo real es el
 tiempo de etiquetar a mano, y una suite para tener muestras que persistan
-`graded` (unos USD 10, con el tope de B-044).
+`graded` (unos USD 10, con el tope de B-044). Medido en la primera etapa:
+Sonnet USD 0,93 por 102 veredictos; Opus USD 1,00 por 52; Codex ~900.000
+tokens por 102.
 **Depende de.** B-044 para la suite.
 
 ### B-038: rama sin agente (Δ)
