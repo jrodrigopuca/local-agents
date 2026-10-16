@@ -372,6 +372,37 @@ class InstallTest(unittest.TestCase):
         self.assertFalse([p for p in self.agents.iterdir() if "-2" in p.stem])
 
 
+    def test_a_pre_b058_install_from_a_commit_without_inherits_does_not_abort(self):
+        # Measured on a real machine: a Kiro install from before agents declared
+        # `inherits:` had no records, so the refresh rebuilt that commit with
+        # today's resolve_deps, which exits on the first agent without the list
+        # ("apple-dev/AGENTS.md declares no `inherits:`") — bootstrap and update
+        # both died before writing anything.
+        catalog = self.own_copy_of_catalog()
+        self.install("--all", "--tool", "kiro")
+        agents = sorted(catalog.glob("*/AGENTS.md"))
+        with_inherits = {md: md.read_text() for md in agents}
+        for md in agents:
+            md.write_text("\n".join(l for l in with_inherits[md].split("\n")
+                                    if not l.startswith("inherits:")))
+        self.commit("before inherits")
+        old = subprocess.run(["git", "-C", str(catalog), "rev-parse", "HEAD"], env=self.env,
+                             capture_output=True, text=True, check=True).stdout.strip()
+        for md, text in with_inherits.items():
+            md.write_text(text)
+        self.commit("inherits")
+        kiro_stamp = self.home / ".kiro" / ".local-agents.json"
+        self.make_legacy(kiro_stamp)
+        stamp = json.loads(kiro_stamp.read_text())
+        stamp["catalog_commit"] = old
+        kiro_stamp.write_text(json.dumps(stamp))
+        run = self.install("--refresh")
+        self.assertEqual(run.returncode, 0, run.stdout[-300:] + run.stderr[-300:])
+        self.assertNotIn("declares no `inherits:`", run.stdout + run.stderr)
+        self.assertIn("cannot be told apart", run.stdout)
+        self.assertTrue(json.loads(kiro_stamp.read_text())["suite"])
+
+
     # -- refresh keeps the shape of what was installed ------------------- #
 
     def test_refresh_of_a_partial_install_stays_partial(self):

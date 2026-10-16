@@ -679,7 +679,7 @@ def with_legacy_records(tool: Tool, stamp: dict) -> dict:
     rebuilt = legacy_records(tool, stamp.get("catalog_commit"))
     if rebuilt is None:
         print(f"    note   → {tool.label}: installed before install records existed, "
-              f"from a commit this catalog does not have — hand edits there cannot be "
+              f"from a commit this catalog cannot rebuild — hand edits there cannot be "
               f"told apart, and catalog files are updated")
         return {**stamp, "suite": stamp.get("suite", True)}
     skills, agents = rebuilt
@@ -721,7 +721,12 @@ def legacy_records(tool: Tool, commit: Optional[str]):
         agents = {}
         if tool.agents_dir is not None and tool.agents_dir.is_dir():
             for name, ag in old_agents.items():
-                inherited, deps = resolve_deps(ag, old_agents, old_by_name)
+                try:
+                    inherited, deps = resolve_deps(ag, old_agents, old_by_name)
+                except SystemExit:
+                    # A commit from before `inherits:` existed cannot be
+                    # rendered by today's rules; it must not abort the refresh.
+                    return None
                 meta, desc, body = compose_agent(ag, inherited)
                 dest, text = render_agent(tool, name, body, desc, sorted(s.name for s in deps), meta)
                 if dest.exists():
