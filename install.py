@@ -1733,10 +1733,14 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
           f"\n  (it updates only what it installed; edited and foreign files stay as they are)")
 
 
-def print_list(agents, all_skills):
+def print_list(agents, all_skills, skills_by_name):
     print("\nAgents:")
     for n, a in sorted(agents.items()):
-        print(f"  {n}  — {len(a.skills)} skills: {', '.join(s.name for s in a.skills)}")
+        # Installing an agent also brings what it inherits and links to, so the
+        # count that matches the disk is resolve_deps', not the agent's own.
+        _, deps = resolve_deps(a, agents, skills_by_name)
+        print(f"  {n}  — {len(a.skills)} own skills ({len(deps)} installed with "
+              f"inheritance): {', '.join(s.name for s in a.skills)}")
     print(f"\nSkills: {len(all_skills)} total (address as agent:skill)")
     print("\nTools:")
     key_w = max(len(t.key) for t in TOOLS)
@@ -1750,7 +1754,7 @@ def print_list(agents, all_skills):
 def main():
     ap = argparse.ArgumentParser(description="Install catalog agents/skills into a tool's global config.")
     ap.add_argument("--catalog", type=Path, default=Path(__file__).resolve().parent,
-                    help="catalog root (default: this script's directory)")
+                    help="catalog root (default: the clone this script sits in)")
     ap.add_argument("--list", action="store_true", help="list agents, skills, tools and exit")
     ap.add_argument("--project", type=Path, nargs="?", const=Path("."), default=None,
                     metavar="PATH",
@@ -1799,7 +1803,7 @@ def main():
         return tool
 
     if args.list:
-        print_list(agents, all_skills)
+        print_list(agents, all_skills, skills_by_name)
         return
 
     if args.status:

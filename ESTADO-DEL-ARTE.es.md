@@ -368,6 +368,14 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 
   **Decisión:** Sonnet pasa a ser el juez por defecto del harness, y Codex
   queda como segundo juez de otra familia, a pedido.
+
+  **El veredicto va al final** (2026-10-17, B-068). Con el veredicto en la
+  primera línea, el juez decidía antes de pensar: una vez escribió FAIL,
+  razonó criterio por criterio y terminó en PASS, y el harness se quedó con
+  la primera palabra. Ahora razona y cierra con `VERDICT:`; un texto que se
+  contradice es ERROR. Con las mismas 78 etiquetas, Sonnet dio TPR y TNR
+  idénticas, 0 ERROR y un solo cambio, en una muestra ambigua, a USD 0,011
+  por veredicto.
 - **En Claude Code, un agente con allowlist de `tools:` sin `Skill` no carga
   skills** (2.1.299, 2026-10-14, B-041). visionary y eng-manager, de solo
   lectura, cargaron 0 de 8 skills pedidas; encontraban el archivo con `Glob` y

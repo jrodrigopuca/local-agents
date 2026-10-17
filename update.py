@@ -66,6 +66,15 @@ def managed_dir() -> Path:
     return base / "local-agents"
 
 
+def install_hint(cat: Path) -> str:
+    """The command that installs, as the person reading it can type it. The
+    managed clone is where a launcher user never sees install.py, so for them
+    the way in is `bootstrap`; a clone of their own has install.py at hand."""
+    if cat == managed_dir():
+        return "install with `bootstrap --all --tool <tool>`"
+    return f"install with `{cat / 'install.py'} --all --tool <tool>`"
+
+
 def git(repo: Optional[Path], *args, timeout: int = 120) -> subprocess.CompletedProcess:
     """Never raises: a timeout comes back as a failed command with the reason
     in stderr, so every caller handles one kind of failure."""
@@ -190,7 +199,7 @@ def report(installer, cat: Path, stamps, upstream: str, target: str) -> Standing
 
     stale = False
     if not stamps:
-        print("installs none — install with `install.py --all --tool <tool>`")
+        print(f"installs none — {install_hint(cat)}")
     by_commit: Dict[str, List[str]] = {}
     for key, man in stamps:
         by_commit.setdefault(man["catalog_commit"], []).append(key)
@@ -300,8 +309,7 @@ def cmd_update(installer) -> int:
     after = git_out(cat, "rev-parse", "HEAD")
     print(f"\nclone    {before[:7]} → {after[:7]}")
     if not stamps:
-        print("Nothing installed yet — install with "
-              f"`{cat / 'install.py'} --all --tool <tool>`.")
+        print(f"Nothing installed yet — {install_hint(cat)}.")
         return OK
     print("refresh  install.py --refresh\n")
     proc = subprocess.run([sys.executable, str(cat / "install.py"), "--refresh"],
@@ -327,7 +335,8 @@ def cmd_bootstrap(install_args: List[str]) -> int:
             print(f"refusing: {dest} is an incomplete clone (an interrupted first "
                   f"run?). Delete it and run this again.", file=sys.stderr)
             return REFUSED
-        print(f"catalog already cloned at {dest} — use `update` to bring it up to date")
+        print(f"catalog already cloned at {dest}; installing from it "
+              f"(run `update` to refresh it)")
     elif dest.exists() and any(dest.iterdir()):
         print(f"refusing: {dest} exists, is not empty and is not a clone. Move it "
               f"away, or set XDG_DATA_HOME to clone somewhere else.", file=sys.stderr)
