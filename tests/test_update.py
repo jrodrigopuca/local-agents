@@ -149,7 +149,32 @@ class UpdateTest(unittest.TestCase):
         self.bootstrap()
         again = self.upd("bootstrap", "--all", "--tool", "claude", "--on-conflict", "overwrite")
         self.assertEqual(again.returncode, 0, again.stderr or again.stdout)
-        self.assertIn("installing from it", again.stdout)
+        self.assertIn("using it", again.stdout)
+
+    def test_bootstrap_without_arguments_opens_the_menu_only_on_a_terminal(self):
+        import pty
+        # No terminal (this run's pipes): the commands to copy, not a path to install.py.
+        plain = self.upd("bootstrap")
+        self.assertEqual(plain.returncode, 0, plain.stderr)
+        self.assertIn("`bootstrap --list`", plain.stdout)
+        self.assertNotIn("install.py", plain.stdout)
+        # A terminal: install.py's own menu, which asks before touching anything.
+        pid, fd = pty.fork()
+        if pid == 0:
+            os.environ.update(self.env)
+            os.execv(sys.executable, [sys.executable, str(UPDATER), "bootstrap"])
+        out = b""
+        try:
+            while b"quit" not in out:
+                chunk = os.read(fd, 4096)
+                if not chunk:
+                    break
+                out += chunk
+            os.write(fd, b"q\n")
+        finally:
+            os.close(fd)
+            os.waitpid(pid, 0)
+        self.assertIn(b"quit", out, out.decode(errors="replace")[-500:])
 
     # -- bootstrap -------------------------------------------------------- #
 

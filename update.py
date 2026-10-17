@@ -335,7 +335,7 @@ def cmd_bootstrap(install_args: List[str]) -> int:
             print(f"refusing: {dest} is an incomplete clone (an interrupted first "
                   f"run?). Delete it and run this again.", file=sys.stderr)
             return REFUSED
-        print(f"catalog already cloned at {dest}; installing from it "
+        print(f"catalog already cloned at {dest}; using it "
               f"(run `update` to refresh it)")
     elif dest.exists() and any(dest.iterdir()):
         print(f"refusing: {dest} exists, is not empty and is not a clone. Move it "
@@ -358,7 +358,12 @@ def cmd_bootstrap(install_args: List[str]) -> int:
             dest.rmdir()  # empty, checked above
         partial.rename(dest)
     if not install_args:
-        print(f"Next: {dest / 'install.py'} --list, then --all --tool <tool>")
+        # install.py with no arguments is its interactive menu (suite, agent or
+        # skill; which tool; what to do on conflict). Without a person at the
+        # keyboard it would only wait on input, so a script gets the commands.
+        if sys.stdin.isatty() and sys.stdout.isatty():
+            return subprocess.run([sys.executable, str(dest / "install.py")]).returncode
+        print("Next: `bootstrap --list`, then `bootstrap --all --tool <tool>`")
         return OK
     return subprocess.run([sys.executable, str(dest / "install.py"), *install_args]).returncode
 
