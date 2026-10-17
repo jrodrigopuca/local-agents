@@ -476,5 +476,15 @@ class InstallTest(unittest.TestCase):
         self.assertIn("new in the catalog", (self.skills / SKILL / "SKILL.md").read_text())
 
 
+    def test_list_counts_what_lands_on_disk_not_only_own_skills(self):
+        # architect owns 3 skills but installs those it inherits and links to.
+        listed = next(l for l in self.install("--list").stdout.splitlines()
+                      if l.strip().startswith("architect"))
+        dry = self.install("--agent", "architect", "--tool", "claude", "--dry-run")
+        on_disk = sum(1 for l in dry.stdout.splitlines()
+                      if l.strip().startswith("skill") and "→" in l)
+        self.assertIn(f"({on_disk} installed with inheritance)", listed)
+
+
 if __name__ == "__main__":
     unittest.main()

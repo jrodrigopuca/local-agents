@@ -133,6 +133,24 @@ class UpdateTest(unittest.TestCase):
             self.assertEqual(update.managed_dir(),
                              Path.home() / ".local" / "share" / "local-agents")
 
+    def test_install_hint_names_the_command_the_reader_can_type(self):
+        # Behind a launcher install.py is not on the PATH: the way in is
+        # `bootstrap`. A clone of one's own has install.py at hand.
+        spec = importlib.util.spec_from_file_location("update_under_test", UPDATER)
+        update = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(update)
+        managed = update.managed_dir()
+        self.assertIn("bootstrap --all --tool", update.install_hint(managed))
+        self.assertNotIn("install.py", update.install_hint(managed))
+        own = Path("/somewhere/else")
+        self.assertIn(str(own / "install.py"), update.install_hint(own))
+
+    def test_second_bootstrap_says_it_installs_not_that_it_refuses(self):
+        self.bootstrap()
+        again = self.upd("bootstrap", "--all", "--tool", "claude", "--on-conflict", "overwrite")
+        self.assertEqual(again.returncode, 0, again.stderr or again.stdout)
+        self.assertIn("installing from it", again.stdout)
+
     # -- bootstrap -------------------------------------------------------- #
 
     def test_bootstrap_clones_partially_and_stamps_the_managed_clone(self):
