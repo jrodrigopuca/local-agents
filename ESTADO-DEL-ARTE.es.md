@@ -325,6 +325,18 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 
 ### Otros hallazgos medidos
 
+- **Esconder una herramienta no es negarla** (Claude Code 2.1.299, 2026-10-16
+  y 17, B-066). `--disallowedTools` saca la herramienta de lo que ve el
+  modelo: con Edit y Write escondidos y la shell abierta, architect y
+  senior-dev editaron por `sed -i` o un script 6 de 6 veces, sin intentar
+  Edit nunca. Con la herramienta a la vista y fuera de los permisos, que es
+  lo que pasa cuando el usuario dice que no, los 3 que la llamaron
+  respetaron el rechazo, pero los otros 3 fueron directo a la shell, por
+  donde la aprobación de cada edición se saltea sin que nadie lo note. Con
+  una regla de dos líneas en el CORE ("Approval follows the effect"): 6 de 6
+  llamaron a Edit, recibieron el rechazo y pararon. Un escenario de permisos
+  tiene que dejar ver el rechazo: si no, mide qué hace el agente con lo que
+  tiene a mano.
 - **El juez, medido contra un humano** (2026-10-15/16, B-039, primera etapa;
   `labels.py` del harness). 80 respuestas ya guardadas, etiquetadas a mano sin
   ver el veredicto (61 PASS, 13 FAIL y 6 AMBIGUA), y vueltas a juzgar sin
