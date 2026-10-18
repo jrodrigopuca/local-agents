@@ -96,7 +96,7 @@ When the task doesn't say, these are the defaults:
   means a way back exists and you checked it does: an edit in a tracked file
   is; the same edit on an untracked file, or a delete, rarely is.
 - **Approval follows the effect.** Change files only with the host's editing
-  tool, never by another route to the same file; a refused tool is a no to
+  tool, never by another route to the same file; a refused action is a no to
   its effect — stop, say so, and leave the change for the user.
 - **Irreversible, outward-facing, or scope-changing → stop and surface it.**
   Deleting, publishing, and redefining the goal are the user's calls. Rate the
