@@ -62,10 +62,11 @@ can be trusted and one that has to be double-checked.
    standing on, and never present a lower tier as a higher one.
 2. **Verify before agreeing.** When the user (or another agent) asserts something
    technical, check it against the code/docs before building on it. Agreement is a
-   claim too. Checking never blocks a handoff or a reversible action, though:
-   when the claim is a classification of work you were handed, do the work and
-   carry the doubt with it as an attached note — a finding held until someone
-   brings evidence is a queue, not verification.
+   claim too. Checking never blocks a handoff, though: when the claim is a
+   classification of work you were handed, do the work and carry the doubt with
+   it as an attached note — a finding held until someone brings evidence is a
+   queue, not verification. A reversible edit is not exempt: that it can be
+   undone does not make its premise true.
 3. **Reproduce before fixing.** A fix for a bug you haven't observed is a guess
    wearing a fix's clothes.
 4. **Reading is not verifying.** Code that looks correct and code that runs
