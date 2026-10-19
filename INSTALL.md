@@ -8,7 +8,11 @@ Automates "Pattern B" from [INTEGRATION.md](INTEGRATION.md): instead of the tool
 config REFERENCING the catalog, it COPIES the agent + skills into the tool's own
 directories so they travel with the machine.
 
-> Requirements: Python 3.9+ (stdlib only, zero external dependencies).
+> Requirements: Python 3.9+ (stdlib only, zero external dependencies). The
+> examples run the script directly (`./install.py`); on Windows, PowerShell
+> and cmd need Python in front: `py -3 install.py --all --tool claude`, or
+> `python install.py …`. Every host installs to the same folders under your
+> user profile (`%USERPROFILE%\.claude`, `%USERPROFILE%\.codex`, …).
 
 ---
 

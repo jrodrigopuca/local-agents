@@ -39,6 +39,50 @@ jobs:
           git diff --exit-code -- GRAPH.md README.md \
             || { echo "::error::GRAPH.md or README.md derived content is stale — run ./validate.py --write and commit"; exit 1; }
 
+  # B-076. local-hero promises an install on Windows, and its own CI only runs
+  # `--tool claude` there, a day after our push lands. This installs the whole
+  # suite into every host from the catalog itself, the way a Windows user runs
+  # it (PowerShell, `python install.py`, no shebang), on the Python floor.
+  windows-install:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      # Which variable Python reads for the home folder on Windows: local-hero's
+      # CI isolates itself by exporting HOME only. Recorded, never failed on.
+      - name: Home folder Python sees (HOME vs USERPROFILE)
+        shell: bash
+        run: |
+          HOME="$RUNNER_TEMP/only-home" python -c "import os, pathlib; print('Path.home() =', pathlib.Path.home()); print('HOME =', os.environ.get('HOME')); print('USERPROFILE =', os.environ.get('USERPROFILE'))"
+
+      - name: Install every host into a throwaway profile
+        shell: pwsh
+        run: |
+          $profileDir = Join-Path $env:RUNNER_TEMP "profile"
+          New-Item -ItemType Directory -Force $profileDir | Out-Null
+          $env:USERPROFILE = $profileDir
+          $env:HOME = $profileDir
+          Remove-Item Env:CLAUDE_CONFIG_DIR, Env:CODEX_HOME, Env:XDG_CONFIG_HOME -ErrorAction SilentlyContinue
+          foreach ($tool in "claude", "opencode", "kiro", "codex", "antigravity", "shared") {
+            python install.py --all --tool $tool
+            if ($LASTEXITCODE -ne 0) { Write-Error "install.py --all --tool $tool failed"; exit 1 }
+          }
+          python install.py --status
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          # Every host's stamp in the throwaway profile, and nowhere else.
+          $stamps = ".claude", ".config\opencode", ".kiro", ".codex", ".gemini\config", ".agents" |
+            ForEach-Object { Join-Path $profileDir (Join-Path $_ ".local-agents.json") }
+          $missing = $stamps | Where-Object { -not (Test-Path $_) }
+          if ($missing) { Write-Error "no install stamp at: $($missing -join ', ')"; exit 1 }
+          $expected = (Get-ChildItem -Directory | Where-Object { Test-Path (Join-Path $_.FullName "AGENTS.md") }).Count
+          $agents = (Get-ChildItem (Join-Path $profileDir ".claude\agents") -Filter *.md).Count
+          if ($agents -ne $expected) { Write-Error "expected $expected agents in .claude\agents, found $agents"; exit 1 }
+          Write-Output "all 6 hosts installed under $profileDir"
+
   # Conformance against the Agent Skills spec, checked by the spec authors' own
   # reference implementation rather than our reading of it. Separate job because
   # skills-ref needs Python 3.11+ while the job above deliberately pins 3.9 —

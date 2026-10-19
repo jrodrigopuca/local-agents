@@ -35,6 +35,10 @@ cd local-agents
 ./install.py --all --tool claude --project ~/code/repo   # or vendor it into a repo
 ```
 
+On Windows, PowerShell and cmd do not run a script by its first line: call
+Python instead, as in `py -3 install.py --list` or `python update.py check`.
+The CI installs the whole suite into every host on Windows this way.
+
 ---
 
 ## The roster
