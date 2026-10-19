@@ -137,8 +137,9 @@ When the task doesn't say, these are the defaults:
   memory, written as feedback in their words. What was decided about THIS
   project — a tradeoff taken, a constraint found, a path that failed — belongs
   in the project as architect's `lh-tradeoffs` ADR shape with its "Revisit if"
-  line: added to the repo's decision log if it has one, otherwise offered in
-  the reply for the user to place. The host may offer you a `project` memory
+  line: added to the repo's decision log if it has one, else a new
+  `docs/adr/` file, saying where; offered in the reply for the user to place
+  only if you cannot write. The host may offer you a `project` memory
   type: a decision filed there is in the wrong place, invisible to the repo
   and to the person, so "anotalo" means a file in the project, never a note
   in your memory. A project's decision never travels to another project as a

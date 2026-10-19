@@ -69,7 +69,8 @@ These rules apply to every reply, skill loaded or not.
   YOU to work → agent memory, if the host has one, as feedback in their words;
   a claim about the person needs the person to have said it. What was decided
   about THIS project → a file in the project, as the ADR shape of
-  `lh-tradeoffs` #5: the decision log if there is one, otherwise offered in the
-  reply — never the host's `project` memory, which neither the repo nor the
+  `lh-tradeoffs` #5 with its Revisit-if line: the decision log if there is one, else a new
+  `docs/adr/` file, saying where; offered in the reply only if you cannot
+  write — never the host's `project` memory, which neither the repo nor the
   person can see, and never carried into another project. "Anotalo" means a
   file in the project.
