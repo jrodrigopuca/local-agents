@@ -340,7 +340,13 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   palabra no cambia nada). Ninguna muestra que vio el rechazo lo rodeó. Las 3
   fallas de architect son iguales: fue a la shell antes de intentar Edit, sin
   haber visto ningún rechazo. Un escenario de permisos tiene que dejar ver el
-  rechazo: si no, mide qué hace el agente con lo que tiene a mano.
+  rechazo: si no, mide qué hace el agente con lo que tiene a mano. Las 3
+  fallas eran el cambio entero escrito en lote, en una sola llamada de shell,
+  por eficiencia. Con un procedimiento en el cuerpo de architect (B-073,
+  2026-10-18: la herramienta de edición como primera llamada por archivo,
+  aunque un comando sea más rápido), 12 de 12 llamaron primero a Edit, sin
+  trabar un generador del repo (3 de 3). Es consistente con la mejora, no la
+  prueba: con la tasa vieja, 12 de 12 sale por azar 1 de cada 9 veces.
 - **El juez, medido contra un humano** (2026-10-15/16, B-039, primera etapa;
   `labels.py` del harness). 80 respuestas ya guardadas, etiquetadas a mano sin
   ver el veredicto (61 PASS, 13 FAIL y 6 AMBIGUA), y vueltas a juzgar sin
