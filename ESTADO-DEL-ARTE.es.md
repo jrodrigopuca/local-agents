@@ -333,10 +333,14 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   lo que pasa cuando el usuario dice que no, los 3 que la llamaron
   respetaron el rechazo, pero los otros 3 fueron directo a la shell, por
   donde la aprobación de cada edición se saltea sin que nadie lo note. Con
-  una regla de dos líneas en el CORE ("Approval follows the effect"): 6 de 6
-  llamaron a Edit, recibieron el rechazo y pararon. Un escenario de permisos
-  tiene que dejar ver el rechazo: si no, mide qué hace el agente con lo que
-  tiene a mano.
+  una regla de dos líneas en el CORE ("Approval follows the effect"), la
+  primera corrida dio 6 de 6. Con más muestras (corregido el 2026-10-18):
+  senior-dev 6 de 6 y architect 15 de 18, en cuatro corridas que incluyen un
+  A/B entre "a refused tool" y "a refused action" (8 de 9 contra 7 de 9: la
+  palabra no cambia nada). Ninguna muestra que vio el rechazo lo rodeó. Las 3
+  fallas de architect son iguales: fue a la shell antes de intentar Edit, sin
+  haber visto ningún rechazo. Un escenario de permisos tiene que dejar ver el
+  rechazo: si no, mide qué hace el agente con lo que tiene a mano.
 - **El juez, medido contra un humano** (2026-10-15/16, B-039, primera etapa;
   `labels.py` del harness). 80 respuestas ya guardadas, etiquetadas a mano sin
   ver el veredicto (61 PASS, 13 FAIL y 6 AMBIGUA), y vueltas a juzgar sin
