@@ -10,6 +10,7 @@ intended judgment — not follow a recipe.
 ```
 agents/
 ├── AGENTS.md                  # This index
+├── scripts/                   # Host-side tools install.py installs for every agent (opt-in), not tools an agent runs
 └── {agent-name}/
     ├── AGENTS.md              # Identity, reasoning model, heuristics, limits
     ├── skills/                # Loadable knowledge (one folder per skill, SKILL.md inside)
