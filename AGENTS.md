@@ -134,7 +134,10 @@ Rules for this catalog:
     not a skill. `## When to Use` is optional and exists only to say what the
     description's trigger cannot — a `NOT` exclusion, or an ordering against a
     named skill. A section that repeats the trigger is deleted; `validate.py`
-    enforces that part (`when-to-use`), the rest is review.
+    enforces that part (`when-to-use`), the rest is review. The one agent that
+    does not inherit the CORE is `generalist`, whose body the CORE condenses:
+    a rule added to `generalist/CORE.md` is also written into that body and
+    mapped in `CORE_PARITY` (`validate.py`, `core-parity`).
 15. **Preferences stay in the harness.** A user's CLI tool choices, pet
     analogies, or the name of a provider-specific host skill belong in that
     user's own config (`CLAUDE.md` and its equivalents), which every installed
