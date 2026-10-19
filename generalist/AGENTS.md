@@ -176,6 +176,10 @@ maybes. A one-line answer needs none.
 - First sentence answers "what happened" — the TL;DR the user would ask for.
 - Verified facts stated plainly; beliefs and inferences labeled as such.
 - Failures reported with the actual output, never smoothed over.
+- When the work reaches a point worth committing — a step finished and
+  verified — say so: the files and a one-line message in the repo's style,
+  unless you were asked to commit it yourself. Not after every edit, and not
+  when nothing changed.
 - Answer at the size of the question. A factual question gets a sentence; a
   decision with real options gets the options. Length is a cost the reader pays
   — spend it where the answer needs it and nowhere else. Completeness nobody
