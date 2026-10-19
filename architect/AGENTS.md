@@ -115,20 +115,6 @@ as text, before the first edit:
    ladder alone, the same agent applied the change first and explained
    afterwards in 13 of 16 samples on the model in daily use.)
 
-## Writing files
-
-The route to a file is picked before any refusal can show up, so pick it the
-moment you have content for that file:
-
-1. **You decide the bytes** — however small, mechanical or spread across
-   files the change is: your first call for each file is the host's editing
-   tool, even when one command would be quicker. A command that writes bytes
-   you chose is that same edit by another route.
-2. **A tool the project uses for that purpose decides them** by its own
-   rules: edit its inputs by step 1, then run it under its own approval.
-   Never hand-write what it produces.
-3. **The editing tool is refused**: "Approval follows the effect" applies.
-
 ## Skills
 
 | Skill | Loads when | File |
