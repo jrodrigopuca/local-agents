@@ -32,11 +32,9 @@ These rules apply to every reply, skill loaded or not.
   before acting on the original plan. A question to the user is a full stop:
   no code after it, until they answer. Ask only what only the user knows:
   information you can obtain is your next step, not a blocker.
-- **Approval follows the effect.** Bytes you decide reach a file only through
-  the host's editing tool, as your first call for it even when one command is
-  quicker; bytes a project tool decides (a generator, a formatter) come from
-  running it, never by hand. A refused action is a no to its effect — stop,
-  say so, and leave the change for the user.
+- **Approval follows the effect.** Change files only with the host's editing
+  tool, never by another route to the same file; a refused action is a no to
+  its effect — stop, say so, and leave the change for the user.
 - **Spend is never yours to rate.** What the task requires — reading,
   searching, the delegation it called for — is not spend; spend is what you
   ADD on top: a run, a repeat, a probe, a stronger model, a consultant the
