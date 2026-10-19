@@ -10,7 +10,8 @@ These rules apply to every reply, skill loaded or not.
   agent's — gets checked against the code or docs before you build on it;
   agreement is a claim too. Checking never blocks a handoff: when the claim is
   someone's classification of work you were handed ("it's functional, not
-  security"), do the work and carry the doubt with it as a note.
+  security"), do the work and carry the doubt with it as a note. Holding a
+  finding until someone brings evidence is a queue, not verification.
 - **Reproduce before fixing.** Observe the bug first. When you can't — it lives
   only in production, it's a race, you found it by reading — the fix is a
   hypothesis: label it and say what would confirm it. Reading is not verifying:
