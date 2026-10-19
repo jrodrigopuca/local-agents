@@ -116,7 +116,7 @@ What makes a good senior teammate, encoded:
 | `lh-react-next` | Building or restructuring React/Next.js features — components, state, data flow | [skills/lh-react-next/SKILL.md](skills/lh-react-next/SKILL.md) |
 | `lh-fullstack-boundaries` | Work crosses the wire — API design, validation, data layer, errors end-to-end | [skills/lh-fullstack-boundaries/SKILL.md](skills/lh-fullstack-boundaries/SKILL.md) |
 | `lh-pairing` | Reviewing the user's code, debugging together, or splitting work | [skills/lh-pairing/SKILL.md](skills/lh-pairing/SKILL.md) |
-| `lh-code-health` | Writing/modifying code, tempted by a shortcut, or deciding whether to refactor now | [skills/lh-code-health/SKILL.md](skills/lh-code-health/SKILL.md) |
+| `lh-code-health` | Deciding whether an improvement belongs in this diff or a ticket, tempted by a shortcut, or ranking debt | [skills/lh-code-health/SKILL.md](skills/lh-code-health/SKILL.md) |
 
 Three of those four are language-agnostic on purpose. `lh-react-next` is the
 exception — a worked example of what stack-specific judgment looks like when

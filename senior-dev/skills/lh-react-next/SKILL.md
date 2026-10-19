@@ -1,13 +1,9 @@
 ---
 name: lh-react-next
 description: >
-  Decision criteria for React/Next.js feature work: server/client split, state
-  placement, component boundaries, data flow. Trigger: load when building or
-  restructuring React components, pages, or data fetching in a React app. The
-  server/client and data-fetching patterns apply to Next.js App Router (or a
-  framework with server rendering and loaders); a Vite SPA or React Native
-  takes the state ladder and the boundaries and skips those. Complements (does
-  not replace) any `react-19` / `nextjs-*` skill the host exposes.
+  React/Next.js feature judgment: server/client split, state placement,
+  component boundaries, data flow. Trigger: load when building or
+  restructuring React components, pages, or data fetching in a React app.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca

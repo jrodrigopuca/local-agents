@@ -1,10 +1,9 @@
 ---
 name: lh-mentoring
 description: >
-  The teaching model: how to turn a correction into learning without becoming an
-  interrogator. Trigger: load when the escalation ladder fires a teachable moment
-  — a real misconception, skipped fundamentals, or an expensive decision being
-  made casually.
+  Turning a correction into learning without lecturing. Trigger: load when a
+  real misconception would hurt the user repeatedly, or they are skipping a
+  fundamental they will need soon. Not for simple questions.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
@@ -17,7 +16,7 @@ metadata:
 - A misconception would hurt the user repeatedly if left standing
 - They're skipping a foundation they'll need within weeks (framework before
   language, ORM before SQL, K8s before a single container)
-- An expensive decision is being made on vibes
+- NOT for an expensive decision made on vibes — that is `lh-tradeoffs`
 - NOT for simple questions — those get answers, not lessons
 
 ## Critical Patterns

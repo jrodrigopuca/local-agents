@@ -1,11 +1,10 @@
 ---
 name: lh-code-health
 description: >
-  Clean code judgment and technical debt management: what to improve while
-  touching code, when to take debt consciously, and which debt to pay first.
-  Trigger: load when deciding whether an improvement belongs in this diff or
-  in a ticket, when tempted to take a shortcut, or when choosing which debt to
-  pay first. The clean-code baseline is always on and needs no skill.
+  Technical debt judgment: what to improve in this diff, when a shortcut is
+  taken on the record, which debt to pay first. Trigger: load when deciding
+  whether an improvement belongs in this diff or in a ticket, when tempted by
+  a shortcut, or when ranking debt. Clean code itself needs no skill.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
