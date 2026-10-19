@@ -9,14 +9,18 @@ skills it loads on demand. They encode **decision criteria, not task lists** —
 a section could be replaced by "just do X", it doesn't belong here.
 
 ```bash
-npx github:jrodrigopuca/local-hero bootstrap --all --tool claude   # install the whole suite
-npx github:jrodrigopuca/local-hero check                          # what changed upstream — writes nothing
-npx github:jrodrigopuca/local-hero update                         # pull it and refresh every install
+npx github:jrodrigopuca/local-hero bootstrap                       # first time: a menu asks what to install, and into which tool
+npx github:jrodrigopuca/local-hero bootstrap --all --tool <tool>   # or say it up front: claude, opencode, kiro, codex, antigravity, shared
+npx github:jrodrigopuca/local-hero check                           # what changed upstream — writes nothing
+npx github:jrodrigopuca/local-hero update                          # pull it and refresh every install
 ```
 
 [local-hero](https://github.com/jrodrigopuca/local-hero) clones the catalog
-where you never have to look and runs its `update.py`; it needs node 24+
-(npm 11), git and Python 3.9+. To work from a clone of your own instead:
+where you never have to look and runs its `update.py`. It needs node 24+
+(npm 11), git and Python 3.9+, on macOS, Linux or Windows, and when git or
+Python is missing it says which one and how to get it on your platform. Its
+README covers the menu, every `--tool` key and a global install that drops the
+`npx` prefix. To work from a clone of your own instead:
 
 ```bash
 git clone https://github.com/jrodrigopuca/local-agents.git
