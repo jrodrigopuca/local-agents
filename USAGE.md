@@ -50,6 +50,10 @@ Load the skills it references when their triggers fire.
 - Optional: `tools:` to restrict tools and `model:` to pin a model.
   The installer writes `tools: Read, Grep, Glob, WebFetch, WebSearch, Agent, Skill`
   for catalog agents with `access: read`; `full` access agents inherit everything.
+- Optional `hooks:` scopes hooks to one agent. They fire when it is spawned as
+  a subagent and when it runs as the main session (`claude --agent`).
+  `install.py --shell-write-guard` uses it to hook a `PreToolUse` guard on
+  `Bash` into every `full` agent; see INSTALL.md, "the shell-write guard".
 - Invoked explicitly ("use the architect agent") or Claude delegates automatically
   when the task matches the description.
 

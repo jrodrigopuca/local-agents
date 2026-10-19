@@ -381,9 +381,52 @@ to count commits, without downloading old file contents.
 | Install a standalone skill | `./install.py --skill architect:tradeoffs --tool claude` |
 | Multiple agents at once | `./install.py --agent qa --agent security --tool claude` |
 | Guided menus | `./install.py` |
+| **Claude Code: refuse file writes through the shell** | `./install.py --all --tool claude --shell-write-guard` |
+| Take that guard out again | `./install.py --refresh --no-shell-write-guard` |
 
 The standalone skill format is `agent:skill` (run `--list` if you don't recall
 the name). You can also provide just the skill name if it is unique.
+
+---
+
+## Optional: the shell-write guard (Claude Code)
+
+The CORE rule "Approval follows the effect" says a file changes only through
+the editing tool. Claude Code enforces that by itself only in its default mode:
+`acceptEdits`, `auto` and `bypassPermissions` let a heredoc or `sed -i` write
+the file, and `auto` and `bypass` even tell the model to edit that way.
+`--shell-write-guard` closes the gap for the catalog's agents (B-083):
+
+```bash
+./install.py --all --tool claude --shell-write-guard
+```
+
+- It copies `scripts/shell_write_guard.py` to `~/.claude/hooks/local-agents/`
+  and adds a `PreToolUse` hook on `Bash` to the frontmatter of every
+  `access: full` agent. Your `settings.json`, your main session and other
+  agents are not touched.
+- A refused command reaches the agent as a refusal of the ROUTE, not of the
+  change: use the editing tool; without one, say so and leave a diff.
+- It refuses only bytes the agent decides: redirections to a file (anything
+  under `/dev/` passes), heredocs into a file, `sed -i`/`perl -i`, `tee FILE`,
+  inline scripts that open a file for writing, `cp`/`mv`/`touch`/`truncate`,
+  `dd of=`, `git apply`, `patch`, `ed`. Project tools that write as a side
+  effect (`npm install`, `npm run gen`, `prettier --write`, `node --test`),
+  `rm`, `mkdir` and git state commands pass. A log redirected to `/tmp` is
+  refused too: pipe it instead.
+- If the guard itself breaks, it lets the command through and says so on
+  stderr (fail-open): it guards a habit, and must not stop every shell
+  command on a teammate's machine. It is a text match, not a sandbox.
+- Off for one session: start Claude Code with `LOCAL_AGENTS_SHELL_GUARD=off`
+  in its environment. Off for good: `./install.py --refresh --no-shell-write-guard`.
+- `--refresh` keeps the choice (it is in the stamp); `--status` prints a
+  `guard` line per Claude Code install.
+- With `--project`, the hook points at `$CLAUDE_PROJECT_DIR/.claude/hooks/…`.
+  Claude Code runs a project agent's frontmatter hooks only once the folder is
+  trusted, and never under `claude -p`.
+- Needs `python3` on the PATH. Where the command is missing the hook fails
+  open, as above. Other hosts: not rendered yet. Kiro's agent JSON has
+  `hooks.preToolUse`, but how a hook blocks there has not been verified.
 
 ---
 

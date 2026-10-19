@@ -14,6 +14,7 @@ Usage:
   ./install.py --skill architect:tradeoffs --tool codex
   ./install.py --agent qa --tool kiro --on-conflict rename --dry-run
   ./install.py --all --tool claude --project ~/code/repo   # vendor into a repo
+  ./install.py --all --tool claude --shell-write-guard     # + refuse file writes via Bash
 
 No external dependencies — Python 3.9+ stdlib only.
 """
@@ -424,6 +425,94 @@ AGY_TOOLS = {
 }
 
 
+# --------------------------------------------------------------------------- #
+# Shell-write guard (B-083) — optional, Claude Code only
+# --------------------------------------------------------------------------- #
+# The CORE says files change only through the editing tool; in Claude Code's
+# acceptEdits, auto and bypassPermissions modes nothing enforces it, and auto
+# and bypass tell the model to edit with sed and heredocs. `--shell-write-guard`
+# installs scripts/shell_write_guard.py and hooks it into every `full` agent's
+# frontmatter as a PreToolUse hook on Bash. The frontmatter `hooks:` field is
+# documented for subagent files and fires both when the agent is spawned and
+# when it runs as the main session (`--agent`). A PROJECT agent's frontmatter
+# hooks need the folder trusted and never run under `-p` (documented), so a
+# project install is guarded only in a trusted interactive session.
+# Kiro has `hooks.preToolUse` and `toolsSettings` in its agent JSON (strings
+# in kiro-cli-chat), but how a hook blocks there is not verified: not rendered.
+# Off by default. The choice is recorded in the stamp, so `--refresh` keeps it
+# and `--status` judges agent files against it.
+GUARD_SOURCE = Path(__file__).resolve().parent / "scripts" / "shell_write_guard.py"
+GUARD_REL = Path("hooks") / "local-agents" / "shell_write_guard.py"
+GUARD_STYLES = ("claude_md",)
+GUARD_FRONTMATTER = ("hooks:\n"
+                     "  PreToolUse:\n"
+                     "    - matcher: \"Bash\"\n"
+                     "      hooks:\n"
+                     "        - type: command\n"
+                     "          command: {command}\n")
+SHELL_GUARD_CHOICE: Optional[bool] = None   # set by --shell-write-guard / --no-…
+
+
+def guard_on(tool: Tool) -> bool:
+    """This run's choice when one was given, else what the last install chose."""
+    if tool.agent_style not in GUARD_STYLES:
+        return False
+    if SHELL_GUARD_CHOICE is not None:
+        return SHELL_GUARD_CHOICE
+    return bool((run_for(tool).stamp or {}).get("shell_write_guard"))
+
+
+def guard_path(tool: Tool) -> Path:
+    return tool.config_root / GUARD_REL
+
+
+def guard_command(tool: Tool) -> Optional[str]:
+    """The hook command, or None when the guard is off. A project install
+    points at the copy inside the repo through the variable Claude Code exports
+    to every hook, so the file still works after the repo moves or is cloned."""
+    if not guard_on(tool):
+        return None
+    home = TOOLS_BY_KEY.get(tool.key)
+    if home is not None and tool.config_root != home.config_root:
+        return f'python3 "$CLAUDE_PROJECT_DIR/{tool.project_dir}/{GUARD_REL.as_posix()}"'
+    return f'python3 "{guard_path(tool)}"'
+
+
+def sync_guard(tool: Tool, dry_run: bool):
+    """Put the script in place when the guard is on; take OUR copy away when it
+    is off. A file we did not write (its hash is not the recorded one) stays."""
+    if tool.agent_style not in GUARD_STYLES:
+        return
+    dest = guard_path(tool)
+    if guard_on(tool):
+        print(f"    guard  → {dest}")
+        if not dry_run:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            dest.write_bytes(GUARD_SOURCE.read_bytes())
+        return
+    recorded = (run_for(tool).stamp or {}).get("shell_write_guard_sha256")
+    if dest.is_file() and recorded and file_hash(dest) == recorded:
+        print(f"    guard  → removed {dest} (--no-shell-write-guard)")
+        if not dry_run:
+            dest.unlink()
+
+
+def guard_status(tool: Tool) -> str:
+    """One line for --status: whether the guard is on, and whether the script
+    on disk is the catalog's current one."""
+    dest = guard_path(tool)
+    if not guard_on(tool):
+        extra = f" (a copy is still at {dest})" if dest.is_file() else ""
+        return f"guard    shell-write guard off{extra} — enable: --refresh --shell-write-guard"
+    if not dest.is_file():
+        state = "script MISSING — the agents' hook fails open; reinstall"
+    elif file_hash(dest) != file_hash(GUARD_SOURCE):
+        state = "script stale — --refresh updates it"
+    else:
+        state = "script current"
+    return f"guard    shell-write guard on · {state} · {dest}"
+
+
 def access_of(meta: dict) -> str:
     tier = (meta or {}).get("access", "full")
     if tier not in ACCESS_TIERS:
@@ -432,10 +521,11 @@ def access_of(meta: dict) -> str:
 
 
 def render_agent(tool: Tool, name: str, body: str, description: str,
-                 skill_names: list, meta: dict = None) -> tuple:
+                 skill_names: list, meta: dict = None, guard: Optional[str] = None) -> tuple:
     """Return (destination_path, file_contents) for the agent in this tool's
     format. `meta` is the catalog AGENTS.md frontmatter (description/model/…).
-    Add a branch here only for a genuinely new file format."""
+    `guard` is the shell-write guard's hook command, or None (see
+    guard_command). Add a branch here only for a genuinely new file format."""
     meta = meta or {}
     desc = meta.get("description") or description
     tier = access_of(meta)
@@ -460,12 +550,17 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
         # edit anything and rule 16 did not hold on this host. Without memory
         # the tools are exactly CLAUDE_READ_TOOLS.
         memory_line = "" if tier == "read" else f"memory: {meta.get('memory', 'user')}\n"
+        # B-083: the shell-write guard, only where the agent has a shell. The
+        # read tier has no Bash, so a hook there would guard nothing.
+        hooks_lines = (GUARD_FRONTMATTER.format(command=json.dumps(guard))
+                       if guard and tier == "full" else "")
         fm = ("---\n"
               f"name: {name}\n"
               f"{yaml_description(desc)}\n"
               f"model: {meta.get('model', 'inherit')}\n"
               f"{memory_line}"
               f"{tools_line}"
+              f"{hooks_lines}"
               "---\n\n")
         return tool.agents_dir / f"{name}.md", fm + body
     if tool.agent_style == "opencode_md":
@@ -1162,7 +1257,8 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
             else:
                 final = _auto_rename(lambda nm: (tool.agents_dir / f"{nm}{suffix}").exists(),
                                      agent.name)
-    dest, contents = render_agent(tool, final, body, desc, installed_skill_names, meta)
+    dest, contents = render_agent(tool, final, body, desc, installed_skill_names, meta,
+                                  guard=guard_command(tool))
     print(f"    agent  → {dest}")
     if not dry_run:
         dest.parent.mkdir(parents=True, exist_ok=True)
@@ -1307,7 +1403,8 @@ def git(catalog: Path, *args):
 # root, an edited README — leaves every installed file identical, so it must
 # not mark the stamp dirty; an uncommitted skill or agent edit must.
 INSTALL_INPUTS = ("install.py", ":(glob)*/AGENTS.md", ":(glob)*/CORE.md",
-                  ":(glob)*/skills/**", ":(glob)skills/**")
+                  ":(glob)*/skills/**", ":(glob)skills/**",
+                  "scripts/shell_write_guard.py")   # copied by --shell-write-guard
 
 
 def catalog_state(catalog: Path):
@@ -1328,6 +1425,7 @@ def write_manifest(tool: Tool, catalog: Path, dry_run: bool, suite: bool = False
     tell our files from a stranger's or an edited one (B-058)."""
     commit, dirty = catalog_state(catalog)
     dest = tool.config_root / MANIFEST
+    sync_guard(tool, dry_run)
     where = (f"@ {commit[:7]}{' (dirty tree)' if dirty else ''}" if commit
              else "(catalog is not a git checkout: no commit recorded)")
     print(f"    stamp  → {dest.name} {where}")
@@ -1346,6 +1444,10 @@ def write_manifest(tool: Tool, catalog: Path, dry_run: bool, suite: bool = False
         "skills": skills,
         "agents": agents,
     })
+    if tool.agent_style in GUARD_STYLES:
+        data["shell_write_guard"] = guard_on(tool)
+        if guard_on(tool):
+            data["shell_write_guard_sha256"] = file_hash(guard_path(tool))
     dest.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 
 
@@ -1693,7 +1795,8 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
             inherited, dep_skills = resolve_deps(agents[f.stem], agents, skills_by_name)
             meta, desc, body = compose_agent(agents[f.stem], inherited)
             _, fresh = render_agent(tool, f.stem, body, desc,
-                                    sorted(s.name for s in dep_skills), meta)
+                                    sorted(s.name for s in dep_skills), meta,
+                                    guard=guard_command(tool))
             if f.read_text(encoding="utf-8") != fresh:
                 a_stale.append(f.stem)
         a_missing = sorted(set(agents) - set(a_present))
@@ -1712,6 +1815,8 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
         for label, items in (("stale", a_stale), ("edited", a_edited), ("missing", a_missing)):
             if items:
                 print(f"      {label}: {', '.join(items)}")
+        if tool.agent_style in GUARD_STYLES:
+            print(f"    {guard_status(tool)}")
 
         if catalog:
             for line in provenance_line(tool, catalog, set(present) | set(a_present)):
@@ -1773,7 +1878,16 @@ def main():
     ap.add_argument("--dry-run", action="store_true", help="show what would happen, change nothing")
     ap.add_argument("--no-deps", action="store_true",
                     help="install only the agent's own skills; skip inherited/cross-agent deps")
+    guard = ap.add_mutually_exclusive_group()
+    guard.add_argument("--shell-write-guard", dest="shell_write_guard", action="store_true",
+                       default=None,
+                       help="Claude Code: hook a PreToolUse guard into every `full` agent that "
+                            "refuses file writes through Bash (B-083). Remembered by --refresh")
+    guard.add_argument("--no-shell-write-guard", dest="shell_write_guard", action="store_false",
+                       help="Claude Code: take the shell-write guard out again")
     args = ap.parse_args()
+    global SHELL_GUARD_CHOICE
+    SHELL_GUARD_CHOICE = args.shell_write_guard
 
     catalog = args.catalog
     if not catalog.exists():

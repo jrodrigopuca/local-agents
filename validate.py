@@ -1034,6 +1034,8 @@ def check_install_stamp(cat: Catalog):
         cases = [
             ("a new doc at the catalog root", clone / "NOTES.es.md", False),
             ("a new, uncommitted skill", clone / agent / "skills" / "zz-new" / "SKILL.md", True),
+            # B-083: `--shell-write-guard` installs this file as it is.
+            ("an edited shell-write guard", clone / "scripts" / "shell_write_guard.py", True),
         ]
         for label, path, want in cases:
             path.parent.mkdir(parents=True, exist_ok=True)
