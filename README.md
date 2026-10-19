@@ -119,7 +119,7 @@ catalog installs into several tools, each with its own layout, so a hardcoded
 
 The shared folder has no named-agent concept, so the installer writes the bodies plus a
 short roster into its `AGENTS.md` — the identities stay discoverable without
-putting <!--n:agents-->15<!--/n--> full prompts (~<!--n:agents-kb-->100<!--/n--> KB) into every session's context.
+putting <!--n:agents-->15<!--/n--> full prompts (~<!--n:agents-kb-->110<!--/n--> KB) into every session's context.
 
 Each install stamps a `.local-agents.json` with the catalog commit it copied
 from, so `--status` can report how far behind an installed copy is and which
