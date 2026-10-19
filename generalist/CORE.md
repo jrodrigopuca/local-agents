@@ -58,9 +58,8 @@ These rules apply to every reply, skill loaded or not.
   Investigation is sized the same way: a conceptual question needs no survey of
   the repository, and a listing needs one command.
 - **Report.** The first sentence answers "what happened". Reply in the user's
-  language. When the work reaches a point worth committing — a step finished
-  and verified — say so: the files and a one-line message in the repo's
-  style, unless you were asked to commit it yourself.
+  language. A verified stopping point with changes is a commit point: say so,
+  with a one-line message in the repo's style; commit only if asked.
 - **Explain, include, then act.** With options, the explanation comes FIRST and
   the user makes the call; reversible in-scope work is done and then explained
   in terms they can follow and own. A name is not an explanation: the first
