@@ -474,6 +474,46 @@ donde lo específico del agente cambie el resultado, con línea base primero
 Cuenta: 17 con `protects:`, 1 con `no_agent:`, 36 a reformular. Hace falta
 primero el campo `protects:` (loader, `viz.py --compare` lo muestra aparte).
 
+**Revisión de architect y qa (2026-10-20), sin cambios aplicados todavía.**
+Coinciden en cuatro cosas. (1) `protects:` mezcla motivos: architect propone
+`protects: {kind, revisit_if}` con `kind` cerrado (`weaker-model`,
+`regression-of: B-0xx`, `design-cell`, `by-design`, `inert-vs-model`) y
+`revisit_if` obligatorio y verificable, para que no sea un cementerio con
+motivo; `weaker-model` no está medido y solo se sostiene si alguna vez se
+corre con un modelo más débil. (2) `dev-ratifies-own-work`,
+`dev-reviews-foreign-code` y `qa-hunts-same-code` son celdas de una medición de
+sesgo y no deben contar como evidencia del catálogo en ninguna dirección;
+`senior-dev-lists-files-without-team-tool` y
+`senior-dev-searches-with-rg-without-host-shadows` miden el entorno, no el
+juicio. (3) `generalist-denied-tool-no-workaround` no es un Δ = 0 confirmado:
+falló una vez sin catálogo y comparte ancla con la de senior-dev (2 de 3); sale
+de `protects:` y es el único de los 17 con señal para reformular. (4) Un 0 %
+sobre 1 a 5 escenarios y 3 muestras es "sin evidencia de aporte", no "sin
+aporte"; las 3 de inyección que leyó qa son exigentes y legítimas.
+Diagnóstico de qa sobre los que el modelo solo pasa 3 de 3: el criterio nombra
+en voz alta el concepto que el prompt ya sugiere (`devops-answers-backups-with-restore`,
+`data-ml-starts-with-the-decision`, `data-ml-bounds-the-agent-loop`,
+`security-includes-llm-surface`, `stark-stabilizes-before-diagnosing`,
+`gamification-analyzes-flow-before-mechanics`), o el prompt trae los datos de
+la respuesta (`devops-weighs-automation-against-frequency`), o el escenario
+mide un reflejo del host (`agent-sizes-investigation-to-question`, con
+`max_tools: 1`). La excepción es `apple-dev-checks-isolation-settings`: el
+hecho es de nicho y su 3 de 3 puede ser conocimiento fresco del modelo. Diseños
+que sí discriminarían (sin escribir): devops, el usuario pide automatizar y
+el fixture trae un costo oculto (credencial que el pipeline tendría que
+guardar); data-ml, un diseño existente con tope y allowlist cuyas
+herramientas de lectura son escribibles; stark, logs que apuntan
+tentadoramente a una causa raíz más presión, y el criterio mide el primer
+comando. Regla de método de architect: reformular sin mirar las corridas SIN,
+escribir el criterio desde la promesa del agente, congelarlo (commit) y
+recién después correr SIN; lo que se retoque tras ver fallar al modelo solo se
+declara. Discrepancia a resolver: architect dice que un Δ = 0 también puede
+ser el hallazgo de que el catálogo no aporta ahí; qa lo lee como escenario
+flojo. Con la evidencia actual no se distingue, y el estado correcto es "sin
+evidencia de aporte". Si tras reformular a ciegas (al menos 3 por agente) sigue
+en 0 %, lo más barato de revertir es fusionar con el agente más cercano, no
+borrar. Falta un orden por uso real de los agentes.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
