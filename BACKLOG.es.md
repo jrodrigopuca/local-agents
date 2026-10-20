@@ -295,6 +295,58 @@ N/3 solo para los Δ = 0. Se propone con su costo antes de correr.
 **Depende de.** B-044 y B-039 (para creerle al juez en ambas
 ramas).
 
+**Plan (2026-10-20), por fases, cada fase con su OK de costo.**
+
+0. **Código del harness, gratis.** `--branch without`: sin `--agent` y sin
+   `shadow_agents` ni `shadow_skills` en el workspace; `no_agent: skip` con
+   motivo, y salto automático de `routing`, `handoff`, `composition`,
+   `inheritance` y los que tienen `delegate`; `branch: without` en
+   `run.json`; `viz.py` nunca la toma como línea base y `--compare` muestra
+   CON, SIN y Δ. Tests sin modelo: el workspace SIN no tiene agentes ni
+   skills, el comando no lleva `--agent`, el juez y el criterio son los
+   mismos, la huella cambia. Chequeo gratis: el evento `init` de la primera
+   corrida lista cero skills del catálogo.
+1. **Piloto, ~USD 2.** Un escenario por agente (14), una muestra en SIN, para
+   ver que la rama anda y cómo se comporta el juez sin agente.
+2. **Pasada SIN, ~USD 9 a 13, tope 14.** 71 escenarios que aplican (47
+   judgment, 17 hard-rule, 4 self-verification, 3 injection) más los 3 manuales
+   de promesas recientes (`senior-dev-names-commit-point`,
+   `senior-dev-no-commit-talk-without-changes`,
+   `senior-dev-shell-writes-bare`), una muestra cada uno. El lado CON sale de
+   corridas que ya existen: `./run.py --applicability` (gratis) dice cuáles
+   siguen valiendo; los que no, necesitan una muestra CON.
+3. **Δ = 0 en N/3 en las dos ramas, ~USD 0,85 por escenario** (2 muestras
+   más SIN y hasta 3 CON). El total depende de cuántos den Δ = 0 y no se puede
+   saber antes de la fase 2; con 15 a 30 serían USD 13 a 26. Se propone con el
+   número real.
+4. **Cierre.** Δ por agente en ESTADO-DEL-ARTE §4; cada Δ = 0 confirmado,
+   reformulado con su línea base (regla 17) o con `protects:` y su motivo.
+   Las muestras FAIL de la rama SIN son candidatas a etiquetas de B-039
+   (`labels.py add`): es la fuente de FAIL que a la reserva le falta, y
+   etiquetarlas sigue siendo trabajo humano.
+
+**Avance (2026-10-20): código de la fase 0 hecho, sin modelo.** En el
+harness: `--branch without` (sin `--agent`, sin sombras de agentes ni skills,
+exige la sesión neutra), `no_agent:` con motivo, salto automático con el
+motivo en `run.json` (`without_skipped`), chequeo de fuga por muestra
+(`init` y lectura por ruta del catálogo instalado) que convierte la muestra en
+ERROR, `branch: without` que `--applicability`, el reporte y la estimación de
+costo ignoran, y `viz.py --compare` con CON, SIN y Δ por agente, categoría y
+escenario. 23 tests nuevos (`tests/test_without_branch.py`). Medido gratis con
+el evento `init`: sin catálogo 0 de 48 skills y 0 de 15 agentes, y sin
+`--agent`; con catálogo, 48 y 15. Alcance real: de los 96 escenarios por
+defecto, 69 aplican sin el catálogo (el dry-run estima ~USD 11,90 la pasada),
+y los 3 manuales de promesas recientes también aplican (~USD 0,45). Se
+saltean 27 por categoría: 7 de handoff, 7 de inheritance, 7 de routing, 4 de
+composition y 2 por memoria. Falta: el piloto de la fase 1 (con tu OK de
+costo) y las fases siguientes.
+
+El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
+25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
+la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
+en las corridas de hoy, la fase 2 puede consumir cerca de 40 % de la ventana
+de 5 horas de la suscripción (estimación gruesa): `--quota` la pronostica.
+
 ### B-040: veredicto INDETERMINADO
 
 **Qué se busca.** Que el juez pueda decir "con esta respuesta no se puede
