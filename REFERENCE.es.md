@@ -47,20 +47,47 @@ explica a sí mismo en su `AGENTS.md`, y esta guía no lo repite.
 
 ## Instalar
 
-```bash
-./install.py --list                          # qué hay en el catálogo
-./install.py --status                        # qué tenés instalado y si está al día
-./install.py --refresh                       # actualizar todo lo que ya tenés instalado
-./install.py --all --tool claude --dry-run   # previsualizar
-./install.py --all --tool claude             # instalar toda la suite
-```
+Dos caminos, mismo resultado (los mismos archivos en la config de tu
+herramienta). Elegí por lo que querés hacer:
 
-Herramientas: `claude`, `opencode`, `kiro`, `codex`, `antigravity`, `shared`.
+- **Solo usar los agentes y actualizar con un comando: `local-hero`.** No
+  clonás nada; necesita node 24+, git y Python 3.9+.
+
+  ```bash
+  npx github:jrodrigopuca/local-hero bootstrap                      # primera vez: un menú pregunta qué y en qué herramienta
+  npx github:jrodrigopuca/local-hero bootstrap --all --tool claude  # o decilo de una
+  npx github:jrodrigopuca/local-hero update                         # después: trae lo nuevo y refresca todo lo instalado
+  ```
+
+- **Leer o tocar el catálogo, contribuir: cloná el repo.** Solo git y Python.
+
+  ```bash
+  git clone https://github.com/jrodrigopuca/local-agents.git && cd local-agents
+  ./install.py --list                          # qué hay y qué herramientas detectó
+  ./install.py --all --tool claude --dry-run   # previsualizar, no escribe nada
+  ./install.py --all --tool claude             # instalar toda la suite
+  ./install.py --status                        # después: qué tenés y si está al día
+  ./update.py update                           # trae lo nuevo de GitHub y refresca todo
+  ```
+
+Una herramienta por corrida: `claude`, `opencode`, `kiro`, `codex`,
+`antigravity` o `shared`. En Windows, `py -3 install.py …`.
 
 - **Instalá todo junto.** Los agentes se referencian entre sí; instalando uno
   suelto, sus handoffs apuntan a agentes que no están.
+- **Lo que ya tenías no se pisa.** El instalador solo actualiza lo que
+  escribió él; un agente tuyo, o uno que editaste, queda con un aviso.
+  `--on-conflict overwrite` es la forma de decir "este también".
+- **Para volver atrás** no hay flag: borrá los agentes del catálogo, las
+  carpetas de skills `lh-*` y el stamp `.local-agents.json` de la carpeta de
+  esa herramienta. No tocó nada más.
 - **Para un equipo**: `--project ~/code/repo` deja la config dentro del repo
   (`.claude/`, `.opencode/`, …) y viaja con el código. Commiteala.
+- **Dos hooks opcionales, solo en Claude Code**, apagados por defecto:
+  `--shell-write-guard` rechaza escribir archivos por la shell, y
+  `--verify-hook` corre el chequeo que cada repo declara en
+  `.local-agents/verify` (una línea, `npm test` o `pytest -q`) cuando un
+  agente quiere terminar, y si está rojo lo devuelve una vez con la salida.
 - **Codex** carga agentes con nombre desde archivos TOML: el instalador escribe
   uno por agente y, si encuentra la instalación vieja (cuerpos `.md` y roster
   en `AGENTS.md`), la retira sin tocar lo tuyo. Ojo: dale escritura a la
@@ -80,6 +107,28 @@ Herramientas: `claude`, `opencode`, `kiro`, `codex`, `antigravity`, `shared`.
   dice cuántos commits atrás estás y qué cambió.
 
 El detalle completo, en [INSTALL.md](INSTALL.md).
+
+---
+
+## Probarlo
+
+Se pide por nombre; cada herramienta a su manera: en Claude Code "usá el
+agente senior-dev para…" (o toda la sesión como uno: `claude --agent
+senior-dev`), en opencode con Tab cambiás el agente primario, en Kiro
+`kiro-cli chat --agent senior-dev`, en Codex y Antigravity nombrándolo en el
+prompt. Corren con el modelo que tenga tu herramienta: los archivos no traen
+ninguno.
+
+¿Cargó? Preguntale "¿cuál es tu escalera de evidencia?": un agente del
+catálogo responde con una escalera con nombres (evidencia, memoria,
+inferencia, suposición) y dice en qué escalón está; una respuesta genérica
+sobre testing es que el prompt no le llegó.
+
+Qué debería verse distinto de un asistente común: `senior-dev` lee el código
+antes de escribir, corre los tests y cierra nombrando el punto de commit con
+su mensaje de una línea, sin commitear. `dba`, ante "renombramos una columna
+en el deploy del viernes", lo trata como puerta de un solo sentido y lo arma
+en pasos expand/contract.
 
 ---
 
@@ -111,6 +160,8 @@ Tres capas, todas extraídas de los archivos — nada aspiracional.
 | [INTEGRATION.md](INTEGRATION.md) | Referenciar el catálogo en vez de copiarlo, y el costo de cada opción. |
 | `install.py` | El instalador. Cero dependencias, Python 3.9+. |
 | `validate.py` | Los checks del catálogo + regenera los bloques de `GRAPH.md`. |
+| `scripts/` | Los dos hooks opcionales que instala `install.py` en Claude Code. |
+| [`interaction`](https://github.com/jrodrigopuca/interaction) (otro repo) | El harness: mide cómo se COMPORTAN los agentes instalados, con un juez neutral y tope de costo. Su [GUIA.md](https://github.com/jrodrigopuca/interaction/blob/main/GUIA.md) está en español. No hace falta para usar los agentes. |
 
 ---
 
@@ -122,6 +173,12 @@ Tres capas, todas extraídas de los archivos — nada aspiracional.
    NOMBRE, nunca por ruta.
 2. **Corré `./validate.py`** antes de commitear. Si tocaste agentes o skills,
    `./validate.py --write` regenera `GRAPH.md`.
-3. **Esta guía solo cambia si agregás o sacás un agente.** El resto vive en los
+3. **Una promesa viaja con su escenario** (regla 17). Un juicio, un handoff o
+   una regla nueva en un agente es una afirmación sobre conducta que
+   `validate.py` no puede ver: va con un escenario en `interaction`, corrido
+   primero contra la versión anterior. Los números quedan en
+   [BACKLOG.es.md](BACKLOG.es.md), y una regla que no compra conducta se
+   revierte.
+4. **Esta guía solo cambia si agregás o sacás un agente.** El resto vive en los
    archivos de cada uno, que es donde se mantiene solo. Hay un check que
    verifica que la tabla de arriba tenga a los 15.
