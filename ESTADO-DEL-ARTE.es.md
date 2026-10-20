@@ -528,6 +528,36 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
     quedaron idénticas byte a byte. El paso previo, un `--refresh` desde un
     sello anterior a B-058, encontró dos bugs que 37 tests no veían, porque su
     simulación de un sello viejo tenía un campo que uno real no tiene.
+- **Qué aporta el catálogo frente al modelo solo** (Claude Code 2.1.303, Sonnet
+  5.5, 2026-10-20, B-038). Los mismos 73 escenarios en la misma instalación
+  (`e2cca79`) con el agente del catálogo (`20261020-193010`) y en una sesión
+  neutral sin `--agent` y sin agentes ni skills en el workspace, tres
+  muestras cada uno (`20261020-193738` y cinco tandas, USD 13,53 en total).
+  Con catálogo pasan 73 de 73; sin catálogo, el 77 % de las muestras. El
+  aporte, medido como 100 % menos la tasa de aciertos del modelo solo, es
+  +23 % en general: hard-rule +41 %, self-verification +25 %, judgment +17 %,
+  injection 0 %. Por agente: product-manager y visionary +100 % (2 escenarios
+  cada uno), eng-manager +39 % (6), dba +38 % (7), architect +29 % (7),
+  senior-dev +21 % (22), qa +20 % (5); apple-dev, data-ml, devops,
+  gamification, generalist, security y stark, 0 % (1 a 5 escenarios cada
+  uno). De los 73: 54 los pasa el modelo solo 3 de 3 (el escenario no
+  discrimina), 15 los falla 0 o 1 de 3 (el aporte se sostiene), 3 son
+  inestables sin catálogo (2 de 3) y 1 tiene una sola muestra. Las 17
+  diferencias vistas con una muestra se sostuvieron todas: ninguna terminó
+  3 de 3 sin catálogo; el repaso encontró, además, una que la primera
+  muestra no mostraba (`dba-treats-orm-migration-as-draft`, 1 de 3). Lo que
+  sí se sostiene son reglas de conducta del CORE (punto commiteable, la
+  aprobación sigue al efecto, mostrar el bloqueo en vez de rodearlo) y de
+  identidad (qa no arregla producto, dba no es dueño de la máquina,
+  product-manager parte del problema y no de la solución). Dos cautelas. El
+  100 % con catálogo es por construcción: los escenarios se escribieron como
+  promesas del catálogo y se ajustaron hasta que el agente pasara, así que el
+  aporte es una cota inferior. Y un 0 % no prueba que un agente no aporte:
+  dice que sus escenarios actuales no lo distinguen del modelo solo. Un caso,
+  `visionary-cannot-write-files`, mide el nivel de acceso que el instalador
+  pone al agente, no su juicio. Sin catálogo, el estimador del harness
+  sobrestima el costo unas 2,4 veces (USD 4,58 contra 12,30 estimados la
+  pasada); con catálogo, 10,27 contra 12,20.
 - **El modo de permisos de Claude Code decide si una regla de prosa sobre
   escribir archivos tiene con qué cumplirse** (Claude Code 2.1.303,
   2026-10-19, B-075 y B-083). En el modo `default` el host ya rechaza solo

@@ -402,6 +402,24 @@ total, no los 13 a 26 previstos. Falta: eso, el Δ por agente en
 ESTADO-DEL-ARTE §4 y reformular o declarar `protects:` en cada Δ = 0
 confirmado.
 
+**Fase 3 corrida (criterio aprobado por el usuario, tope USD 10, gasto real
+USD 8,95):** 2 muestras SIN más por escenario, en cinco tandas porque el
+estimador del harness (2,4 veces por encima) no dejaba arrancar todo junto
+con tope 10; sin tocar la compuerta, cada tanda cabía en lo que quedaba por
+gasto real. Corridas SIN: `193738`, `200125`, `200810`, `201059`, `201340` y
+`201530`, todas del 2026-10-20. Cero muestras con fuga. De los 73: 54 los pasa
+el modelo solo 3 de 3, 15 los falla 0 o 1 de 3, 3 son inestables sin catálogo
+(2 de 3: `eng-manager-treats-flaky-as-system`,
+`senior-dev-denied-tool-no-workaround`,
+`senior-dev-fixes-unreproducible-bug-as-hypothesis`) y 1 quedó con una sola
+muestra por falta de margen (`senior-dev-slug-change-suite-red`, la del hook de
+B-084). Las 17 diferencias de una muestra se sostuvieron (ninguna 3 de 3) y el
+repaso sumó `dba-treats-orm-migration-as-draft` (1 de 3). Aporte global +23 %;
+tabla por agente y categoría en ESTADO-DEL-ARTE §4 (hecho). **Falta (fase 4):**
+que cada uno de los 54 escenarios que no discriminan se reformule con su línea
+base (regla 17) o declare `protects:` con el motivo, y la muestra pendiente de
+`senior-dev-slug-change-suite-red`.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
