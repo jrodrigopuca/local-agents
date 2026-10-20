@@ -8,36 +8,118 @@ Each agent is a self-contained package: an identity, a way of reasoning, and the
 skills it loads on demand. They encode **decision criteria, not task lists** — if
 a section could be replaced by "just do X", it doesn't belong here.
 
+## Install
+
+Two ways to get the agents into your tool. Both end with the same files in
+that tool's config folder; the difference is who keeps the catalog's clone.
+
+| You want to… | Use |
+|---|---|
+| Just use the agents, and get updates with one command | **A. `local-hero`** (below) |
+| Read or edit the catalog, contribute, run `validate.py` | **B. Clone the repo** (below) |
+
+Either way you pick ONE tool per install: `claude`, `opencode`, `kiro`,
+`codex`, `antigravity` or `shared` (`~/.agents`, read by opencode and Codex).
+Run it again with another `--tool` for a second tool.
+
+### A. With `local-hero` (no clone to look after)
+
+Needs node 24+, git and Python 3.9+ (macOS, Linux, Windows). `npx` runs it
+straight from GitHub; the catalog is cloned where you never have to look.
+
 ```bash
 npx github:jrodrigopuca/local-hero bootstrap                       # first time: a menu asks what to install, and into which tool
-npx github:jrodrigopuca/local-hero bootstrap --all --tool <tool>   # or say it up front: claude, opencode, kiro, codex, antigravity, shared
-npx github:jrodrigopuca/local-hero check                           # what changed upstream — writes nothing
+npx github:jrodrigopuca/local-hero bootstrap --all --tool claude   # or say it up front
+npx github:jrodrigopuca/local-hero check                           # later: what changed upstream — writes nothing
 npx github:jrodrigopuca/local-hero update                          # pull it and refresh every install
 ```
 
-[local-hero](https://github.com/jrodrigopuca/local-hero) clones the catalog
-where you never have to look and runs its `update.py`. It needs node 24+
-(npm 11), git and Python 3.9+, on macOS, Linux or Windows, and when git or
-Python is missing it says which one and how to get it on your platform. Its
-README covers the menu, every `--tool` key and a global install that drops the
-`npx` prefix. To work from a clone of your own instead:
+`bootstrap` is the only command that installs; everything after it goes to
+`install.py` unchanged, so `--project`, `--dry-run` and the hook flags below
+work here too. `check` and `update` only look after what is already
+installed. To drop the `npx` prefix: `npm install -g github:jrodrigopuca/local-hero`,
+then `local-hero update`. Details in
+[local-hero's README](https://github.com/jrodrigopuca/local-hero).
+
+### B. From a clone of the repo
+
+Needs git and Python 3.9+. No packages, no node.
 
 ```bash
 git clone https://github.com/jrodrigopuca/local-agents.git
 cd local-agents
-./install.py --list                        # see what's available
-./install.py --status                      # see what's installed, and if it's current
-./install.py --refresh                     # bring every installed tool up to date
-./update.py check                          # what changed on GitHub since you installed
-./update.py update                         # pull it and refresh every install
-./install.py --all --tool claude --dry-run # preview
+./install.py --list                        # what's available, which tools were detected
+./install.py --all --tool claude --dry-run # preview: writes nothing
 ./install.py --all --tool claude           # install the whole suite (global)
-./install.py --all --tool claude --project ~/code/repo   # or vendor it into a repo
 ```
 
-On Windows, PowerShell and cmd do not run a script by its first line: call
-Python instead, as in `py -3 install.py --list` or `python update.py check`.
+Later, from the same folder:
+
+```bash
+./install.py --status                      # what's installed, and whether it's current
+./update.py check                          # what changed on GitHub since you installed
+./update.py update                         # pull it and refresh every install
+./install.py --refresh                     # refresh every install from THIS clone, without pulling
+```
+
+On Windows, PowerShell and cmd do not run a script by its first line: put
+Python in front, as in `py -3 install.py --list` or `python update.py check`.
 The CI installs the whole suite into every host on Windows this way.
+
+### Either way, afterwards
+
+- **Into a repo instead of your home config:** add `--project ~/code/repo`.
+  The files land in the repo (`.claude/`, `.codex/`, …) so the setup travels
+  with the code to teammates and CI; commit them.
+- **Optional hooks, Claude Code only:** `--shell-write-guard` refuses file
+  writes through the shell, `--verify-hook` runs the check each repo declares
+  in `.local-agents/verify` before an agent finishes. Both off by default;
+  see [INSTALL.md](INSTALL.md).
+- **One agent, not the suite:** `--agent architect` instead of `--all`
+  (its inherited base and skills come along).
+- **Agents you already have are safe.** The installer updates only what it
+  wrote before; a file it does not know (yours, or another catalog's) or one
+  you edited is left alone with a warning. `--on-conflict overwrite` says
+  "replace it anyway"; the full policy is in [INSTALL.md](INSTALL.md).
+- **To undo:** there is no uninstall flag. Delete the catalog's agent files
+  and its `lh-*` skill folders from that tool's config folder (the table
+  under "Provider support" says where) and the `.local-agents.json` stamp
+  next to them. Nothing else was touched.
+
+Every install leaves a `.local-agents.json` stamp with the catalog commit it
+came from, which is what `--status`, `check` and `update` read.
+
+## Try it
+
+Once installed, you ask for an agent by name; each tool has its own way:
+
+| Tool | Invoke |
+|------|--------|
+| Claude Code | In a session: "use the senior-dev agent to …" (it delegates), or run a whole session as one: `claude --agent senior-dev` |
+| opencode | Press Tab to switch the primary agent (every catalog agent is installed as `mode: primary`), or ask for it by name |
+| Kiro CLI | `kiro-cli chat --agent senior-dev` |
+| Codex | Ask for it by name in the prompt: "have architect review this design" |
+| Antigravity CLI | Named subagents: "use the qa subagent to …" |
+
+The agents run on whatever model your tool is set to: the installed files
+carry no model of their own. Everything else about the host stays yours too:
+permissions, output style, language.
+
+**Did it load?** Ask the agent "what is your evidence ladder?". A catalog
+agent answers with a named ladder (evidence over memory over inference over
+guess) and says which rung it is standing on; a generic answer about testing
+means the prompt did not reach it.
+
+**Two things to try**, and what should look different from a plain assistant:
+
+- `senior-dev`: "Add a `sep` parameter to `parseCSVLine`, default `,`, with
+  tests." It reads the codebase before writing, runs the tests, and ends by
+  naming the commit point with a one-line message, without committing. Ask
+  for the commit and it still waits for your word.
+- `dba`: "We rename a column in Friday's deploy, it's one migration." It
+  treats the rename as a one-way door, lays it out as expand/contract steps,
+  and says what the deploy has to respect. The architect does the same with
+  "I'm splitting the app into microservices this weekend".
 
 ---
 
@@ -65,7 +147,81 @@ Not sure which one you need? Start with `eng-manager` — routing is its job.
 
 ---
 
-## How the agents connect
+## Provider support
+
+| Tool | Agents land in | Skills land in |
+|------|----------------|----------------|
+| Claude Code | `~/.claude/agents/{name}.md` | `~/.claude/skills/{name}/` |
+| opencode | `~/.config/opencode/agents/{name}.md` | `~/.config/opencode/skills/{name}/` |
+| Kiro CLI | `~/.kiro/agents/{name}.json` | `~/.kiro/skills/{name}/` |
+| Codex | `~/.codex/agents/{name}.toml` | `~/.codex/skills/{name}/` |
+| Antigravity CLI | `~/.gemini/config/agents/{name}.md` | `~/.gemini/config/skills/{name}/` |
+| Shared | `~/.agents/agents/{name}.md` + roster in `~/.agents/AGENTS.md` | `~/.agents/skills/{name}/` |
+
+`shared` is the `~/.agents` convention: a skills folder that both opencode and
+Codex read. It has no named-agent concept, so the installer writes the bodies
+plus a short roster into its `AGENTS.md` — the identities stay discoverable
+without putting <!--n:agents-->15<!--/n--> full prompts (~<!--n:agents-kb-->110<!--/n--> KB) into every session's
+context. For named agents in opencode or Codex, install into their own rows.
+
+**Model and context.** An installed agent names no model (`model: inherit`
+in Claude Code, nothing elsewhere): it runs on whatever the session uses.
+Each agent file is 11 to 14 KB with its inherited base inlined, and only the
+agent you invoke enters the context, plus the skill it loads when a trigger
+fires. Skill descriptions (one line each) are what every session pays for.
+
+Each install stamps a `.local-agents.json` with the catalog commit it copied
+from, so `--status` can report how far behind an installed copy is and which
+skills moved. Nothing is versioned by hand — git history is the changelog.
+
+With `--project PATH` the same files land inside the repo (`.claude/`,
+`.opencode/`, `.kiro/`, `.codex/`, `.agents/` for Antigravity or shared);
+`--status --project` tells you whether the committed copy still matches the
+catalog.
+
+You can also **reference** the catalog instead of copying it — see
+[INTEGRATION.md](INTEGRATION.md) for the tradeoff.
+
+## How it is tested
+
+Two layers, two questions.
+
+- **`validate.py`, in this repo: are the files right?** Structure, frontmatter,
+  the conventions in [AGENTS.md](AGENTS.md), inheritance lists, skill ids, the
+  derived counts in this README. Free, runs in CI on every PR, and `tests/`
+  covers what the scripts DO (`python3 -m unittest discover -s tests`).
+- **[`interaction`](https://github.com/jrodrigopuca/interaction), a separate
+  repo: do the agents behave the way the files promise?** It installs the
+  catalog into a real host, gives an agent a task in a throwaway workspace, and
+  a neutral judge grades what the reply delivers (never how it sounds). It asks
+  about routing, handoffs, hard rules under pressure, judgment, whether the
+  inlined CORE actually arrived, and build quality measured by running the
+  code. Every run has a cost cap, and each sample's cost, verdict and trace are
+  saved.
+
+The rule that ties them together (rule 17 in AGENTS.md): **a promise ships
+with its scenario.** A new rule in an agent is a claim about behaviour, and the
+catalog's own checks can only see its text, so the change lands with a
+scenario that is run against the previous version first, then against the new
+one. The numbers go in [BACKLOG.es.md](BACKLOG.es.md), with the run ids, and
+a rule that buys no behaviour gets reverted. Two examples from the log: the
+verify hook went in because with prose alone the agent ran the tests it was
+told it could skip four times out of six, and with the hook six out of six;
+a sentence telling agents to write files through the editing tool moved
+nothing in the measurement and was reverted.
+
+The harness is not needed to use the agents. Clone it only to measure a
+change; its [GUIA.md](https://github.com/jrodrigopuca/interaction/blob/main/GUIA.md)
+walks through every command, and runs need an API budget you set with
+`--max-cost-usd`.
+
+## For contributors
+
+The sections below describe how the catalog is built. You do not need them to
+use the agents. `install.py` needs Python 3.9+ and nothing else; adding a
+tool means appending one `Tool(...)` to its `TOOLS` list.
+
+### How the agents connect
 
 Three layers of relationship hold the suite together:
 
@@ -86,7 +242,7 @@ referenced <!--n:generalist-inbound-->21<!--/n--> times and references nothing.
 > Rendered diagrams for all three layers, plus the load-bearing skills and the
 > reference counts per agent.
 
-## Structure
+### Structure
 
 ```
 {agent-name}/
@@ -114,40 +270,6 @@ catalog installs into several tools, each with its own layout, so a hardcoded
 
 ---
 
-## Provider support
-
-| Tool | Agents land in | Skills land in |
-|------|----------------|----------------|
-| Claude Code | `~/.claude/agents/{name}.md` | `~/.claude/skills/{name}/` |
-| opencode | `~/.config/opencode/agents/{name}.md` | `~/.config/opencode/skills/{name}/` |
-| Kiro CLI | `~/.kiro/agents/{name}.json` | `~/.kiro/skills/{name}/` |
-| Codex | `~/.codex/agents/{name}.toml` | `~/.codex/skills/{name}/` |
-| Antigravity CLI | `~/.gemini/config/agents/{name}.md` | `~/.gemini/config/skills/{name}/` |
-| Shared | `~/.agents/agents/{name}.md` + roster in `~/.agents/AGENTS.md` | `~/.agents/skills/{name}/` (skills read by opencode + Codex; opencode does not read its agents) |
-
-The shared folder has no named-agent concept, so the installer writes the bodies plus a
-short roster into its `AGENTS.md` — the identities stay discoverable without
-putting <!--n:agents-->15<!--/n--> full prompts (~<!--n:agents-kb-->110<!--/n--> KB) into every session's context.
-
-Each install stamps a `.local-agents.json` with the catalog commit it copied
-from, so `--status` can report how far behind an installed copy is and which
-skills moved. Nothing is versioned by hand — git history is the changelog.
-
-Add `--project PATH` to install into a repo instead of your home config
-(`.claude/`, `.opencode/`, `.kiro/`, `.codex/`, `.agents/` for Antigravity, or
-`.agents/` + the root `AGENTS.md` for shared), so the
-setup travels with the code and works for teammates and CI. Commit what it
-writes — that is the point — and `--status --project` tells you whether the
-committed copy still matches the catalog.
-
-`install.py` needs Python 3.9+ and has zero external dependencies. Adding a tool
-means appending one `Tool(...)` to the `TOOLS` list.
-
-You can also **reference** the catalog instead of copying it — see
-[INTEGRATION.md](INTEGRATION.md) for the tradeoff.
-
----
-
 ## Docs
 
 | File | What's in it |
@@ -159,6 +281,7 @@ You can also **reference** the catalog instead of copying it — see
 | [REFERENCE.es.md](REFERENCE.es.md) | Quick human-facing orientation guide *(Spanish, never translated — rule 8)* |
 | [ESTADO-DEL-ARTE.es.md](ESTADO-DEL-ARTE.es.md) | Dated industry survey and what we measured on each host *(Spanish, never translated — rule 8)* |
 | [BACKLOG.es.md](BACKLOG.es.md) | The work: stable IDs, priority, a checkable "done when", and the commits that closed each item *(Spanish, never translated — rule 8)* |
+| [interaction](https://github.com/jrodrigopuca/interaction) *(separate repo)* | The behavioural harness: scenarios, `run.py`, the judge, and a Spanish GUIA; where every rule's numbers come from |
 
 ---
 
