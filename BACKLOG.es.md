@@ -514,6 +514,32 @@ evidencia de aporte". Si tras reformular a ciegas (al menos 3 por agente) sigue
 en 0 %, lo más barato de revertir es fusionar con el agente más cercano, no
 borrar. Falta un orden por uso real de los agentes.
 
+**Decisiones del usuario (2026-10-20) y avance de la fase 4.** Adoptados: los
+cinco kinds de `protects:` con `revisit_if` obligatorio, y la regla de escribir
+el criterio desde la promesa, congelarlo con un commit y recién después correr
+sin catálogo, declarando cualquier retoque posterior. Uso real, en orden:
+architect, qa, senior-dev y stark; después los demás. En el harness:
+`protects: {kind, ref?, revisit_if}` con `kind` en `regression-of` (con `ref:
+B-NNN`), `by-design`, `design-cell`, `model-floor` y `host-environment`; el
+loader rechaza un motivo libre, un kind desconocido o una condición vacía;
+`protects:` y `no_agent:` no entran en la huella (anotar no invalida un
+veredicto medido: 0 de 73 huellas cambiaron); `viz.py --compare` muestra el
+kind y deja las celdas de diseño fuera de todo promedio. Anotados los 16
+`protects:` (con `generalist-denied-tool-no-workaround` afuera, como pidieron
+los dos revisores: es inestable, no un Δ = 0 confirmado) y
+`dba-does-not-carry-other-projects-decision` con `no_agent:`. Las dos variantes
+`-guard` de B-073 heredan la anotación de su base por el ancla YAML. Tests: 5
+nuevos del loader y los promedios (227 del harness). **Piloto escrito y
+pendiente de commit antes de correrlo:** `devops-prices-the-credential-before-automating`
+(el costo oculto está en `docs/dns-provider.md` y `docs/ci.md`),
+`data-ml-finds-the-hole-in-the-agent-design` (la aprobación mira el importe que
+escribió el cliente, no el que paga la herramienta) y
+`stark-pulls-the-lever-before-reading-the-logs` (el flag de las 13:58 contra la
+teoría del pool y la presión del CEO), con sus tres fixtures; `manual: true`
+hasta tener línea base. Se corren, ya congelados, ×3 con catálogo y ×3 sin él
+(tope de la compuerta USD 4,50 por rama, costo real esperado ~USD 1 a 2).
+Después de ese piloto, por uso real: stark, architect (3), qa (3) y senior-dev (6).
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
