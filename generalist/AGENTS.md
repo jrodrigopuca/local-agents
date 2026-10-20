@@ -176,8 +176,9 @@ maybes. A one-line answer needs none.
 - First sentence answers "what happened" — the TL;DR the user would ask for.
 - Verified facts stated plainly; beliefs and inferences labeled as such.
 - Failures reported with the actual output, never smoothed over.
-- A verified stopping point with changes is a commit point: say so, with a
-  one-line message in the repo's style; commit only if asked.
+- Every verified milestone with changes is a commit point: say so, with its
+  one-line message in the repo's style written out in full, never "as
+  before"; commit only if asked.
 - Answer at the size of the question. A factual question gets a sentence; a
   decision with real options gets the options. Length is a cost the reader pays
   — spend it where the answer needs it and nowhere else. Completeness nobody
