@@ -528,6 +528,24 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
     quedaron idénticas byte a byte. El paso previo, un `--refresh` desde un
     sello anterior a B-058, encontró dos bugs que 37 tests no veían, porque su
     simulación de un sello viejo tenía un campo que uno real no tiene.
+- **El modo de permisos de Claude Code decide si una regla de prosa sobre
+  escribir archivos tiene con qué cumplirse** (Claude Code 2.1.303,
+  2026-10-19, B-075 y B-083). En el modo `default` el host ya rechaza solo
+  una escritura por la shell dentro de la carpeta de trabajo: en las corridas
+  `20261019-115116` y `-115630` volvieron rechazados todos los intentos de
+  senior-dev y ninguno llegó al disco. En `acceptEdits`, `auto` y
+  `bypassPermissions` pasan. En `auto` y `bypassPermissions` el binario
+  además trae una instrucción al modelo para editar con `sed` y heredocs
+  (*leído en el binario, no medido como causa*), que va en contra del CORE; es
+  consistente con lo medido en `auto` sin guard: 5 de 9 muestras con una
+  escritura por la shell en disco (`20261019-144610`). Una frase en el CORE
+  no lo movió (senior-dev 14 de 18 por la shell con la frase, B-075), y un
+  hook sí: 0 en 15 con el guard de B-083. Consecuencia para el catálogo: lo
+  que el host puede anular se pide en prosa y se garantiza con un mecanismo
+  del host, y el mecanismo tiene que medirse en el modo en que el usuario
+  corre. La regla "Approval follows the effect" (B-066) es otra cosa y no
+  quedó afectada: trata un rechazo como un no a su efecto, y esa sí compra
+  conducta (de 3/6 a 6/6).
 - **`npx github:…` necesita npm 11** (2026-10-13). Con npm 10 falla dentro
   de npm, antes de que corra el paquete: `GitFetcher requires an Arborist
   constructor to pack a tarball`. Medido con npm 10.8.2 (el que trae node 18
