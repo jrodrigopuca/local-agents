@@ -53,7 +53,9 @@ Load the skills it references when their triggers fire.
 - Optional `hooks:` scopes hooks to one agent. They fire when it is spawned as
   a subagent and when it runs as the main session (`claude --agent`).
   `install.py --shell-write-guard` uses it to hook a `PreToolUse` guard on
-  `Bash` into every `full` agent; see INSTALL.md, "the shell-write guard".
+  `Bash` into every `full` agent, and `--verify-hook` a `Stop` hook that runs
+  the check each repo declares in `.local-agents/verify` before the agent
+  finishes; see INSTALL.md, "the shell-write guard" and "the verify hook".
 - Invoked explicitly ("use the architect agent") or Claude delegates automatically
   when the task matches the description.
 

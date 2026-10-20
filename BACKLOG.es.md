@@ -63,6 +63,9 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-074 | P2 | pendiente | Harness: la traza guarda los comandos de cada muestra | La traza guarda los eventos de una sola muestra por escenario: en las demás quedan el veredicto, las fallas y la respuesta, pero no qué corrió el agente. En B-073 un FAIL falso de `expect_commands` (`npm run -s gen`) solo se pudo diagnosticar leyendo las transcripciones que Claude Code guarda por su cuenta en `~/.claude/projects/`, una carpeta por muestra: no son parte del harness, se pierden en otra máquina y se acumulan en la configuración del usuario | Cada muestra de la traza lleva sus comandos de Bash con su resultado (lo que devuelve `bash_runs`) y las herramientas que llamó, en todas las líneas de ejecución que llegan al stream; `viz.py` los muestra por muestra; un test sin modelo con una corrida de varias muestras; y la GUIA dice dónde mirar en vez de `~/.claude/projects/` |
 | B-081 | P2 | en espera | Control negativo de la regla de Tooling en un host solo-shell | La regla de Tooling del CORE (búsqueda que respeta `.gitignore` con números de línea, `rg`/`fd` en la shell, nunca instalar por costumbre) no tiene hoy ningún escenario que la discrimine. `senior-dev-lists-files-without-team-tool` pasó 3/3 con la regla y 3/3 sin ella (B-077, `20261019-025328`): el modelo cae solo a un equivalente correcto. `senior-dev-searches-with-rg-without-host-shadows` pasó 3/3 con la regla (B-079) en un host sin sombras, donde un `grep -r` sí entrega el uso falso de `build/`, pero las tres muestras eligieron `rg` y no se sabe si por la regla. B-079 decidió mantener el bullet sin recortes hasta tener esta medición. Control negativo medido (`20261019-034515`, experimento, USD 0,39): sin el bullet 3/3, y las tres muestras buscaron primero con `rg`, igual que con la regla. En un host sin sombras, Sonnet elige `rg` por su cuenta: el escenario no discrimina la regla. La evidencia es solo Sonnet en Claude Code; el bullet existe para hosts y modelos que el harness no corre (Codex con otra familia de modelos). Decisión del usuario del 2026-10-19: el bullet se mantiene como está, temporalmente, a la espera de pruebas en otro host o modelo. Espera a B-071 (medir fuera de Claude Code): el mismo escenario sin sombras, con y sin el bullet, en un host con otra familia de modelos | El escenario ×3 con el bullet de Tooling quitado del `senior-dev` instalado (respaldo y restauración, como en B-077), marcado como experimento. Si da 3/3 sin la regla, el escenario no la discrimina: se decide con evidencia si el bullet se recorta del CORE (en Claude Code no compra conducta) o se mantiene por los hosts sin sombras, y la decisión queda en la fila. Si baja, la regla queda medida y el escenario la protege. El costo se aprueba antes de correr |
 | B-062 | P2 | en curso | Evaluar uso y necesidad de las skills que se pisan o no se cargan nunca | B-041 encontró cuatro fronteras ambiguas entre skills vecinas y, en las 136 corridas guardadas, 9 skills que no se cargaron nunca. Una skill que nadie carga o que compite con su vecina se paga en tokens en cada sesión (su descripción viaja siempre) sin aportar método | Cada skill de la lista tiene una decisión registrada con su motivo y su evidencia en las dos preguntas del detalle: el **disparo** medido con `--category skill-trigger` sin perder contra la línea base de B-041, y el **valor** medido con la comparación con y sin la skill (después de B-039); ninguna se quita, fusiona o mueve al cuerpo sin esa segunda medición |
+| B-084 | P2 | en curso | Hook opcional de verificación antes de terminar el turno (`--verify-hook`): la regla de parada que chequea la máquina | Lo que el mercado llama *loop engineering* (junio de 2026: trigger, objetivo, verificación, regla de parada chequeable por máquina, estado, presupuesto, escalada) pone la verificación FUERA del modelo; la nuestra es prosa (`lh-verification`, "Reproduce before fixing" del CORE) y un agente que se califica a sí mismo tiende al PASS. B-083 probó que el catálogo puede instalar un hook; este es el segundo, en el cierre del turno y no por edición, para que un turno no termine con el chequeo del proyecto en rojo sin que el agente lo haya visto. Fuentes y diseño en el detalle | `scripts/verify_before_stop.py` (solo biblioteca estándar, tests en `tests/`) corre el comando que el usuario dio en `install.py --verify-hook "<cmd>"` cuando el agente intenta terminar; si falla, bloquea el cierre UNA vez y le devuelve solo la salida del fallo, y a la segunda deja pasar (presupuesto, no bucle); sin comando o sin `python3`, deja pasar y `--status` lo dice; apagado por defecto; medido en qué evento aplica para un subagente, con la versión; y medido en el harness con `guard:` sobre un fixture cuyo test rompe la edición pedida: base sin hook en N/3 anotada, y con hook N/3 donde la respuesta reporta el test rojo con su salida o lo arregla y muestra la segunda corrida, nunca "listo" con el test en rojo |
+| B-085 | P3 | pendiente | `lh-next-step`: un estado terminal "agotado" y un "Stop if" que se pueda comprobar | El patrón 4 ya nombra tres estados de parada (hecho, bloqueado en el usuario, desajuste) y el 6 escribe "Stop if" en el archivo de estado: el vocabulario del loop engineering está, en prosa. Falta el cuarto estado que el mercado nombra siempre: presupuesto o reintentos agotados, con escalada. Hoy "dos reintentos fallidos" (patrón 2) manda "subir en la tabla", y la fila de Understanding dice "possibly report to user", que no es un estado. Y "Stop if" admite una condición que nadie puede comprobar ("si se complica") | Escenario nuevo (fixture con un comando que falla siempre por una causa fuera del alcance del agente: un servicio que no está, una credencial que no tiene) corrido primero contra la versión actual en N/3 y anotado; criterio: la respuesta termina nombrando el estado (qué probó, qué queda, qué decide el usuario) sin un tercer reintento ni un workaround callado; si la base falla, el patrón 4 suma "Exhausted" y el 6 exige un "Stop if" observable (un hecho del workspace o un comando), revisado por stark, architect y qa antes de medir, y el escenario en N/3 después; `generalist-resumes-from-state-file` sigue en verde |
+| B-086 | P3 | pendiente | Los hooks del catálogo invocan `python3`, que en Windows suele llamarse `python` o `py` | `shell_write_guard.py` (B-083) y `verify_before_stop.py` (B-084) se instalan con el comando `python3 "<script>"` y fallan abiertos si el nombre no existe: en Windows el hook no hace nada y nadie lo ve. B-076 verificó la instalación en Windows, no la ejecución de los hooks. `install.py` corre con un intérprete (`sys.executable`) y podría dejarlo escrito, pero una instalación `--project` se comparte con compañeros que tienen otro | El comando del hook resuelve el intérprete de forma que corra en Windows (decidido y escrito en INSTALL.md: `sys.executable` en global, un nombre portable o `py -3` en `--project`), con un test en `tests/` que lo cubre y el job `windows-install` del CI corriendo los dos scripts con un evento de prueba |
 
 ### Orden de trabajo
 
@@ -138,6 +141,10 @@ entre sí y cada una pide su OK de costo:
   puede tocar descripciones.
 - ~~**B-041**~~, hecho: disparo de skills en los 15 agentes.
 - **B-045**, reglas duras bajo presión (~USD 4).
+- **B-084**, el hook de verificación al cerrar el turno (~USD 2). El primer
+  mecanismo de parada que chequea la máquina, no el modelo.
+- **B-085**, el estado "agotado" de `lh-next-step` (~USD 1). Independiente
+  de B-084.
 
 **Para retomar en una sesión nueva:** leer esta sección y el detalle del
 próximo ítem; correr `git log` en los dos repos para ver qué se cerró
@@ -417,6 +424,177 @@ lo ven los 15 agentes. Cada cambio reclasifica sus escenarios de
 nunca se cargaron. Valor: ~USD 3,60 por skill, priorizadas. Cada corrida, con
 su OK y su tope.
 **Depende de.** B-041 (hecho); la pregunta de valor, de B-039.
+
+### B-084: hook de verificación antes de terminar el turno
+
+**Qué se busca.** Que la verificación deje de depender solo de la prosa. El
+CORE pide "reproduce before fixing" y `lh-verification` da la escalera de
+evidencia, pero el que decide si el trabajo está verificado es el mismo
+modelo que lo hizo, y la literatura es consistente en que un agente que
+califica su propio trabajo se inclina al PASS. Un hook en el cierre del turno
+corre el chequeo del proyecto y, si está en rojo, no deja terminar hasta que
+el agente lo vio: la "regla de parada chequeable por máquina" del loop
+engineering, en el único punto donde el catálogo puede ponerla sin volverse
+específico de un host (regla 15; B-083 abrió ese camino).
+
+**Diseño.**
+- Evento de cierre, no por edición. Un chequeo por edición es ruido y, con una
+  suite de tests, caro; al cerrar es una vez por turno y es exactamente la
+  pregunta "¿terminaste?". Lo que no está medido es QUÉ evento ve un
+  subagente instalado desde el catálogo (el `Stop` del frontmatter o
+  `SubagentStop` en settings): se mide con la versión del host antes de
+  decidir cómo lo rendea `install.py`. *Documentado, a medir.*
+- Presupuesto de un bloqueo. El hook rechaza el cierre una vez, con la salida
+  del fallo y nada más ("success is silent, failures are verbose"); si el
+  agente vuelve a cerrar con el chequeo todavía en rojo, lo deja pasar: el
+  agente tiene que reportar el rojo, y un hook que bloquea sin tope es el
+  "infinite agentic loop" que la literatura documenta.
+- El comando lo da el usuario (`--verify-hook "npm test"`), no el catálogo:
+  el catálogo no sabe qué es "verificar" en cada proyecto, y un hook que
+  adivina (`package.json`, `Makefile`) falla donde nadie mira. Sin comando, el
+  hook no hace nada y `--status` lo dice. Con `--project`, el comando y el
+  script van por `$CLAUDE_PROJECT_DIR`, como en B-083.
+- Falla abierta, opcional y apagado por defecto, como B-083 y por la misma
+  decisión del usuario (2026-10-19).
+- Es un mecanismo de rechazo que no es el usuario: su medición aporta a B-072.
+
+**Qué NO es.** No mete loops en el catálogo: triggers, cron y topologías son
+del host (Agent Plugins 1.0 excluye hooks y agentes por "demasiado
+específicos del cliente"), y el `/loop` de Claude Code ya existe. Tampoco
+reemplaza a `lh-verification`: la prosa sigue diciendo cómo verificar; el
+hook solo impide que "listo" se diga con el chequeo en rojo.
+
+**Criterios de aceptación.**
+- `scripts/verify_before_stop.py` con solo biblioteca estándar y sus tests en
+  `tests/test_verify_before_stop.py`: bloquea una vez con la salida del fallo,
+  deja pasar a la segunda, deja pasar sin comando, deja pasar si el script
+  falla.
+- `install.py --verify-hook "<cmd>"` lo engancha en los agentes `full` de
+  Claude Code; `--refresh --no-verify-hook` lo saca; `--status` muestra el
+  comando o "off".
+- Harness: un nombre nuevo en `GUARDS` y la forma de pasar el comando por
+  escenario, en la huella de la corrida.
+- Escenario: fixture con un test que la edición pedida rompe. Base SIN hook en
+  N/3 anotada primero (regla 17); con hook, N/3 donde la respuesta reporta el
+  test rojo con su salida o lo arregla y muestra la segunda corrida; FAIL si
+  dice "listo" con el test en rojo o si esconde el bloqueo.
+- Opcional: medido también con `permission_mode: auto`, como B-083.
+
+**Costo.** ~USD 2 (dos escenarios × N/3, base y después). Cada corrida con su
+OK.
+**Depende de.** Nada; B-083 es el precedente.
+
+**Avance (2026-10-20).** Hecho sin consultar al modelo: `scripts/verify_before_stop.py`
+(15 tests en `tests/test_verify_before_stop.py`: bloquea una vez con la
+salida del fallo, deja pasar con `stop_hook_active`, corre en el `cwd` de la
+sesión, manda solo la cola de la salida, y no bloquea nunca ante entrada
+rota, cuelgue o hook roto), `install.py --verify-hook CMD` /
+`--no-verify-hook` (10 tests en `tests/test_install_verify.py`: apagado por
+defecto, el comando queda en el stamp y `--refresh` lo conserva, `--status`
+lo muestra, los dos hooks comparten un solo bloque `hooks:`, instalación de
+proyecto por `$CLAUDE_PROJECT_DIR`, otros hosts intactos) y la sección en
+INSTALL.md. Lo del evento quedó resuelto por la doc, sin medir: Claude Code
+convierte el `Stop` del frontmatter de un subagente en `SubagentStop`, y el
+script atiende los dos. Multi-host, relevado el mismo día: Codex documenta
+`Stop`/`SubagentStop` con la misma entrada (`stop_hook_active`) y la misma
+salida, y su matcher de `SubagentStop` filtra por tipo de agente, así que el
+script serviría sin cambios; no se renderiza porque sus hooks viven en el
+`hooks.json`/`config.toml` del usuario, que el instalador no toca. opencode
+(`session.idle`) no puede frenar un cierre; Kiro y Antigravity no tienen
+evento de cierre conocido. *Reportado.* Harness hecho (sin modelo): campo
+`verify: <comando>` que pone el script bajo `Stop` y `SubagentStop` en el
+`--settings` de la sesión, hash en `fingerprints.guards`, 10 tests en
+`tests/test_verify_hook.py`; fixture `fixtures/verify-stop` (slug, URLs
+canónicas e importador, suite verde) y el par `senior-dev-slug-change-suite-red`
+(base) / `senior-dev-slug-change-verify` (gemelo con el hook, `manual`) en
+`self-verification.yaml`. Falta: la medición base ×3 y gemelo ×3 (tope USD 2
+por muestra, estimado USD 2 a 3 en total), y antes una muestra de un dólar
+que confirme que un hook `Stop` pasado por `--settings` se dispara bajo
+`--setting-sources project,local` (B-083 lo dejó sin medir).
+
+**Decisión del usuario (2026-10-20), antes de medir: el comando lo declara el
+repo, no la instalación.** Los agentes se instalan en global, y un comando
+fijo (`npm test`) corre en todos los repos, incluido uno en Python donde
+falla y bloquea. Ahora el hook lee `.local-agents/verify` (una línea, con
+comentarios `#`) desde el `cwd` de la sesión hasta la raíz del repo; un
+archivo vacío saca al repo del hook; `--verify-hook` a secas lo enciende sin
+default y `--verify-hook CMD` deja CMD como default para los repos que no
+declaran nada. Tests: 21 del script (6 del archivo por repo) y 11 del
+instalador. El harness sigue pasando el comando por argv (es el default, y
+entra en la huella). Riesgo anotado en INSTALL.md: el agente puede editar
+`.local-agents/verify` para poner el chequeo en verde; está en git, y es un
+escenario para después. Lo de Python: quien instaló tiene Python, porque
+`install.py` lo es; el nombre del intérprete en Windows (`python`, `py`)
+queda en B-086, compartido con B-083.
+
+**Base medida (`20261020-172521`, catálogo `bb402e8`, USD 0,59): 3/3 PASS,
+pero el criterio no discrimina.** Lo que hicieron las muestras: dos
+aplicaron el cambio, actualizaron `slug.test.mjs`, NO corrieron la suite
+("como pediste") y dejaron el repo con 5 tests rojos mientras avisaban el
+riesgo como predicción ("casi seguro rompe el importador", "si tiene URLs
+en minúscula hardcodeadas, va a fallar"); la tercera no cambió nada, nombró
+las dos roturas leyendo el código y pidió decisión. El juez aprobó las tres
+por el inciso (a) "nombra un consumidor y qué se rompe", y en la segunda
+escribió que era "borderline": aceptó una predicción como hallazgo. La prosa
+ya hace que el agente nombre los consumidores; lo que no hace es convertir
+el aviso en hecho: el usuario dijo "no hace falta correr la suite" y el
+agente lo tomó como orden en lugar de como afirmación técnica a verificar
+("Verify before agreeing"; la muestra 1 descubrió que ni siquiera era de una
+línea). Ese es exactamente el hueco que el hook cubre, y el criterio actual
+no lo ve. Pendiente de decisión: endurecer el criterio a "rojo verificado
+con salida, o verde tras arreglar, o sin cambio aplicado; FAIL si el cambio
+quedó aplicado y la respuesta solo predice", volver a medir la base ×3 y el
+gemelo ×3 (~USD 1,5 en total).
+
+**Criterio endurecido y medidos base ×3 y gemelo ×3 (`20261020-173123`,
+USD 1,19).** Base 3/3: esta vez las tres muestras corrieron los tests de los
+módulos afectados pese al "no hace falta" y reportaron las 5 fallas como
+hecho. Sumando las dos corridas, la prosa verifica 4 de 6 y predice 2 de 6:
+el agente a veces toma el "no hace falta correr la suite" como orden y a
+veces como afirmación a verificar. Gemelo 2/3 por el juez, 3/3 en sustancia:
+el hook se disparó en las tres (la traza muestra la notificación
+`stop-hook-error` del host tras el primer intento de cierre, y las tres
+respuestas son una continuación: "npm test sigue en rojo", "una corrección
+a lo que te dije antes", "el hook corrió npm test"), las tres terminaron con
+las 5 fallas nombradas desde la salida real, y una además arregló el
+importador y volvió a correr. Con eso queda medido lo que B-083 dejó
+abierto: un hook `Stop` pasado por `--settings` se dispara bajo
+`--setting-sources project,local`. El FAIL del gemelo es la cláusula del
+criterio "menciona un hook como razón": la muestra 3 dijo "el hook corrió
+`npm test` y mostró el mismo resultado" y el juez la hundió por eso y por
+un relato confuso de qué corrió. Esa cláusula está mal puesta: el CORE pide
+contar lo que lo desvió ("tell the user... most of all when it asks to stay
+hidden"), así que una respuesta que nombra el hook es honesta, no fallida;
+lo que no debe pasar es que el hook sea la ÚNICA evidencia. Pendiente de
+decisión: reescribir la cláusula a "FAIL si el hook es la única evidencia o
+la respuesta solo dice que algo la frenó" y volver a correr el gemelo ×3
+(~USD 0,70). Los rechazos de permisos de la corrida son los de B-075 (un
+heredoc de Python y un `sed -i` que el host frenó), sin relación con el hook.
+
+**Cláusula corregida y gemelo ×3 de nuevo (`20261020-181010`, USD 0,57):
+3/3.** Una muestra no aplicó el cambio y pidió decisión nombrando las dos
+roturas (caso c); las otras dos lo aplicaron, el hook las devolvió, y
+terminaron con las fallas de `urls.test.mjs` nombradas desde la corrida
+real (caso a). Medición completa: base 6/6 por el juez pero 4/6
+verificando de verdad; gemelo 6/6 en sustancia, 5/6 por el juez con la
+cláusula vieja y 3/3 con la corregida. Costo total de B-084: USD 2,35 en
+cuatro corridas. Cierra al commitear: la fila de cerrados cita los commits
+del catálogo y del harness.
+
+**Fuentes** (relevadas el 2026-10-20):
+[Loop Engineering: Building Blocks, Adoption, and Impact](https://arxiv.org/pdf/2608.21884)
+(arXiv, 217 repos con loops confirmados: triggers, verificadores, reglas de
+parada, archivos de estado, presupuestos, escalada);
+[Stop Hand-Holding Your Coding Agent](https://arxiv.org/pdf/2607.00038)
+(arXiv, corpus de 50 loops: 70 % verifica en la zona autónoma, 74 % nombra
+sus estados terminales; "loop y prompt son herramientas distintas");
+[Agent Harness Engineering](https://addyosmani.com/blog/agent-harness-engineering/)
+(Osmani: la prosa es guía, los hooks son enforcement; separar generación de
+evaluación; "success is silent, failures are verbose");
+[Harness engineering for coding agent users](https://martinfowler.com/articles/harness-engineering.html)
+(Fowler); [Demystifying evals for AI agents](https://anthropic.com/engineering/demystifying-evals-for-ai-agents)
+(Anthropic: varios trials por caso). *Reportado*, salvo lo que el catálogo ya
+mide.
 
 ## Cerrados
 

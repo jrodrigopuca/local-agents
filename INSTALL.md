@@ -383,6 +383,8 @@ to count commits, without downloading old file contents.
 | Guided menus | `./install.py` |
 | **Claude Code: refuse file writes through the shell** | `./install.py --all --tool claude --shell-write-guard` |
 | Take that guard out again | `./install.py --refresh --no-shell-write-guard` |
+| **Claude Code: run each repo's declared check before an agent finishes** | `./install.py --all --tool claude --verify-hook` |
+| Take that hook out again | `./install.py --refresh --no-verify-hook` |
 
 The standalone skill format is `agent:skill` (run `--list` if you don't recall
 the name). You can also provide just the skill name if it is unique.
@@ -427,6 +429,73 @@ the file, and `auto` and `bypass` even tell the model to edit that way.
 - Needs `python3` on the PATH. Where the command is missing the hook fails
   open, as above. Other hosts: not rendered yet. Kiro's agent JSON has
   `hooks.preToolUse`, but how a hook blocks there has not been verified.
+
+---
+
+## Optional: the verify hook (Claude Code)
+
+The CORE asks an agent to verify before claiming done, and `lh-verification`
+says how; but the one judging whether the work is verified is the model that
+did it, and a model grading its own work leans to PASS. `--verify-hook` puts
+that judgment outside the model (B-084): when an agent tries to finish, the
+repo's own check runs, and if it is red the agent is sent back once with the
+failure. It is the "machine-checkable stop rule" of loop engineering, in the
+one place the catalog can put it without becoming host-specific.
+
+```bash
+./install.py --all --tool claude --verify-hook        # once, globally
+printf 'npm test\n' > .local-agents/verify             # in each repo that wants it
+```
+
+- **Each repo declares its check** in `.local-agents/verify`: one line, the
+  command (`npm test`, `pytest -q`, `go test ./...`, `swift test`,
+  `make check`), `#` comments allowed. The hook looks for it from the
+  session's working directory up to the repo root (the first directory with
+  `.git`). Commit the file: the whole team gets the same check. An empty file
+  (or comments only) opts the repo OUT, default included. The agents install
+  globally and one command cannot fit every repo, so the catalog never infers
+  one from `package.json` or a `Makefile`: a hook that guesses fails where
+  nobody is watching.
+- **`--verify-hook 'npm test'` records a default** for repos that declare
+  nothing. Without one, a repo without the file is silent. A bare
+  `--refresh --verify-hook` keeps the recorded default; a new CMD replaces it.
+- It copies `scripts/verify_before_stop.py` to `~/.claude/hooks/local-agents/`
+  and adds a `Stop` hook to the frontmatter of every `access: full` agent.
+  Claude Code turns a subagent's `Stop` into `SubagentStop` (documented), so
+  it fires when the agent finishes a delegation and when it runs as the main
+  session. Your `settings.json`, your main session and other agents are not
+  touched.
+- Green is silent. Red blocks the stop ONCE, with the exit code and the last
+  lines of the output as the reason the agent sees: fix it and run the check
+  again, or finish by reporting the failure. The second attempt to finish
+  goes through whatever the check says: one block per turn is a budget, not
+  a loop (Claude Code also caps stop-hook continuations at 8).
+- The agent can edit `.local-agents/verify` like any file. It is in git, so
+  a check turned into `true` shows in the diff; review it as you would a
+  deleted test.
+- Fail-open: nothing declared and no default, a check that cannot start, a
+  timeout (`LOCAL_AGENTS_VERIFY_TIMEOUT` seconds, default 300), bad input or
+  a bug in the hook never block; the reason goes to stderr. A declared
+  command that does not exist IS a red check (`command not found`, exit
+  127): you see the mistake in the agent's reply, not a silent pass.
+- Needs `python3` on the PATH, as the shell-write guard does; without it the
+  hook fails open. You have Python if you ran `install.py`; teammates of a
+  `--project` install may not, and for them the hook does nothing. The
+  interpreter's name on Windows (`python`, `py`) is not handled yet (B-086).
+- Off for one session: `LOCAL_AGENTS_VERIFY_HOOK=off` in Claude Code's
+  environment. Off for good: `./install.py --refresh --no-verify-hook`.
+- `--refresh` keeps the choice and the default (both in the stamp);
+  `--status` prints a `verify` line per Claude Code install. With
+  `--shell-write-guard` both hooks share the agent's one `hooks:` block.
+- With `--project`, the hook points at `$CLAUDE_PROJECT_DIR/.claude/hooks/…`,
+  and runs only once the folder is trusted, never under `claude -p`.
+- Other hosts: not rendered yet. The script is host-neutral (JSON in, JSON
+  out, the default on argv). Codex documents `Stop`/`SubagentStop` with the
+  same input and output and a `SubagentStop` matcher on the agent type, so it
+  could carry this script unchanged, but its hooks live in your
+  `~/.codex/hooks.json` or `config.toml`, which the installer does not touch.
+  opencode's `session.idle` cannot block a stop; Kiro and Antigravity have no
+  known stop event. There the agents keep verifying in prose, as today.
 
 ---
 
