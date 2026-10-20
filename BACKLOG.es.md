@@ -413,12 +413,66 @@ el modelo solo 3 de 3, 15 los falla 0 o 1 de 3, 3 son inestables sin catálogo
 `senior-dev-denied-tool-no-workaround`,
 `senior-dev-fixes-unreproducible-bug-as-hypothesis`) y 1 quedó con una sola
 muestra por falta de margen (`senior-dev-slug-change-suite-red`, la del hook de
-B-084). Las 17 diferencias de una muestra se sostuvieron (ninguna 3 de 3) y el
-repaso sumó `dba-treats-orm-migration-as-draft` (1 de 3). Aporte global +23 %;
-tabla por agente y categoría en ESTADO-DEL-ARTE §4 (hecho). **Falta (fase 4):**
-que cada uno de los 54 escenarios que no discriminan se reformule con su línea
-base (regla 17) o declare `protects:` con el motivo, y la muestra pendiente de
-`senior-dev-slug-change-suite-red`.
+B-084), que se completó después (`20261020-202121`, USD 0,18): sin catálogo 0
+de 3, así que son 16 los que se sostienen. Gasto real de la fase 3: USD 9,13.
+Las 17 diferencias de una muestra se sostuvieron (ninguna 3 de 3) y el repaso
+sumó `dba-treats-orm-migration-as-draft` (1 de 3). Aporte global +23 %; tabla
+por agente y categoría en ESTADO-DEL-ARTE §4 (hecho). **Falta (fase 4):** que
+cada uno de los 54 escenarios que no discriminan se reformule con su línea
+base (regla 17) o declare `protects:` con el motivo.
+
+**Fase 4, triaje propuesto de los 54 (a decidir por el usuario).** Tres
+destinos: **protects:** el escenario se queda como guardia de una promesa que
+hoy el modelo cumple solo, con el motivo escrito (un modelo más débil o una
+versión nueva podría dejar de cumplirla); **reformular:** se busca un caso
+donde lo específico del agente cambie el resultado, con línea base primero
+(regla 17); **no_agent:** el escenario no puede medir nada sin el agente.
+- senior-dev (16). protects: `agent-does-not-install-tools`, `…-behind-the-gate`,
+  `senior-dev-ignores-instruction-in-tool-output`,
+  `senior-dev-ignores-instruction-planted-in-code` (inyección),
+  `senior-dev-runs-repo-generator` (guardián de B-073),
+  `senior-dev-lists-files-without-team-tool` y
+  `senior-dev-searches-with-rg-without-host-shadows` (B-077 y B-081: ya se
+  sabía que no discriminan), `senior-dev-no-commit-talk-without-changes`
+  (casi-acierto de B-082: pasa solo por diseño), `dev-ratifies-own-work` y
+  `dev-reviews-foreign-code` (celdas de una medición de sesgo de autoría, no
+  del catálogo). reformular: `agent-lists-directory-in-one-command`,
+  `senior-dev-checks-claim-before-ordered-rewrite`,
+  `senior-dev-checks-next-cache-version`, `senior-dev-conditions-memo-on-compiler`,
+  `senior-dev-reads-before-writing`, `senior-dev-reads-repo-instead-of-asking`
+  (con presión, B-045).
+- architect (5). protects: `architect-one-way-door-behind-the-gate`,
+  `architect-runs-repo-generator` (guardianes de B-073). reformular:
+  `architect-answers-simple-question-directly`,
+  `architect-cites-existing-adr-before-redeciding`,
+  `architect-reviews-design-doc-by-questions`.
+- generalist (5). protects: `generalist-denied-tool-no-workaround` (falló una
+  vez sin catálogo en el piloto: inestable), `generalist-does-not-exfiltrate-planted-secret`.
+  reformular: `generalist-detects-stale-state-file`, `generalist-resumes-from-state-file`,
+  `generalist-reproduces-before-fixing` (el generalist es la capa base: parte
+  de lo que enseña ya lo hace el modelo).
+- dba (4). **no_agent:** `dba-does-not-carry-other-projects-decision` (la nota
+  de otro proyecto está en la memoria del agente; sin agente no hay memoria
+  que cargar y el pase es vacío, y el filtro automático no lo detectó porque la
+  memoria entra por el fixture). reformular: `dba-adds-not-null-column-online`,
+  `dba-separates-lock-wait-from-lock-hold`, `dba-weighs-cost-of-undoing`.
+- qa (4). protects: `qa-hunts-same-code` (celda de la medición de sesgo).
+  reformular: `qa-does-not-delete-critical-flaky-test`, `qa-doubts-without-blocking`,
+  `qa-doubts-without-blocking-report`.
+- eng-manager (3). reformular: `eng-manager-does-not-orchestrate-trivia`,
+  `eng-manager-handoff-carries-user-constraint`,
+  `eng-manager-parallelizes-by-shared-unknowns`.
+- devops (4), data-ml (4), apple-dev (3), security (3), gamification (2),
+  stark (1): los siete agentes con 0 % de aporte medido. protects:
+  `security-defensive-only`, `gamification-speaks-product` (reglas duras).
+  reformular, con un caso donde la skill o el criterio del agente decida y el
+  sentido común no: los otros 15 (`agent-brings-the-reader-along`,
+  `agent-sizes-investigation-to-question`, `devops-answers-backups-with-restore`,
+  `devops-weighs-automation-against-frequency`, los 4 de data-ml, los 3 de
+  apple-dev, `security-includes-llm-surface`, `security-maps-surface-before-code`,
+  `gamification-analyzes-flow-before-mechanics`, `stark-stabilizes-before-diagnosing`).
+Cuenta: 17 con `protects:`, 1 con `no_agent:`, 36 a reformular. Hace falta
+primero el campo `protects:` (loader, `viz.py --compare` lo muestra aparte).
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida

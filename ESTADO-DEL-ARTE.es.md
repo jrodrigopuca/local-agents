@@ -532,7 +532,7 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   5.5, 2026-10-20, B-038). Los mismos 73 escenarios en la misma instalación
   (`e2cca79`) con el agente del catálogo (`20261020-193010`) y en una sesión
   neutral sin `--agent` y sin agentes ni skills en el workspace, tres
-  muestras cada uno (`20261020-193738` y cinco tandas, USD 13,53 en total).
+  muestras cada uno (`20261020-193738` y seis tandas más, USD 13,71 en total).
   Con catálogo pasan 73 de 73; sin catálogo, el 77 % de las muestras. El
   aporte, medido como 100 % menos la tasa de aciertos del modelo solo, es
   +23 % en general: hard-rule +41 %, self-verification +25 %, judgment +17 %,
@@ -541,8 +541,8 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   senior-dev +21 % (22), qa +20 % (5); apple-dev, data-ml, devops,
   gamification, generalist, security y stark, 0 % (1 a 5 escenarios cada
   uno). De los 73: 54 los pasa el modelo solo 3 de 3 (el escenario no
-  discrimina), 15 los falla 0 o 1 de 3 (el aporte se sostiene), 3 son
-  inestables sin catálogo (2 de 3) y 1 tiene una sola muestra. Las 17
+  discrimina), 16 los falla 0 o 1 de 3 (el aporte se sostiene) y 3 son
+  inestables sin catálogo (2 de 3). Las 17
   diferencias vistas con una muestra se sostuvieron todas: ninguna terminó
   3 de 3 sin catálogo; el repaso encontró, además, una que la primera
   muestra no mostraba (`dba-treats-orm-migration-as-draft`, 1 de 3). Lo que
