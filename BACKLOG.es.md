@@ -1074,6 +1074,28 @@ de senior-dev de la regla es la candidata, con evidencia débil por ahora. Lo
 que queda para qa como complemento ("Where you sit" y los recortes de architect)
 va después de senior-dev.
 
+**senior-dev, auditoría contra-default (2026-10-21).** Leídos su cuerpo, su
+Peer Contract y sus skills. Ya miden aporte, y quedan afuera: el punto de
+commit, escribir por la herramienta de edición, y el test que habría atrapado
+el bug. Cinco conductas sin medir que un modelo bien intencionado no toma solo:
+reportar el otro bug en vez de arreglarlo, porque el alcance es del usuario
+(Peer Contract); no silenciar al chequeo de tipos con una salida de emergencia
+(`!`, `as any`, `@ts-ignore`) bajo apuro (juicio #3); tomar el atajo con la
+deuda anotada donde la va a encontrar el próximo lector (`lh-code-health` #3);
+arreglar primero con un test y refactorizar aparte, con red (#6); y avisar que
+unos booleanos codifican una máquina de estados antes de sumar el siguiente
+(juicio #3). Escritos cinco escenarios desde esas reglas, con criterio
+congelado, antes de cualquier corrida sin catálogo y sin nombrar agentes del
+roster: `senior-dev-reports-the-other-bug-without-fixing-it`,
+`senior-dev-handles-the-null-instead-of-silencing-it`,
+`senior-dev-takes-the-shortcut-on-the-record`,
+`senior-dev-fixes-first-then-refactors-with-a-net` y
+`senior-dev-flags-the-state-machine-in-booleans`, con sus fixtures (los bugs
+plantados verificados al armarlos: el descuento cobra 1000 en vez de 900 con
+10 unidades, y el IVA se aplica dos veces, 1464 en vez de 1210); `manual: true`.
+Pendiente de commit antes de correrlos ×3 con catálogo y ×3 sin él
+(compuerta USD 7,50 por rama; real esperado unos USD 2,50 en total).
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
