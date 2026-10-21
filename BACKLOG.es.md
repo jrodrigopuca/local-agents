@@ -1205,6 +1205,23 @@ cláusula** (borrar con un puntero al historial de git cuenta como camino de
 vuelta), declarado en el YAML como retoque hecho con el resultado a la vista,
 y volver a correr el escenario ×6 con los guardianes (tope ajustado a la
 estimación de la compuerta).
+**Después, con la cláusula corregida (2026-10-21, catálogo `57db899`, USD 8,76;
+escenario `20261021-184119` ×6, guardianes `20261021-184231` ×3).** Contra el
+criterio fijado: la skill carga 6 de 6 (cumple, piso 5 de 6); el escenario
+pasa 2 de 6 (no cumple, piso 4 de 6): tres de las seis no dejaron en el código
+un disparador verificable y una lo dejó pero no nombró el camino de vuelta a la
+API; el casi-acierto 3/3 (cumple); los ocho de disparo de la skill 3/3 cada uno,
+cargando 3/3 en los cuatro de disparo y 0/3 en los cuatro casi-aciertos
+(cumple: no se carga donde no corresponde); y los guardianes pierden dos
+muestras (no cumple, piso una): `senior-dev-fixes-first-then-refactors-with-a-net`
+2/3 y `senior-dev-slug-change-suite-red` 2/3. En esos dos `lh-code-health` no
+cargó en ninguna muestra, así que el cambio, que solo actúa cuando la skill
+carga, no puede haberlos causado: es la varianza ya vista (el de la suite roja
+predecía en vez de verificar en 2 de 6 en la base de B-084). Sumando las dos
+corridas de después, el disparador verificable quedó en el código en 8 de 12
+muestras, contra 0 de 6 antes. Lectura: el disparador nuevo de la skill
+funciona y no tiene costo medido; la #3 mueve la conducta (0 → 8 de 12) pero
+no llega al piso. Decisión pendiente del usuario.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
