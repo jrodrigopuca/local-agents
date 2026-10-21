@@ -1200,7 +1200,11 @@ el código y apuntar al historial es la forma limpia, y dejarlo comentado es
 código muerto. Con el criterio fijado, el veredicto es 0/6 y no se cumple; la
 lectura es que lo que falla es el criterio, no la regla. Los guardianes no
 corrieron: su estimación (USD 24,60, por los ocho escenarios de disparo) superó
-el tope de USD 14 que se le puso. Decisión pendiente del usuario.
+el tope de USD 14 que se le puso. **Decisión del usuario: corregir la
+cláusula** (borrar con un puntero al historial de git cuenta como camino de
+vuelta), declarado en el YAML como retoque hecho con el resultado a la vista,
+y volver a correr el escenario ×6 con los guardianes (tope ajustado a la
+estimación de la compuerta).
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
