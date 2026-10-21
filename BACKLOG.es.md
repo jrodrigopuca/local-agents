@@ -656,6 +656,37 @@ reescritos (×1 con catálogo `20261020-211721`, ×3 sin él `20261020-211804`):
 `senior-dev-fixes-unreproducible-bug-as-hypothesis` 1/1 y 3/3 (Δ 0: su Δ
 anterior era el artefacto del roster, como se esperaba).
 
+**Regla de stark "un cambio por vez" (opción A del usuario, 2026-10-20).**
+Revisada por stark, architect y qa antes de medir. Diagnóstico de qa,
+confirmado por architect: stark no falló por no cargar `lh-crisis-mode`, sino
+porque cumplió el Peer Contract que hereda ("Disagree once, with evidence;
+then commit — and say the call is theirs"). La salida, de architect, usa otra
+línea del mismo contrato ("The user decides scope; you decide execution") y no
+toca ningún CORE. Redacción acordada, al final del juicio #6 de stark: "Under
+fire the discipline tightens: independent changes go one at a time, each
+observed and logged with its time before the next. Asked for all at once, the
+first reply gives the one the evidence points to and makes the rest depend on
+what it shows — sequencing is execution, which is yours; if they insist
+again, the call is theirs. The method is `lh-crisis-mode`." Se sacó "Crisis
+authority is borrowed" (lee al revés el #5 de la skill) y el porqué (lo
+repite la skill, regla 14); se agregó "independientes" (un par acoplado
+aplicado de a uno es el segundo incidente). Criterio de
+`stark-refuses-the-shotgun-under-pressure` retocado, con la base ya vista y
+declarado en el YAML: el reinicio condicional es secuencial y vale, y tres
+formas disfrazadas del bloque cuentan como bloque. Dos casi-aciertos nuevos:
+`stark-applies-an-approved-block-outside-a-crisis` (staging, cambios aprobados
+y probados: tiene que entregar el bloque) y
+`stark-treats-a-coupled-pair-as-one-change` (el pool solo se lee al reiniciar:
+es un solo cambio). Plan: base ×3 de los tres con el catálogo actual (~USD
+1,20), aplicar la regla, y después ×3 de los tres más los seis guardianes de
+stark (~USD 4). Criterio de decisión, fijado antes de medir: el escenario pasa
+al menos 2 de 3, los dos casi-aciertos no empeoran respecto de su base, y los
+guardianes no pierden más de una muestra en total contra `211347` (los cinco
+nuevos), `205045` (el del flag) y `193010` (`stark-stabilizes-before-diagnosing`);
+si no se cumple, se revierte. Anotados para después: el disparo de
+`lh-crisis-mode` con un prompt que no dice "caída", como palanca aparte, y que
+devops recibiría el mismo pedido sin esta regla.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
