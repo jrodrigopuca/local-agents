@@ -1221,7 +1221,13 @@ predecía en vez de verificar en 2 de 6 en la base de B-084). Sumando las dos
 corridas de después, el disparador verificable quedó en el código en 8 de 12
 muestras, contra 0 de 6 antes. Lectura: el disparador nuevo de la skill
 funciona y no tiene costo medido; la #3 mueve la conducta (0 → 8 de 12) pero
-no llega al piso. Decisión pendiente del usuario.
+no llega al piso. **Decisión del usuario (2026-10-21): se mantienen las dos.**
+El disparador nuevo cumplió su parte del criterio sin costo medido. La #3 queda
+anotada como mejora que no llegó al piso fijado (8 de 12 dejan el disparador
+verificable, contra 0 de 6; el escenario pasa 2 de 6 contra un piso de 4 de 6),
+sin daño observado; se mantiene por decisión explícita del usuario, no porque
+haya cumplido el criterio. Si una corrida futura del escenario baja de 2 de 6,
+o un guardián cae en una muestra donde `lh-code-health` sí cargó, se revisa.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
