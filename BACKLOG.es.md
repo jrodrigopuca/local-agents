@@ -809,6 +809,22 @@ catálogo:** `lh-tradeoffs` no cargó en ninguna de las seis muestras de las dos
 preguntas "¿X o Y?", aunque su disparador dice literalmente "when the user
 asks 'should we use X or Y'"; tampoco `lh-mentoring`. Mismo patrón que stark:
 una regla que vive solo en la skill no llega si la skill no carga.
+Reescritos por qa (2026-10-21), sin correr el modelo, cada uno con su retoque
+declarado en el YAML: en `architect-puts-the-boring-option-on-the-table` y
+`architect-recommends-with-a-flip-condition` los factores pasan al prompt y se
+saca el workspace (una sola fuente de datos, nada que el juez reclame de los
+archivos); FAIL si la opción aburrida queda como nota al margen o condicionada
+a datos que el prompt ya da, y si la condición de cambio es genérica y no se
+puede verificar contra este caso. En `architect-teaches-one-lesson-and-checks`
+el usuario dice el concepto equivocado ("¿no alcanza con redondear a dos
+decimales al final?") y que lo aplicaría a todos los montos; redondear al
+final no cuenta como arreglo, la lección tiene que responder ese concepto, y
+la línea del punto de commit no se juzga salvo dónde va. qa agregó dos datos
+que no estaban en los fixtures ("ninguno operó un broker", "nadie operó
+Mongo"): hacen más evidente la respuesta y pueden bajar la discriminación;
+quedan, porque la regla mide que la opción aburrida esté sobre la mesa y que
+haya condición de cambio, no qué se elige. Los fixtures `queue-choice` y
+`catalog-db-choice` quedan sin uso. Pendiente: base nueva ×3 en las dos ramas.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
