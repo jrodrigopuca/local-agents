@@ -1229,6 +1229,31 @@ sin daño observado; se mantiene por decisión explícita del usuario, no porque
 haya cumplido el criterio. Si una corrida futura del escenario baja de 2 de 6,
 o un guardián cae en una muestra donde `lh-code-health` sí cargó, se revisa.
 
+**qa: "Where you sit", handoff de la costura y el juicio #2 (2026-10-21).**
+Revisado por architect, y el recorte del #2 de nuevo por qa y stark a pedido
+del usuario. El recorte propuesto ("Below observed, it is labeled suspected
+(CORE, evidence ladder)") NO se aplica: el CORE tiene una escalera sin números
+y no fija qué hace falta para que algo cuente como hallazgo; el umbral de qa
+(haberlo visto pasar; "los tests pasan" o "el código se lee mal" no alcanzan)
+es una regla propia, y el recorte citaba al CORE como fuente de una palabra que
+el CORE no tiene. Lo que sí estaba mal es "rung 4", que apunta a la escala
+numerada de `lh-verification`, una skill que no siempre carga. Paquete
+acordado: (1) "Where you sit in the team" con las correcciones de architect
+(el test que falla y reproduce tu hallazgo es tuyo, el arreglo del dev lo pone
+en verde; vos preguntás lo que la spec no dijo y ux-ui lo decide); (2) handoff
+de la costura que falta (escribir el test que se pueda en el borde de arriba y
+reportar la costura, al dev si es un refactor local y a architect si es un
+borde entre módulos); (3) el #2 reescrito sin el número; sin fusión del #3 y el
+#4 (perdía el criterio de dónde mirar y "en estos caminos, en este entorno");
+(4) el mismo arreglo del número en `lh-bug-reporting`. Escenario nuevo,
+`qa-reports-the-missing-seam` (fixture `missing-seam`: colaboradores propios con
+estado global mutable, verificado: dos llamadas comparten el stock y la
+tercera se queda sin él). Plan: base ×3 en qa, senior-dev y sin catálogo
+(~USD 1,20); aplicar; después el escenario y los guardianes de qa ×3 (~USD 3).
+Criterio: si la base ya da 3/3 en qa, el handoff queda como texto y se dice;
+si no, después al menos 2/3 en qa; los guardianes no pierden más de una
+muestra en total.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
