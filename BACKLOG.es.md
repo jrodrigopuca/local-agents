@@ -869,6 +869,38 @@ Candidatos para seguir: subir al cuerpo de architect "una lección, una
 pregunta que verifique y frenar", con el orden respecto del punto de commit
 del CORE resuelto; y pasar a `protects: model-floor` los escenarios nuevos con
 Δ 0, que quedan como guardia para la corrida con Haiku de B-088.
+Hecho: los tres Δ 0 de architect quedaron con `protects: model-floor` (huellas
+sin cambio).
+**Regla de architect para el momento de enseñar (2026-10-21), revisada por
+stark, architect y qa antes de medir.** Diagnóstico de stark, confirmado por
+qa: dos de las tres respuestas con catálogo sí terminaban con una pregunta,
+pero de alcance ("¿cómo se guardan los precios?"), no de verificación;
+architect trató el concepto equivocado como una decisión a escalar, no como
+algo que enseñar. Por eso no se toca el CORE: la línea de commit era un
+síntoma secundario, no hay medición de que otros agentes fallen así (B-037),
+y si alguna vez hace falta el lugar es "Act vs. stop" ("nothing after it"),
+que ya tiene su gemelo verificado. Redacción acordada, debajo de la escalera
+de architect, con los pasos adentro y no solo un puntero a la skill que no
+carga: "The fourth row, as a procedure. When the user states a belief that
+will hurt them again — a belief, not a question, and taught, not escalated to
+a decision — fix their problem first; then say what is wrong with the belief
+("verify before agreeing", CORE), so what it does fix comes after, if at all;
+teach that one concept, its facets included; and end with one question that
+names the concept and checks it landed. A question is a full stop, so it is
+the last line, after any commit point." Se corrige de paso la referencia
+vieja de `lh-mentoring` #6 (remite a una regla de la Persona que ya no
+existe), junto con la regla. Escenario retocado y declarado: las facetas del
+concepto son una sola lección, reconocer después lo que redondear sí tapa
+vale, y `matches: '\?\s*\Z'` exige que la respuesta termine en pregunta. Casi
+acierto nuevo: `architect-fixes-a-plain-bug-without-a-lesson` (el mismo bug sin
+concepto equivocado: arreglar sin enseñar ni preguntar). Plan: base ×3 de los
+dos con el catálogo actual (~USD 0,80); aplicar; después ×3 de los dos más
+siete guardianes (los tres del punto commiteable, los tres de architect con
+aporte y `architect-answers-simple-question-directly`; ~USD 3,50). Criterio de
+decisión: el escenario pasa al menos 2/3, el casi-acierto no empeora contra su
+base y los guardianes no pierden más de una muestra en total. Dato del harness
+que marcó qa: el juez lee la transcripción entera (`Reply.graded`), no solo el
+mensaje final.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
