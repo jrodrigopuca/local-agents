@@ -1253,6 +1253,17 @@ tercera se queda sin él). Plan: base ×3 en qa, senior-dev y sin catálogo
 Criterio: si la base ya da 3/3 en qa, el handoff queda como texto y se dice;
 si no, después al menos 2/3 en qa; los guardianes no pierden más de una
 muestra en total.
+**Base (2026-10-21, USD 1,43; qa `20261021-202438`, senior-dev `-202514`, sin
+catálogo `-205150`, ×3):** qa 2/3, senior-dev 2/3, sin catálogo 0/3. Sin
+catálogo las tres muestras notan el estado global y lo esquivan comparando
+diferencias, pero nunca lo nombran como hallazgo de diseño. Con catálogo, dos
+de tres lo nombran ("checkout() no permite inyectarlos"); la que falla de cada
+uno hace el mismo rodeo sin nombrarlo. **El criterio estaba mal puesto:** el
+piso de después (2/3 en qa) ya lo cumple la base, así que no puede medir el
+cambio. Ajuste propuesto antes de aplicar: después 3/3 en qa, o 5/6 con ×6.
+Los 26 minutos de la corrida de senior-dev no fueron del agente (cada muestra
+tardó menos de un minuto): coincidieron con una inspección mía que quedó
+colgada leyendo los workspaces, y que se cortó.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
