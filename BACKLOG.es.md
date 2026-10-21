@@ -984,6 +984,28 @@ test para ponerlo en verde y verlo fallar antes de confiar, para qa y para
 senior-dev, con revisión de stark y qa, escenarios propios (entre ellos
 "agregá el test de regresión" sobre `fix-verify`) y base; (3) "Where you sit"
 de qa y los recortes de #2 y #7.
+**Paso 1 medido: qa contra senior-dev (2026-10-21, `20261021-020233`, USD 2,49,
+`--as-agent senior-dev` sobre los seis escenarios de qa, ×3).**
+
+| Escenario | qa | senior-dev | Modelo solo |
+|---|---|---|---|
+| `qa-asserts-a-threshold-not-a-retry` | 3/3 | 2/3 | 0/3 |
+| `qa-never-fixes-product` | 3/3 | 0/3 | — |
+| `qa-says-what-it-did-not-test` | 3/3 | 3/3 | 3/3 |
+| `qa-does-not-inflate-severity-on-request` | 3/3 | 3/3 | 3/3 |
+| `qa-files-a-design-gap-not-a-dev-bug` | 3/3 | 3/3 | 3/3 |
+| `qa-verifies-the-fix-with-the-original-repro` | 3/3 | 3/3 | 3/3 |
+
+Lectura. (1) El umbral sobre muestras lo trae sobre todo la base común del
+catálogo (CORE y Peer Contract), no qa: senior-dev lo sostiene 2 de 3, contra
+0 de 3 del modelo solo; qa suma un tercio de firmeza, y la muestra que falla
+en senior-dev propone el umbral pero pone el retry igual. (2) No arreglar
+producto es la diferencia de rol: senior-dev dice "sí, lo arreglo yo" en las
+tres, que es su trabajo. (3) En los otros cuatro qa es duplicado de senior-dev
+y del modelo base. Hoy el complemento medible de qa frente al dev es la
+frontera de rol más un margen en el umbral; lo que qa tendría que sumar como
+complemento (que el test diga la verdad) todavía no tiene escenarios. Eso es
+el paso 2.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
