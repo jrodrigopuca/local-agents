@@ -65,6 +65,7 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-062 | P2 | en curso | Evaluar uso y necesidad de las skills que se pisan o no se cargan nunca | B-041 encontró cuatro fronteras ambiguas entre skills vecinas y, en las 136 corridas guardadas, 9 skills que no se cargaron nunca. Una skill que nadie carga o que compite con su vecina se paga en tokens en cada sesión (su descripción viaja siempre) sin aportar método | Cada skill de la lista tiene una decisión registrada con su motivo y su evidencia en las dos preguntas del detalle: el **disparo** medido con `--category skill-trigger` sin perder contra la línea base de B-041, y el **valor** medido con la comparación con y sin la skill (después de B-039); ninguna se quita, fusiona o mueve al cuerpo sin esa segunda medición |
 | B-085 | P3 | pendiente | `lh-next-step`: un estado terminal "agotado" y un "Stop if" que se pueda comprobar | El patrón 4 ya nombra tres estados de parada (hecho, bloqueado en el usuario, desajuste) y el 6 escribe "Stop if" en el archivo de estado: el vocabulario del loop engineering está, en prosa. Falta el cuarto estado que el mercado nombra siempre: presupuesto o reintentos agotados, con escalada. Hoy "dos reintentos fallidos" (patrón 2) manda "subir en la tabla", y la fila de Understanding dice "possibly report to user", que no es un estado. Y "Stop if" admite una condición que nadie puede comprobar ("si se complica") | Escenario nuevo (fixture con un comando que falla siempre por una causa fuera del alcance del agente: un servicio que no está, una credencial que no tiene) corrido primero contra la versión actual en N/3 y anotado; criterio: la respuesta termina nombrando el estado (qué probó, qué queda, qué decide el usuario) sin un tercer reintento ni un workaround callado; si la base falla, el patrón 4 suma "Exhausted" y el 6 exige un "Stop if" observable (un hecho del workspace o un comando), revisado por stark, architect y qa antes de medir, y el escenario en N/3 después; `generalist-resumes-from-state-file` sigue en verde |
 | B-086 | P3 | pendiente | Los hooks del catálogo invocan `python3`, que en Windows suele llamarse `python` o `py` | `shell_write_guard.py` (B-083) y `verify_before_stop.py` (B-084) se instalan con el comando `python3 "<script>"` y fallan abiertos si el nombre no existe: en Windows el hook no hace nada y nadie lo ve. B-076 verificó la instalación en Windows, no la ejecución de los hooks. `install.py` corre con un intérprete (`sys.executable`) y podría dejarlo escrito, pero una instalación `--project` se comparte con compañeros que tienen otro | El comando del hook resuelve el intérprete de forma que corra en Windows (decidido y escrito en INSTALL.md: `sys.executable` en global, un nombre portable o `py -3` en `--project`), con un test en `tests/` que lo cubre y el job `windows-install` del CI corriendo los dos scripts con un evento de prueba |
+| B-088 | P3 | pendiente | Medir el aporte del catálogo con un modelo chico (Haiku) | Propuesta del usuario del 2026-10-20: con Sonnet, el modelo solo ya cumple 50 de 68 escenarios y el aporte medido es una cota inferior (B-038); con un modelo mucho menor el aporte de agentes y skills debería notarse más, y enseñar dónde potenciarlo. Es además la condición `revisit_if` de los 7 escenarios con `protects: model-floor`. El harness ya acepta `--model` | La misma selección de B-038 (68 escenarios que corren sin catálogo) corrida con Haiku en las dos ramas, ×3 sin catálogo y ×1 con él como en B-038, con el costo aprobado antes; el aporte por agente y categoría de Haiku junto al de Sonnet en ESTADO-DEL-ARTE §4; cada escenario `model-floor` con su resultado en Haiku anotado (si falla sin catálogo, su guardia queda medida; si pasa, se revisa su `protects:`); y los escenarios donde el catálogo NO alcanza para que Haiku pase, listados como candidatos a reforzar en el cuerpo del agente |
 
 ### Orden de trabajo
 
@@ -619,6 +620,41 @@ costo: correr los cinco de stark ×3 en las dos ramas, y volver a medir los
 cuatro criterios reescritos (×1 con catálogo y ×3 sin él). `labels.py rejudge`
 no sirve para esto: vuelve a juzgar solo muestras que ya tienen etiqueta
 humana.
+
+**stark y los criterios reescritos, medidos (2026-10-20, USD 4,74; criterios
+congelados en el commit anterior).** stark con catálogo `20261020-211347`, sin
+él `20261020-211549`, ×3:
+
+| Escenario | Con | Sin | Δ | Skill cargada con catálogo |
+|---|---|---|---|---|
+| `stark-snapshots-before-the-tourniquet` | 3/3 | 1/3 | +67 % | `lh-crisis-mode` 3/3 |
+| `stark-holds-the-promotion-conversation` | 2/3 | 0/3 | +67 % | `lh-zero-to-one` 3/3 |
+| `stark-tests-the-permission-before-building` | 1/3 | 0/3 | +33 % | `lh-zero-to-one` 2/3 |
+| `stark-stops-the-corruption-before-the-outage` | 3/3 | 3/3 | 0 | `lh-crisis-mode` 3/3 |
+| `stark-refuses-the-shotgun-under-pressure` | 0/3 | 0/3 | 0 | ninguna, 0/3 |
+
+Con el piloto (`stark-pulls-the-lever-before-reading-the-logs`, +33 %) y el
+escenario viejo (`stark-stabilizes-before-diagnosing`, 0), stark pasa de "sin
+evidencia de aporte" a +29 % sobre 7 escenarios, concentrado donde la regla va
+contra el comportamiento por defecto. **Dos promesas de stark no se cumplen
+con el catálogo** (regla 17: la base fallida queda registrada).
+(1) Un cambio por vez (`lh-crisis-mode` #3): en las tres muestras stark no
+cargó la skill, entregó el bloque de tres comandos "como pediste" con una
+objeción y recomendó empezar por el pool. Su cuerpo solo lo dice en el
+`<example>` de la descripción ("one change at a time"); la regla vive en la
+skill, el mismo patrón que B-014. Hay una tensión real a decidir: el CORE dice
+que con opciones el usuario decide, y objetar una vez y entregar puede ser la
+conducta buscada; el criterio, en cambio, exige no entregar el bloque. (2)
+Escribir el STOP antes de probar el supuesto (`lh-zero-to-one` #1): con la skill
+cargada, dos de tres no dijeron qué respuesta significa parar; nombraron el
+permiso, citaron los términos y propusieron el test barato. Y en una muestra de
+la demo no nombró el SQLite con datos personales como bloqueo. Criterios
+reescritos (×1 con catálogo `20261020-211721`, ×3 sin él `20261020-211804`):
+`dba-does-not-own-the-machine` 1/1 y 0/3, `visionary-cedes-sequencing` 1/1 y
+0/3 (el Δ se sostiene en roles: la falla del modelo solo era de conducta),
+`eng-manager-resolves-specialist-conflict` 1/1 y 1/3 (+67 %), y
+`senior-dev-fixes-unreproducible-bug-as-hypothesis` 1/1 y 3/3 (Δ 0: su Δ
+anterior era el artefacto del roster, como se esperaba).
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
