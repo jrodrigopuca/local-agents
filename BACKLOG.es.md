@@ -540,6 +540,49 @@ hasta tener línea base. Se corren, ya congelados, ×3 con catálogo y ×3 sin �
 (tope de la compuerta USD 4,50 por rama, costo real esperado ~USD 1 a 2).
 Después de ese piloto, por uso real: stark, architect (3), qa (3) y senior-dev (6).
 
+**Piloto corrido (2026-10-20, criterios congelados en el commit anterior,
+USD 2,37).** Con catálogo `20261020-205045`, sin él `20261020-205213`, ×3 cada
+uno. devops 3/3 y 3/3 (Δ 0): el modelo solo leyó los dos archivos, nombró el
+token que edita las tres zonas y a las 12 personas que mergean, y en dos de
+tres no armó el workflow para que decidieran. data-ml 3/3 y 3/3 (Δ 0): las
+tres respuestas sin catálogo encontraron que la aprobación mira el importe
+escrito por el cliente y no el de la llamada, con número de línea. stark 3/3 y
+2/3 (Δ +33 %, débil): con catálogo las tres abren con el flag y el comando; sin
+él, una abrió con el diagnóstico, y el juez aprobó una muestra sin catálogo que
+él mismo describió con "una sección larga de diagnóstico antes de la acción",
+así que el 2/3 es en parte ruido del juez. No se retocó ningún criterio para
+que el modelo solo falle (sería el sobreajuste inverso). Lección: esconder un
+dato en un archivo no discrimina, porque el modelo lee con cuidado cuando se
+le pide revisar o actuar; lo que midió Δ en la pasada completa son reglas que
+van contra el comportamiento por defecto del modelo (punto commiteable, no
+escribir por la shell, etiquetar como hipótesis un arreglo sin reproducir, qa
+no arregla producto, product-manager parte del problema). Siguiente paso:
+leer el `AGENTS.md` de cada agente con 0 % y listar qué prescribe que un
+modelo bien intencionado no haría solo; de ahí salen los escenarios. Si un
+agente no prescribe nada contra-default, ese es el hallazgo.
+
+**stark, auditoría contra-default (2026-10-20).** Leídos su `AGENTS.md` y sus
+tres skills. Prescribe seis conductas que un modelo bien intencionado no
+toma por su cuenta, todas en `lh-crisis-mode` y `lh-zero-to-one`: capturar la
+evidencia volátil ANTES del torniquete cuando el torniquete la destruye
+(crisis #1); priorizar por radio de daño y no por quién grita, con la
+corrupción de datos por encima de la caída (crisis #2); un cambio por vez
+aunque el usuario pida los tres juntos (crisis #3); congelar la demo después
+del último recorrido (crisis #4); tratar el pase de un prototipo a producción
+como una conversación con dba y security, no como "la demo anduvo" (0→1 #5);
+y probar primero el supuesto que mata el producto, casi nunca técnico, con el
+criterio de STOP escrito antes (0→1 #1). Lo de `lh-first-principles` y el
+juicio de ingeniería es buen criterio que el modelo ya tiene, y la persona
+(ingenio contra el problema) es voz, que el harness no mide. Escritos cinco
+escenarios desde esas promesas, con criterio congelado y antes de cualquier
+corrida sin catálogo: `stark-snapshots-before-the-tourniquet`,
+`stark-stops-the-corruption-before-the-outage`,
+`stark-refuses-the-shotgun-under-pressure`, `stark-holds-the-promotion-conversation`
+y `stark-tests-the-permission-before-building`, con sus fixtures; `manual: true`.
+El de la demo congelada (crisis #4) queda para después. Pendiente de commit
+antes de correrlos ×3 con catálogo y ×3 sin él (compuerta USD 7,50 por rama;
+real esperado USD 1,50 a 2,50 en total).
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
