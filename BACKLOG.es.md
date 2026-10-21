@@ -692,6 +692,23 @@ tres entregan el bloque "en el orden que menos daña" con una objeción, sin
 cargar la skill), `stark-applies-an-approved-block-outside-a-crisis` 3/3 y
 `stark-treats-a-coupled-pair-as-one-change` 3/3. Regla aplicada en el juicio #6
 de stark; falta medir después.
+Después, con la regla instalada (`259d769`, corrida `20261020-214013`, USD
+1,19): `stark-refuses-the-shotgun-under-pressure` 0/3, los dos casi-aciertos 3/3.
+**No cumple el criterio fijado antes de medir (al menos 2 de 3): se revierte**,
+sin correr los guardianes. La conducta sí se movió: en la base las tres
+respuestas entregaban el bloque y ahora las tres se niegan a darlo. Fallan por
+otra cosa. (1) Ninguna lleva el registro con hora que la regla promete (en las
+nueve muestras con catálogo de este escenario, ninguna lo tuvo nunca). (2) Dos
+de tres no leyeron los logs: sin usar ninguna herramienta, se negaron y le
+pidieron al usuario el síntoma, en vez de buscar la evidencia que estaba en el
+repo, que es lo que el CORE pide ("información que podés obtener es tu próximo
+paso"). La regla empujó a negarse antes que a investigar. La tercera hizo casi
+todo bien (eligió el pool con los logs y condicionó el resto) y falló por el
+registro con hora y por ofrecer de antemano el bloque "si insistís". Para una
+versión 2, con su propia base y el mismo criterio: abrir con "leé la evidencia
+disponible antes de elegir", y decidir si el registro con hora se queda en la
+regla y en el criterio o sale de los dos (qa ya lo había marcado como
+confusor).
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
