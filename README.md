@@ -229,7 +229,7 @@ Three layers of relationship hold the suite together:
   loop; `senior-dev` adds the Peer Contract on top for <!--n:peers-->9<!--/n--> agents. The
   installer inlines the parent's `CORE.md` so every installed copy is
   self-contained.
-- **Handoffs** (<!--n:handoff-edges-->44<!--/n--> edges) — editorial. An agent names who takes over when a
+- **Handoffs** (<!--n:handoff-edges-->46<!--/n--> edges) — editorial. An agent names who takes over when a
   problem stops being its own.
 - **Skill references** (<!--n:skill-cross-refs-->106<!--/n--> cross-agent edges) — compositional. A skill points at
   another instead of duplicating it: `security/remediation` doesn't re-explain

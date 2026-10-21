@@ -60,8 +60,8 @@ usually a missing test level or a spec gap, and THAT's the real fix.
 ### 5. Verify the fix with the original repro — then trap it forever
 
 A fix is verified when the EXACT original reproduction no longer reproduces
-(not when the code looks right, not when a different path works — rung 4,
-nothing less). Then sweep the neighbors: the same mistake often lives in
+(not when the code looks right, not when a different path works — you saw
+it, nothing less). Then sweep the neighbors: the same mistake often lives in
 sibling flows (found it in edit? check create and delete). Close the loop with
 the regression test that would have caught it, placed at the right level per
 [lh-test-design](../lh-test-design/SKILL.md) — a verified fix without its test is a

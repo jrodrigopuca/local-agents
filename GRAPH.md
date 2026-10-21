@@ -7,7 +7,7 @@ was extracted from the files themselves — none of it is aspirational.
 | Layer | Edges | What it means |
 |-------|------:|---------------|
 | [Inheritance](#1-inheritance) | 23 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
-| [Agent handoffs](#2-agent-handoffs) | 44 | Editorial. An agent names who takes over when a problem stops being its own. |
+| [Agent handoffs](#2-agent-handoffs) | 46 | Editorial. An agent names who takes over when a problem stops being its own. |
 | [Skill references](#3-skill-references) | 106 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
@@ -88,8 +88,10 @@ flowchart LR
     product-manager --> ux-ui
     product-manager --> visionary
 
+    qa --> architect
     qa --> dba
     qa --> security
+    qa --> senior-dev
     qa --> ux-ui
 
     security --> architect

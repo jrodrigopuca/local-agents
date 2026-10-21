@@ -1264,6 +1264,9 @@ cambio. Ajuste propuesto antes de aplicar: después 3/3 en qa, o 5/6 con ×6.
 Los 26 minutos de la corrida de senior-dev no fueron del agente (cada muestra
 tardó menos de un minuto): coincidieron con una inspección mía que quedó
 colgada leyendo los workspaces, y que se cortó.
+**Decisión del usuario:** después ×6 con piso 5 de 6 en qa (en lugar de ×3
+con 2 de 3, que la base ya cumplía); los guardianes no pierden más de una
+muestra en total. Los cuatro cambios aplicados a qa y `lh-bug-reporting`.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
