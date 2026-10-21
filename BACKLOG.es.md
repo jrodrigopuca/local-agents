@@ -726,6 +726,9 @@ Plan: base nueva ×3 de ese escenario con el catálogo actual (~USD 0,40; los
 casi-aciertos no cambiaron y su base sigue valiendo), aplicar la v2, y después
 ×3 de los tres; los guardianes cuando se renueve la ventana. Mismo criterio de
 decisión.
+Base de la v2 (`20261020-214713`, catálogo `96f2b4d` sin la regla, USD 0,41):
+0/3. Las tres leyeron los logs y eligieron el pool, y entregaron el bloque
+igual. v2 aplicada en el juicio #6 de stark; falta medir después.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
