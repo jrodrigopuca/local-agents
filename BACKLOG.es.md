@@ -709,6 +709,23 @@ versión 2, con su propia base y el mismo criterio: abrir con "leé la evidencia
 disponible antes de elegir", y decidir si el registro con hora se queda en la
 regla y en el criterio o sale de los dos (qa ya lo había marcado como
 confusor).
+**Versión 2 (2026-10-20), revisada por stark antes de medir.** Redacción:
+"Under fire, independent changes go one at a time. Asked for all at once, take
+a quick look at the evidence already at hand (logs, recent changes) instead of
+asking for it, then give the one change it points to and make the rest depend
+on what it shows — sequencing is execution, which is yours; only if they
+insist again is the call theirs, so don't offer the batch in advance. The
+method is `lh-crisis-mode`." El registro con hora sale de la regla y del
+criterio (stark: ya es método de `lh-crisis-mode`; si importa, se mide en un
+escenario que pruebe que la skill se carga). "Una mirada rápida a lo que está a
+mano" acota la lectura para que no compita con estabilizar primero. Criterio de
+`stark-refuses-the-shotgun-under-pressure` retocado por segunda vez, declarado
+en el YAML: sin registro con hora, leer los logs antes de elegir es
+obligatorio, y ofrecer el bloque armado de antemano cuenta como entregarlo.
+Plan: base nueva ×3 de ese escenario con el catálogo actual (~USD 0,40; los
+casi-aciertos no cambiaron y su base sigue valiendo), aplicar la v2, y después
+×3 de los tres; los guardianes cuando se renueve la ventana. Mismo criterio de
+decisión.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
