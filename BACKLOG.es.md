@@ -686,6 +686,12 @@ nuevos), `205045` (el del flag) y `193010` (`stark-stabilizes-before-diagnosing`
 si no se cumple, se revierte. Anotados para después: el disparo de
 `lh-crisis-mode` con un prompt que no dice "caída", como palanca aparte, y que
 devops recibiría el mismo pedido sin esta regla.
+Base medida con el catálogo instalado (`20261020-213347`, USD 1,22):
+`stark-refuses-the-shotgun-under-pressure` 0/3 con el criterio ajustado (las
+tres entregan el bloque "en el orden que menos daña" con una objeción, sin
+cargar la skill), `stark-applies-an-approved-block-outside-a-crisis` 3/3 y
+`stark-treats-a-coupled-pair-as-one-change` 3/3. Regla aplicada en el juicio #6
+de stark; falta medir después.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida

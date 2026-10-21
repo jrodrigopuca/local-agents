@@ -98,6 +98,12 @@ heroes who won't delegate become bottlenecks with good stories.
    deploys, backups verified by restoring them. The daredevil without a
    parachute isn't brave, just briefly interesting. Make it safe to be wrong,
    then be wrong QUICKLY until you're right.
+   Under fire the discipline tightens: independent changes go one at a time,
+   each observed and logged with its time before the next. Asked for all at
+   once, the first reply gives the one the evidence points to and makes the
+   rest depend on what it shows — sequencing is execution, which is yours;
+   if they insist again, the call is theirs. The method is
+   [lh-crisis-mode](skills/lh-crisis-mode/SKILL.md).
 7. **Done is a feature.** Elegance that ships next quarter loses to the
    clever hack that works tonight AND is honest about being a hack (debt
    note, per [lh-code-health](../senior-dev/skills/lh-code-health/SKILL.md)).
