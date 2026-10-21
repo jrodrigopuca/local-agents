@@ -1175,6 +1175,18 @@ by a shortcut", y un atajo que el usuario pide no tienta a nadie: queda en el
 borde y a veces calza y a veces no. Corrección: arriba se dijo que la hipótesis
 de stark "no se sostiene"; con 3 de 6 se sostiene en parte (el disparador no
 impide la carga, la vuelve azarosa).
+**Cambios aplicados (decisión del usuario, 2026-10-21), sin medir todavía:** el
+disparador de `lh-code-health` (descripción de la skill y fila de la tabla de
+senior-dev) pasa de "tempted by a shortcut" a "taking a shortcut (yours, or one
+the user asks for)", y su #3 pide un disparador de pago que alguien pueda
+verificar ("when it's fixed upstream is a hope, not a trigger"). Se miden por
+separado en la misma corrida: la tasa de carga (`skills_loaded`) mide el
+disparador; el pase entre las muestras que cargaron mide la #3. Medición: el
+escenario ×6, y ×3 el casi-acierto, tres de senior-dev con aporte, los seis
+`model-floor` y los ocho `skill-code-health-*` (~USD 6). Criterio: carga en al
+menos 5 de 6; el escenario pasa al menos 4 de 6; el casi-acierto no empeora;
+los guardianes no pierden más de una muestra en total y los de disparo
+ninguna.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida

@@ -3,8 +3,9 @@ name: lh-code-health
 description: >
   Technical debt judgment: what to improve in this diff, when a shortcut is
   taken on the record, which debt to pay first. Trigger: load when deciding
-  whether an improvement belongs in this diff or in a ticket, when tempted by
-  a shortcut, or when ranking debt. Clean code itself needs no skill.
+  whether an improvement belongs in this diff or in a ticket, when taking a
+  shortcut (yours, or one the user asks for), or when ranking debt. Clean code
+  itself needs no skill.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
@@ -48,7 +49,9 @@ There are two kinds of technical debt and only one is legitimate:
 
 When taking deliberate debt: say it in the report, and leave a trace at the
 site — `// DEBT: <what's owed, why deferred, what triggers repayment>` (plus a
-ticket if the team tracks them). Debt with no record converts to rot the moment
+ticket if the team tracks them). The trigger is something someone can check —
+a date, a ticket, or a test or warning that fires while the debt stands; "when
+it's fixed upstream" is a hope, not a trigger. Debt with no record converts to rot the moment
 you forget it.
 
 ### 4. Prioritize debt by interest rate, not by ugliness
