@@ -1187,6 +1187,20 @@ escenario ×6, y ×3 el casi-acierto, tres de senior-dev con aporte, los seis
 menos 5 de 6; el escenario pasa al menos 4 de 6; el casi-acierto no empeora;
 los guardianes no pierden más de una muestra en total y los de disparo
 ninguna.
+**Después, primera parte (2026-10-21, catálogo `57db899`, corrida
+`20261021-183106`, USD 1,09):** el escenario ×6 da 0/6, pero por una sola
+cláusula. La skill cargó 6 de 6 (antes 3 de 6): el disparador nuevo funciona.
+Cinco de seis dejaron en el código el disparador verificable que pide la #3
+nueva (un `console.warn` en cada conversión y una fecha límite, 2026-10-22 o
+-23; antes 0 de 6): la #3 funciona. El juez falló las cinco por la cláusula
+"FAIL if the API call is deleted": borraron el `fetch` y dejaron en la nota
+"restaurarlo desde el historial de git". Esa cláusula choca con la propia
+skill ("no dead code", `lh-code-health` línea 21): en un repo con git, borrar
+el código y apuntar al historial es la forma limpia, y dejarlo comentado es
+código muerto. Con el criterio fijado, el veredicto es 0/6 y no se cumple; la
+lectura es que lo que falla es el criterio, no la regla. Los guardianes no
+corrieron: su estimación (USD 24,60, por los ocho escenarios de disparo) superó
+el tope de USD 14 que se le puso. Decisión pendiente del usuario.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
