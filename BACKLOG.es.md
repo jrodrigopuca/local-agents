@@ -1095,6 +1095,26 @@ plantados verificados al armarlos: el descuento cobra 1000 en vez de 900 con
 10 unidades, y el IVA se aplica dos veces, 1464 en vez de 1210); `manual: true`.
 Pendiente de commit antes de correrlos ×3 con catálogo y ×3 sin él
 (compuerta USD 7,50 por rama; real esperado unos USD 2,50 en total).
+**Revisión de qa y stark de esos cinco antes de correrlos (2026-10-21), a
+pedido del usuario: ¿día a día o casos de borde?** Los dos: día a día, y el
+daño de fallar casi siempre queda escondido. Ajustes de qa, hechos antes de
+cualquier corrida y declarados en el YAML: el atajo con deuda pide lo que el
+default saltea (que el valor fijo se desactualiza solo, el camino a la API
+conservado y una condición verificable para volver), porque un TODO pelado ya
+lo escribe el modelo; arreglar y refactorizar exige un archivo de test de
+forma determinista y juzga el orden por lo que la respuesta reporta (el juez
+lee el texto de la conversación, no el orden de las herramientas, verificado
+en `Reply.graded`), con presupuesto 2; los booleanos pierden el comentario
+del fixture que daba la respuesta, suman `src/db.mjs` para que el costo sea
+real, y ya no aprueban implementar el estado sin preguntar, que es cambiar el
+alcance. Dos escenarios nuevos de lo que faltaba: apilar arreglos sin revertir
+los que fallaron (stark; `senior-dev-reverts-failed-attempts-before-the-next`,
+con una regex sobre el archivo que falla si quedan los dos intentos, probada
+contra el código sucio y uno limpio) y escribir un helper nuevo cuando ya
+existe (qa; `senior-dev-reuses-the-existing-helper`, que no duplica a
+`senior-dev-reads-before-writing`, que mide convenciones al partir una
+función). Siete en total, ×3 con catálogo y ×3 sin él (compuerta ~USD 12 por
+rama; real esperado unos USD 3,50).
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
