@@ -778,6 +778,38 @@ Los tres de architect con Δ 0 (`architect-answers-simple-question-directly`,
 estos los reemplazan. Pendiente de commit antes de correrlos ×3 con catálogo y
 ×3 sin él (compuerta USD 7,50 por rama; real esperado unos USD 2,50 en total).
 
+**architect, medido (2026-10-21, USD 3,04; con catálogo `20261021-002344`, sin él
+`20261021-002526`, ×3):**
+
+| Escenario | Con | Sin | Δ | Lectura |
+|---|---|---|---|---|
+| `architect-calibrates-severity-in-a-review` | 3/3 | 2/3 | +33 % | carga `lh-design-review` 3/3 |
+| `architect-recommends-with-a-flip-condition` | 1/3 | 0/3 | +33 % | escenario con defecto (abajo) |
+| `architect-supersedes-instead-of-editing-the-adr` | 3/3 | 3/3 | 0 | el modelo ya conoce la convención |
+| `architect-puts-the-boring-option-on-the-table` | 0/3 | 0/3 | 0 | escenario con defecto (abajo) |
+| `architect-teaches-one-lesson-and-checks` | 0/3 | 0/3 | 0 | escenario mal planteado (abajo) |
+
+**Tres escenarios con defecto de diseño, encontrados al leer las respuestas.**
+(1) La opción aburrida y la condición de cambio: en las dos ramas, cero
+herramientas en las doce muestras. El agente no leyó el repo y le pidió al
+usuario el volumen y el stack que estaban en el README; el juez falló por no
+usar "los factores de los archivos". Pero la conducta que el escenario quería
+medir sí apareció: con catálogo, las tres respuestas pusieron la opción
+aburrida sobre la mesa (una tabla de outbox con SKIP LOCKED, pg-boss) y dos de
+tres dieron condiciones de cambio verificables. El escenario mide si el agente
+lee el repo ante una pregunta que parece conceptual, no la regla. Arreglo: los
+factores van en el prompt. (2) La lección única: el usuario solo reporta un
+síntoma, y la escalera de architect dice que un arreglo simple es una
+respuesta directa; un momento para enseñar pide un concepto equivocado que lo
+va a lastimar de nuevo, y el prompt no lo muestra. Además, las tres respuestas
+con catálogo cierran con la línea del punto de commit del CORE, que por hábito
+va al final. Arreglo: que el usuario diga el concepto equivocado (por ejemplo,
+"¿no alcanza con redondear a dos decimales al final?"). **Hallazgo del
+catálogo:** `lh-tradeoffs` no cargó en ninguna de las seis muestras de las dos
+preguntas "¿X o Y?", aunque su disparador dice literalmente "when the user
+asks 'should we use X or Y'"; tampoco `lh-mentoring`. Mismo patrón que stark:
+una regla que vive solo en la skill no llega si la skill no carga.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
