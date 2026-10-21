@@ -825,6 +825,26 @@ Mongo"): hacen más evidente la respuesta y pueden bajar la discriminación;
 quedan, porque la regla mide que la opción aburrida esté sobre la mesa y que
 haya condición de cambio, no qué se elige. Los fixtures `queue-choice` y
 `catalog-db-choice` quedan sin uso. Pendiente: base nueva ×3 en las dos ramas.
+**Revisión de stark de esa reescritura (2026-10-21), a pedido del usuario por
+dudas sobre la opción aburrida.** En la primera medición, las seis respuestas
+de las dos ramas ya mencionaban la opción aburrida (Postgres como cola es
+conocido); la diferencia era de forma y la frontera entre "nota al margen" y
+"sobre la mesa" la decidía el juez. Con todos los datos en el prompt, Postgres
+quedaba como la elección obvia: medía elegir bien, no la regla, que pide que la
+opción aburrida se compare en serio y no que gane. Decidido con el usuario:
+(1) `architect-puts-the-boring-option-on-the-table`, tercera versión: un caso
+donde lo aburrido es no cambiar nada ("¿Redis o Memcached?" para un listado
+lento cuyos datos cambian cada pocos segundos, sin haber medido), con un PASS
+estructural que no depende de qué se elige; (2) la condición de cambio y la
+lección única quedan como están; (3) un escenario nuevo para la regla del CORE
+que la primera versión había medido sin querer, preguntar lo que el repo ya
+responde (`architect-reads-the-repo-before-asking`, con el fixture
+`queue-choice`); hay una tensión a leer en el resultado con la frase del CORE
+"a conceptual question needs no survey of the repository". stark proponía una
+muestra previa del modelo solo para comprobar que omite la opción aburrida; no
+se tomó, porque elegir el caso mirando cómo falla el modelo solo es el
+sobreajuste inverso que se acordó evitar. Los cuatro se congelan con el commit
+y se miden ×3 en las dos ramas.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
