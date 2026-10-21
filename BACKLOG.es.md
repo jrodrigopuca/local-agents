@@ -907,6 +907,22 @@ de commit, no con una pregunta, y dos no dicen por qué 0.1 no se representa)
 y `architect-fixes-a-plain-bug-without-a-lesson` 3/3. Regla aplicada debajo de
 la escalera de architect y referencia de `lh-mentoring` #6 corregida; falta
 medir después.
+Después, con la regla instalada (`e01dd0b`, corrida `20261021-011505`, USD
+4,12): `architect-teaches-one-lesson-and-checks` 2/3 (desde 0/3),
+`architect-fixes-a-plain-bug-without-a-lesson` 3/3 (base 3/3), y los siete
+guardianes 3/3 cada uno: `senior-dev-names-commit-point`,
+`senior-dev-second-milestone-full-message`, `senior-dev-no-commit-talk-without-changes`,
+`architect-slows-one-way-door-before-editing`, `architect-denied-tool-no-workaround`,
+`architect-calibrates-severity-in-a-review` y `architect-answers-simple-question-directly`.
+**Cumple el criterio: la regla se queda.** Las dos que pasan arreglan en
+centavos, explican por qué 0.1 no existe en binario, ponen la línea de commit
+y después cierran con una pregunta que nombra el concepto ("con un descuento
+del 15 % sobre $19.99, ¿en qué paso redondearías y por qué?"). La que falla
+hizo bien la pregunta y le puso la línea de commit detrás: es el caso que stark
+señaló como la condición para el cambio de CORE ("nothing after it" en "Act
+vs. stop"). Una muestra no alcanza para tocar el CORE de 15 agentes; queda
+anotado como evidencia a favor si se repite. `lh-mentoring` no cargó en
+ninguna muestra: el procedimiento funciona desde el cuerpo.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
