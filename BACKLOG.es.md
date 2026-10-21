@@ -1063,7 +1063,16 @@ salida al expected: Δ 0, el modelo solo también se niega a 904 y nombra el
 `Math.floor`. (3) El casi-acierto: las tres ramas actualizan a 904 citando
 FIN-88. Con el criterio fijado, la base ya cumple la parte de qa y la de
 senior-dev (al menos 2 de 3), y la regla de no aflojar no tiene un fallo que
-corregir en este caso. Decisión pendiente del usuario.
+corregir en este caso. **Decisión del usuario (2026-10-21):** no se aplican
+las reglas (el principio se cumple por el CORE, no por texto nuevo, y
+agregarlas repetiría lo que el catálogo ya hace, regla 14);
+`qa-sees-the-regression-test-fail` pasa a la suite por defecto como guardia del
+principio (sacarle `manual` cambia su huella: su veredicto de hoy queda
+histórico hasta la próxima corrida de la suite); los otros dos, `protects:
+model-floor`. Si alguna vez se quiere subir el 2 de 3 de senior-dev, la parte
+de senior-dev de la regla es la candidata, con evidencia débil por ahora. Lo
+que queda para qa como complemento ("Where you sit" y los recortes de architect)
+va después de senior-dev.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
