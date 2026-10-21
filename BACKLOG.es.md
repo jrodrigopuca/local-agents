@@ -958,6 +958,32 @@ la reproducción original antes de cerrar y nombra lo que quedó sin probar. A
 diferencia de architect, qa carga sus skills: `lh-bug-reporting` en 7 de 9
 muestras de sus tres escenarios y `lh-flow-hunting` en 2 de 3. Candidato: pasar
 esos cuatro a `protects: model-floor` como guardia para B-088.
+Hecho: los cuatro quedaron con `protects: model-floor` (huellas sin cambio).
+**Revisión de architect de qa como complemento (2026-10-21).** Lee
+"complemento" como complemento del dev: el dev verifica que lo que quiso
+hacer funciona; qa defiende que el test diga la verdad y que "funciona" diga
+hasta dónde llega. Hallazgos: la regla del umbral solo vive en
+`lh-test-design` #4, que no cargó, así que el 3/3 no se le puede atribuir a
+esa regla sino al rol; el juicio #2 de qa repite la escalera de evidencia del
+CORE y el #7 duplica el #5 de senior-dev; qa no tiene "Where you sit in the
+team" ni menciona a architect; el eje no es "sostener contra el pedido" (el
+modelo solo también sostuvo la gravedad) sino no debilitar lo que un test
+comprueba para ponerlo en verde. Su hipótesis de que el "then commit" del
+Peer Contract empujaría a poner el retry no se sostiene con los datos: el
+modelo sin catálogo, sin ese contrato, fue el que lo puso. **Principio del
+usuario (2026-10-21), sumado al plan:** un test se crea para probar
+funcionalidad y asegurar conducta, antes (TDD) o después del código; un verde
+que no verificó nada no sirve. El catálogo dice "un arreglo sale con el test
+que lo habría atrapado" (senior-dev #5) y "un test que sobrevive a un bug es
+peso muerto" (`lh-test-design` #2), pero no dice cómo se comprueba: un test se
+gana la confianza cuando se lo vio fallar por la razón correcta (en TDD, el
+rojo antes del código; después del código, rompiendo a propósito lo que
+protege y volviendo atrás). Plan: (1) medir el complemento corriendo los seis
+escenarios de qa con senior-dev; (2) una regla de dos partes, no debilitar un
+test para ponerlo en verde y verlo fallar antes de confiar, para qa y para
+senior-dev, con revisión de stark y qa, escenarios propios (entre ellos
+"agregá el test de regresión" sobre `fix-verify`) y base; (3) "Where you sit"
+de qa y los recortes de #2 y #7.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
