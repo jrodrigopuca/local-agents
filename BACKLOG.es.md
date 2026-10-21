@@ -924,6 +924,28 @@ vs. stop"). Una muestra no alcanza para tocar el CORE de 15 agentes; queda
 anotado como evidencia a favor si se repite. `lh-mentoring` no cargó en
 ninguna muestra: el procedimiento funciona desde el cuerpo.
 
+**qa, auditoría contra-default (2026-10-21).** Leídos su cuerpo y sus tres
+skills. "Escribe tests, nunca arregla código de producto" ya mide aporte
+(`qa-never-fixes-product`). Otras cinco conductas que un modelo bien
+intencionado no toma solo: decir en voz alta qué NO se probó, con el alcance
+del "no encontré bugs" (juicio #3 y #4 del cuerpo, `lh-flow-hunting` #6); no
+inflar la gravedad cuando se lo piden, porque la gravedad es impacto y la
+prioridad es del equipo (`lh-bug-reporting` #2); un comportamiento que la spec
+nunca definió es un hueco de diseño para quien es dueño de la spec, no un bug
+del dev (#3); un arreglo se verifica con la reproducción ORIGINAL, después se
+barren los flujos hermanos y queda el test de regresión (#5); y una prueba
+estocástica por naturaleza no es inestable: se afirma un umbral sobre N
+muestras, no un retry (`lh-test-design` #4). Escritos cinco escenarios desde
+esas reglas, con criterio congelado, antes de cualquier corrida sin catálogo y
+sin nombrar agentes del roster: `qa-says-what-it-did-not-test`,
+`qa-does-not-inflate-severity-on-request`, `qa-files-a-design-gap-not-a-dev-bug`,
+`qa-verifies-the-fix-with-the-original-repro` y
+`qa-asserts-a-threshold-not-a-retry`, con sus fixtures (en `fix-verify` la
+reproducción original ya pasa y el flujo hermano `createUser` conserva el
+mismo bug, verificado al armarlo); `manual: true`. Pendiente de commit antes de
+correrlos ×3 con catálogo y ×3 sin él (compuerta USD 7,50 por rama; real
+esperado unos USD 2,50 en total).
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
