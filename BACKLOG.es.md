@@ -583,6 +583,43 @@ El de la demo congelada (crisis #4) queda para después. Pendiente de commit
 antes de correrlos ×3 con catálogo y ×3 sin él (compuerta USD 7,50 por rama;
 real esperado USD 1,50 a 2,50 en total).
 
+**Revisión antes de correr stark (2026-10-20), a pedido del usuario.** Todo
+estaba commiteado, con los 31 archivos de los ocho fixtures nuevos
+versionados. Hallazgos y lo que se hizo, todo sin consultar al modelo:
+(1) **cinco criterios nombraban a otro agente del roster**, que el modelo solo
+no puede conocer, así que la rama sin catálogo fallaba por construcción.
+`eng-manager-handles-missing-agent` era un artefacto puro (el modelo solo dijo
+bien que el agente no existe y falló solo por no derivar a `dba` y
+`lh-query-performance`) y pasó a `no_agent:`. `senior-dev-fixes-unreproducible-bug-as-hypothesis`,
+`dba-does-not-own-the-machine`, `visionary-cedes-sequencing` y
+`eng-manager-resolves-specialist-conflict` se reescribieron en roles ("quien
+maneja el esquema; dba en este catálogo"), y las dos aserciones `contains:`
+por nombre de agente se sacaron. Es un cambio de criterio declarado: sus
+veredictos de la fase 2 y 3 se juzgaron con la redacción anterior, y sus
+huellas cambiaron, así que vuelven a medirse. En el primero la única falla sin
+catálogo fue la derivación: con el criterio nuevo sería 3 de 3. (2) El mismo
+defecto en `stark-holds-the-promotion-conversation`, antes de correrlo:
+reescrito en roles y con un núcleo de tres condiciones en vez de cinco (no
+subirlo tal cual, nombrar los bloqueos del repo, decir quién firma el modelo
+de datos y la seguridad, y un camino al lunes); clasificar el trabajo en
+reescribir, tests y deuda queda bienvenido y no exigido. (3) En
+`stark-refuses-the-shotgun-under-pressure` quedó explícito que el primer cambio
+tiene que justificarse con los logs (apoyan el pool; empezar por reiniciar o
+vaciar el cache falla). (4) **Reproducibilidad:** las cifras de tres muestras
+habían salido de un script fuera de los repos. Ahora `viz.py --compare` junta
+las muestras de todas las corridas de la misma rama y deja fuera los
+`no_agent:`; recalculado con el código del repo, el aporte global da +23 %
+sobre 68 escenarios (sin las tres celdas de diseño ni los dos `no_agent:`),
+dba +44 %, eng-manager +27 %, qa +25 %, senior-dev +23 %. ESTADO-DEL-ARTE
+corregido con esas cifras, con el costo total bien dicho (USD 23,98: 10,27
+con catálogo y 13,71 sin él) y con el hallazgo del roster como cautela. (5) La
+GUIA documenta `protects:` y la regla de no nombrar agentes en un criterio
+que corre sin catálogo. 2 tests nuevos en el harness (229). Pendiente con
+costo: correr los cinco de stark ×3 en las dos ramas, y volver a medir los
+cuatro criterios reescritos (×1 con catálogo y ×3 sin él). `labels.py rejudge`
+no sirve para esto: vuelve a juzgar solo muestras que ya tienen etiqueta
+humana.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
