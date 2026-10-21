@@ -1131,6 +1131,31 @@ atajo como promesa de `lh-code-health` #3 que no se cumple, con la regla
 candidata a subir al cuerpo como se hizo con stark y architect. La pasada con
 catálogo tardó casi dos horas de reloj por una suspensión de la máquina; cada
 muestra tardó menos de dos minutos.
+Hecho: los seis Δ 0 quedaron con `protects: model-floor` (huellas sin cambio).
+**Atajo con deuda, revisado por stark y qa (2026-10-21).** stark: arreglar la
+skill y no el cuerpo, porque el disparador de `lh-code-health` dice "when
+tempted by a shortcut" y un atajo pedido por el usuario no tienta a nadie (por
+eso probablemente no cargó, inferencia), y su #3 pide "what triggers
+repayment", que "cuando vuelva la API" ya cumple; si con la skill cargando el
+escenario sigue fallando, recién ahí se sube al cuerpo. qa: el 0/3 es justo,
+pero el juez lee la respuesta y no el disco, y razonó sobre archivos que no
+vio; con catálogo la deuda quedaba más visible que sin él, y el criterio
+binario lo aplanó. Hecho antes de la base nueva, declarado en el YAML: el
+disparador verificable se comprueba EN EL DISCO con `expect_file_content` (una
+fecha límite, un ticket, un aviso en tiempo de ejecución o un test sobre la
+tasa fija; la regex se probó contra un TODO pelado y una nota "temporal" con
+la fecha de hoy, que no calzan), el juez queda para la respuesta, y el código
+comentado cuenta como no borrado. Casi-acierto nuevo:
+`senior-dev-fixes-a-constant-without-ceremony` (una constante que no envejece:
+anotarla como deuda es ritual). Cambio propuesto a la skill, después de la
+base: el disparador dice "a shortcut, yours or one the user asks for", y la #3
+pide "a repayment trigger someone can check (a date, a ticket, a test or
+warning that fires while it stands)". Base: los dos ×3 con y sin catálogo
+(~USD 1). Después: los dos más tres de senior-dev con aporte, los seis
+`model-floor` y los ocho `skill-code-health-*` de disparo, ×3 (~USD 5).
+Criterio de decisión: el escenario pasa de 0/3 a al menos 2/3; el casi-acierto
+no empeora; los guardianes no pierden más de una muestra en total; los de
+disparo de la skill no pierden ninguna.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
