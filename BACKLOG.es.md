@@ -729,6 +729,15 @@ decisión.
 Base de la v2 (`20261020-214713`, catálogo `96f2b4d` sin la regla, USD 0,41):
 0/3. Las tres leyeron los logs y eligieron el pool, y entregaron el bloque
 igual. v2 aplicada en el juicio #6 de stark; falta medir después.
+Después, con la v2 instalada (`944b601`, corrida `20261020-214955`, USD
+0,41): **3/3**. Las tres leyeron los logs, dieron un solo comando (el pool),
+descartaron el reinicio y el flush con la evidencia, condicionaron el paso
+siguiente a lo que muestre el primero y no ofrecieron el bloque. Primera parte
+del criterio de decisión cumplida (al menos 2 de 3). Falta, cuando se renueve
+la ventana de 5 horas (85 % en esta corrida): los dos casi-aciertos ×3 (base
+3/3 cada uno en `20261020-213347`) y los seis guardianes de stark ×3 (contra
+`211347`, `205045` y `193010`). Si alguno empeora más de lo fijado, la v2 se
+revierte igual.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
