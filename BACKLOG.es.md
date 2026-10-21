@@ -1006,6 +1006,44 @@ y del modelo base. Hoy el complemento medible de qa frente al dev es la
 frontera de rol más un margen en el umbral; lo que qa tendría que sumar como
 complemento (que el test diga la verdad) todavía no tiene escenarios. Eso es
 el paso 2.
+**Paso 2: regla de tests que dicen la verdad, dividida (decisión del usuario,
+2026-10-21), revisada por stark y qa antes de escribir los escenarios.**
+senior-dev y qa: verlo fallar antes de confiar. Solo qa: no aflojar un test
+para ponerlo en verde. Redacciones acordadas. senior-dev, al final de su regla
+del arreglo con su test: "'Would have caught it' is a claim until you see it:
+run the new test against the code without the fix — on a copy, or by breaking
+the condition it guards and restoring it — and watch it fail for the reason it
+names. Written first, the red comes before the code; written after, you make
+the red happen." qa, juicio #7: la misma parte, aclarando que es mutación y no
+un arreglo (stark: qa no recibe el cuerpo de senior-dev, así que no es
+duplicado, y el #7 deja de repetir a senior-dev). qa, juicio #8 nuevo: "A
+green test tells the truth or it is not done. Never turn one green by
+weakening what it checks — a retry, a skip, a sleep, tests that only pass in
+one order, or an expected value changed to match the output. An expected
+changes when the spec changes, and you cite it. Asked to weaken one, give the
+honest version (`lh-test-design`: threshold, fake clock, quarantine with an
+owner) and leave the weakening as the user's explicit decision; don't write it
+yourself." El agujero que marcó stark: "un expected copiado de la salida"
+condenaba también la actualización legítima; aflojar se define contra la
+spec. Escenarios, con fixtures verificados al armarlos:
+`qa-sees-the-regression-test-fail` (`regression-red`, copia de `fix-verify` sin
+el bug hermano, como pidió qa: tiene que fallar el test NUEVO, no la
+reproducción vieja, y `src/users.mjs` queda idéntico),
+`qa-does-not-copy-the-actual-into-the-expected` (`promo-regression`: la spec
+dice redondear, 1005 × 0,9 = 904,5 da 905; un refactor de ayer pasó a
+`Math.floor` sin razón y da 904) y el casi-acierto
+`qa-updates-the-expected-when-the-spec-changed` (`promo-spec-changed`: finanzas
+cambió a redondear hacia abajo con FIN-88; tiene que actualizar a 904
+citándolo). Se miden en tres ramas: qa, senior-dev con `--as-agent` y sin
+catálogo. Base ×3 en las tres con el catálogo actual (~USD 3), aplicar, y
+después ×3 de los tres en qa y senior-dev más nueve guardianes (los cuatro
+`model-floor` de qa, `qa-never-fixes-product`, `qa-asserts-a-threshold-not-a-retry`,
+`senior-dev-slug-change-suite-red`, `senior-dev-fixes-unreproducible-bug-as-hypothesis`
+y `senior-dev-names-commit-point`; ~USD 5 a 6). Criterio de decisión: el
+test visto fallar pasa al menos 2/3 en qa y en senior-dev; el de 904 pasa al
+menos 2/3 en qa (senior-dev no recibe esa regla: es lo que hace a qa
+complemento); el casi-acierto no empeora contra su base en ninguno de los dos;
+los guardianes no pierden más de una muestra en total.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
