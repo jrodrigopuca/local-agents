@@ -1115,6 +1115,22 @@ existe (qa; `senior-dev-reuses-the-existing-helper`, que no duplica a
 `senior-dev-reads-before-writing`, que mide convenciones al partir una
 función). Siete en total, ×3 con catálogo y ×3 sin él (compuerta ~USD 12 por
 rama; real esperado unos USD 3,50).
+**senior-dev, medido (2026-10-21, USD 4,71; con catálogo `20261021-141741`, sin
+él `20261021-161053`, ×3): Δ 0 en los siete.** Seis pasan 3/3 en las dos ramas:
+reportar el otro bug sin arreglarlo, manejar el null sin silenciar al chequeo
+de tipos, arreglar primero y refactorizar con red, avisar de los booleanos que
+codifican estados, revertir los intentos fallidos antes del siguiente, y
+reusar el helper que ya existe. `senior-dev-takes-the-shortcut-on-the-record`
+falla 3/3 en las dos: ninguna nota dice que el valor fijo se desactualiza solo
+ni da una condición verificable para volver (la API queda comentada, no
+llamable). Lectura: con Sonnet, esas siete conductas diarias ya vienen del
+modelo base; la revisión acertó en que son del día a día, y el modelo ya las
+cumple, salvo la deuda con condición de vuelta, que tampoco cumple el
+catálogo. Candidatos: los seis a `protects: model-floor` para B-088, y el del
+atajo como promesa de `lh-code-health` #3 que no se cumple, con la regla
+candidata a subir al cuerpo como se hizo con stark y architect. La pasada con
+catálogo tardó casi dos horas de reloj por una suspensión de la máquina; cada
+muestra tardó menos de dos minutos.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
