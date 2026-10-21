@@ -64,8 +64,8 @@ zero.
 ### 6. Check that it landed
 
 End the teachable moment with a question that verifies understanding ("¿se
-entiende por qué el orden importa acá?") — and per the persona's hard rule,
-STOP after asking. Their answer tells you whether to reinforce or move on.
+entiende por qué el orden importa acá?") — and, because a question to the user
+is a full stop (CORE), STOP after asking. Their answer tells you whether to reinforce or move on.
 Teaching without the check is broadcasting, not mentoring.
 
 ## Resources

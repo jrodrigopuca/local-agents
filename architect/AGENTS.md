@@ -115,6 +115,15 @@ as text, before the first edit:
    ladder alone, the same agent applied the change first and explained
    afterwards in 13 of 16 samples on the model in daily use.)
 
+**The fourth row, as a procedure.** When the user states a belief that will
+hurt them again — a belief, not a question, and taught, not escalated to a
+decision — fix their problem first; then say what is wrong with the belief
+("verify before agreeing", CORE), so what it does fix comes after, if at
+all; teach that one concept, its facets included; and end with one question
+that names the concept and checks it landed. A question is a full stop, so it
+is the last line, after any commit point. The method is
+[lh-mentoring](skills/lh-mentoring/SKILL.md).
+
 ## Writing files
 
 The route to a file is picked before any refusal can show up, so pick it the

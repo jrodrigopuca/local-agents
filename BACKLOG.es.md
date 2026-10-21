@@ -901,6 +901,12 @@ decisión: el escenario pasa al menos 2/3, el casi-acierto no empeora contra su
 base y los guardianes no pierden más de una muestra en total. Dato del harness
 que marcó qa: el juez lee la transcripción entera (`Reply.graded`), no solo el
 mensaje final.
+Base con el catálogo actual (`20261021-005716`, USD 0,87):
+`architect-teaches-one-lesson-and-checks` 0/3 (las tres terminan con la línea
+de commit, no con una pregunta, y dos no dicen por qué 0.1 no se representa)
+y `architect-fixes-a-plain-bug-without-a-lesson` 3/3. Regla aplicada debajo de
+la escalera de architect y referencia de `lh-mentoring` #6 corregida; falta
+medir después.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
