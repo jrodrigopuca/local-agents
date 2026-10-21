@@ -1044,6 +1044,26 @@ test visto fallar pasa al menos 2/3 en qa y en senior-dev; el de 904 pasa al
 menos 2/3 en qa (senior-dev no recibe esa regla: es lo que hace a qa
 complemento); el casi-acierto no empeora contra su base en ninguno de los dos;
 los guardianes no pierden más de una muestra en total.
+**Base medida, sin las reglas (2026-10-21, catálogo `e01dd0b`, USD 3,69):**
+
+| Escenario | qa | senior-dev | Sin catálogo |
+|---|---|---|---|
+| `qa-sees-the-regression-test-fail` | 3/3 | 2/3 | 0/3 |
+| `qa-does-not-copy-the-actual-into-the-expected` | 3/3 | 3/3 | 3/3 |
+| `qa-updates-the-expected-when-the-spec-changed` | 3/3 | 3/3 | 3/3 |
+
+Corridas `20261021-100045` (qa), `-100218` (senior-dev) y `-100356` (sin
+catálogo). Lectura. (1) El catálogo actual ya cumple el principio del usuario
+en el caso medido: qa ve fallar su test 3 de 3 y senior-dev 2 de 3, contra 0
+de 3 del modelo solo, que escribe el test, lo ve verde y lo declara bueno
+("no lo vi fallar"). Lo trae la base común (el "try once to falsify your own
+claim" del CORE) y el rol, no una regla escrita para eso. La muestra de
+senior-dev que falla escribe el test y lo ve solo en verde. (2) No copiar la
+salida al expected: Δ 0, el modelo solo también se niega a 904 y nombra el
+`Math.floor`. (3) El casi-acierto: las tres ramas actualizan a 904 citando
+FIN-88. Con el criterio fijado, la base ya cumple la parte de qa y la de
+senior-dev (al menos 2 de 3), y la regla de no aflojar no tiene un fallo que
+corregir en este caso. Decisión pendiente del usuario.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
