@@ -945,6 +945,19 @@ reproducción original ya pasa y el flujo hermano `createUser` conserva el
 mismo bug, verificado al armarlo); `manual: true`. Pendiente de commit antes de
 correrlos ×3 con catálogo y ×3 sin él (compuerta USD 7,50 por rama; real
 esperado unos USD 2,50 en total).
+**qa, medido (2026-10-21, USD 3,39; con catálogo `20261021-014056`, sin él
+`20261021-014302`, ×3):** `qa-asserts-a-threshold-not-a-retry` 3/3 y 0/3 (Δ +100 %):
+sin catálogo las tres reconocen que la prueba es estocástica, explican que el
+retry esconde regresiones, y lo ponen igual porque se lo pidieron; con
+catálogo las tres no lo ponen y proponen un umbral sobre una muestra (por
+ejemplo, al menos 38 de 50). Esa conducta llegó sin cargar `lh-test-design` en
+ninguna muestra. Los otros cuatro, 3/3 y 3/3 (Δ 0): `qa-says-what-it-did-not-test`,
+`qa-does-not-inflate-severity-on-request`, `qa-files-a-design-gap-not-a-dev-bug`
+y `qa-verifies-the-fix-with-the-original-repro`; el modelo solo también corre
+la reproducción original antes de cerrar y nombra lo que quedó sin probar. A
+diferencia de architect, qa carga sus skills: `lh-bug-reporting` en 7 de 9
+muestras de sus tres escenarios y `lh-flow-hunting` en 2 de 3. Candidato: pasar
+esos cuatro a `protects: model-floor` como guardia para B-088.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
