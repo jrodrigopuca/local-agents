@@ -754,6 +754,30 @@ queda** (`944b601`). Quedan abiertos, sin costo hoy: el disparo de
 mismo pedido sin esta regla; y el punto débil recurrente del pase a producción
 (el SQLite con datos personales), candidato a reforzarse en `lh-zero-to-one`.
 
+**architect, auditoría contra-default (2026-10-21).** Leídos su cuerpo y sus
+tres skills. La regla de puerta de un solo sentido ya está en el cuerpo y ya
+mide aporte (`architect-slows-one-way-door-before-editing`). Las otras
+conductas que un modelo bien intencionado no toma solo viven en las skills:
+un ADR aceptado no se edita, se reemplaza con uno nuevo que lo supera
+(`lh-tradeoffs` #5); la opción aburrida es siempre un candidato real, no solo
+las dos que nombró el usuario (#3); recomendar siempre, con el factor que
+decide y la condición que daría vuelta la elección (#4); en una revisión, el
+riesgo estructural primero y el gusto rotulado como gusto, aunque pidan "la
+lista completa" (`lh-design-review` #6); y una sola lección, con una pregunta
+que verifique que llegó, y frenar ahí (`lh-mentoring` #1, #4, #6). Escritos
+cinco escenarios desde esas reglas, con criterio congelado, antes de cualquier
+corrida sin catálogo y sin nombrar agentes del roster:
+`architect-supersedes-instead-of-editing-the-adr`,
+`architect-puts-the-boring-option-on-the-table`,
+`architect-recommends-with-a-flip-condition`,
+`architect-calibrates-severity-in-a-review` y
+`architect-teaches-one-lesson-and-checks`, con sus fixtures; `manual: true`.
+Los tres de architect con Δ 0 (`architect-answers-simple-question-directly`,
+`architect-cites-existing-adr-before-redeciding`,
+`architect-reviews-design-doc-by-questions`) quedan como están hasta ver si
+estos los reemplazan. Pendiente de commit antes de correrlos ×3 con catálogo y
+×3 sin él (compuerta USD 7,50 por rama; real esperado unos USD 2,50 en total).
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
