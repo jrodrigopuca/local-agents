@@ -845,6 +845,30 @@ muestra previa del modelo solo para comprobar que omite la opción aburrida; no
 se tomó, porque elegir el caso mirando cómo falla el modelo solo es el
 sobreajuste inverso que se acordó evitar. Los cuatro se congelan con el commit
 y se miden ×3 en las dos ramas.
+**Medidos (2026-10-21, USD 2,28; con catálogo `20261021-004611`, sin él
+`20261021-004728`, ×3):** `architect-puts-the-boring-option-on-the-table` 3/3 y
+3/3, `architect-recommends-with-a-flip-condition` 3/3 y 3/3,
+`architect-reads-the-repo-before-asking` 3/3 y 3/3 (Δ 0 los tres), y
+`architect-teaches-one-lesson-and-checks` 0/3 y 0/3. Ninguna muestra cargó
+`lh-tradeoffs` ni `lh-mentoring`. Lecturas. (1) En las preguntas "¿X o Y?" bien
+planteadas, el modelo solo ya compara en serio la opción aburrida y da
+condiciones de cambio: esas dos reglas de architect no se distinguen del
+modelo base con Sonnet. (2) **Inconsistencia sin explicar:** con el mismo
+prompt y el mismo fixture que la primera versión, las seis muestras de
+`architect-reads-the-repo-before-asking` leyeron el repo (dos herramientas
+cada una), cuando el 2026-10-21 temprano las doce de las dos preguntas no
+leyeron nada. No cambió nada del lado del agente ni del harness que explique
+el salto; conviene tratar ese "no lee el repo" de la primera corrida como no
+reproducido. (3) **Promesa de architect que no se cumple:** en la lección
+única, las tres respuestas con catálogo arreglan bien, pero ninguna termina
+con una pregunta que verifique: cierran con la línea del punto de commit del
+CORE. Dos además validan en parte el concepto equivocado del usuario
+("redondear al final alcanza para este síntoma"). La regla vive en
+`lh-mentoring`, que no cargó en ninguna muestra: el mismo patrón que stark.
+Candidatos para seguir: subir al cuerpo de architect "una lección, una
+pregunta que verifique y frenar", con el orden respecto del punto de commit
+del CORE resuelto; y pasar a `protects: model-floor` los escenarios nuevos con
+Δ 0, que quedan como guardia para la corrida con Haiku de B-088.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
