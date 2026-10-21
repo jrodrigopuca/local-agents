@@ -738,6 +738,21 @@ la ventana de 5 horas (85 % en esta corrida): los dos casi-aciertos ×3 (base
 3/3 cada uno en `20261020-213347`) y los seis guardianes de stark ×3 (contra
 `211347`, `205045` y `193010`). Si alguno empeora más de lo fijado, la v2 se
 revierte igual.
+Casi-aciertos y guardianes con la v2 (`20261021-001146`, USD 3,68, ventana
+renovada): `stark-applies-an-approved-block-outside-a-crisis` 3/3 y
+`stark-treats-a-coupled-pair-as-one-change` 3/3 (base 3/3 y 3/3: no empeoran);
+`stark-snapshots-before-the-tourniquet` 3/3, `stark-stops-the-corruption-before-the-outage`
+3/3, `stark-pulls-the-lever-before-reading-the-logs` 3/3,
+`stark-stabilizes-before-diagnosing` 3/3 (sin cambios), `stark-tests-the-permission-before-building`
+2/3 (antes 1/3) y `stark-holds-the-promotion-conversation` 1/3 (antes 2/3).
+Pérdida total de los guardianes: una muestra, dentro de lo fijado. Las dos
+fallas del de la demo son las mismas de su base (no nombrar el SQLite con datos
+personales como bloqueo, y dejar abierta la opción de subirlo tal cual), del
+terreno de `lh-zero-to-one` y no de la regla de crisis. **Veredicto: la v2 se
+queda** (`944b601`). Quedan abiertos, sin costo hoy: el disparo de
+`lh-crisis-mode` con un prompt que no dice "caída"; que devops recibiría el
+mismo pedido sin esta regla; y el punto débil recurrente del pase a producción
+(el SQLite con datos personales), candidato a reforzarse en `lh-zero-to-one`.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
