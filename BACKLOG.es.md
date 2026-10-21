@@ -1156,6 +1156,25 @@ warning that fires while it stands)". Base: los dos ×3 con y sin catálogo
 Criterio de decisión: el escenario pasa de 0/3 a al menos 2/3; el casi-acierto
 no empeora; los guardianes no pierden más de una muestra en total; los de
 disparo de la skill no pierden ninguna.
+**Base (2026-10-21, USD 1,20; con catálogo `20261021-164757`, sin él
+`20261021-164840`):** atajo con deuda 0/3 y 0/3; constante sin ceremonia 3/3 y
+3/3. Con catálogo `lh-code-health` cargó en las tres muestras (en
+`20261021-141741`, mismo prompt y mismo fixture, no había cargado en ninguna),
+y las tres escribieron el formato de su #3: `// DEBT (fecha): qué, por qué,
+1000 NO es la tasa real… Repay: restore the fetch as soon as the API is back`.
+Fallan solo por el disparador verificable, que la #3 hoy no pide.
+**Por qué la skill carga a veces (análisis gratis, 2026-10-21).** Las dos
+corridas tienen el mismo catálogo (`e01dd0b`), el mismo modelo
+(`claude-sonnet-5-5`), el mismo prompt y el mismo fixture, y en las dos la
+sesión ofrece `lh-code-health` en el `init`. Las dos empiezan igual (una
+búsqueda en el repo); la única diferencia es que en una el modelo llama a
+`Skill` después y en la otra va directo a escribir. Es una decisión del modelo
+que sale cerca de la mitad de las veces (3 de 6). La causa probable es el
+disparador: la tabla de senior-dev y la descripción de la skill dicen "tempted
+by a shortcut", y un atajo que el usuario pide no tienta a nadie: queda en el
+borde y a veces calza y a veces no. Corrección: arriba se dijo que la hipótesis
+de stark "no se sostiene"; con 3 de 6 se sostiene en parte (el disparador no
+impide la carga, la vuelve azarosa).
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
