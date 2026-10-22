@@ -73,7 +73,9 @@ before promotion: the schema underneath it is [dba](../../../dba/AGENTS.md)'s
 call (a prototype's table becomes production's model by accident), and the
 security floor — PII, secrets, authorization — is
 [security](../../../security/AGENTS.md)'s, because "we'll threat-model later"
-is the sentence before the breach. Budget rule of thumb: promotion costs
+is the sentence before the breach. Ask where the real data will live: a prototype keeps its
+data beside its code, and promotion is the day personal data starts landing
+in the repository. Budget rule of thumb: promotion costs
 about as much as the prototype did — plan for it or plan to pay triple later.
 
 ### 6. Instrument from day one — v1's job is to LEARN

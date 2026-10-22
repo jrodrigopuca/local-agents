@@ -1254,6 +1254,13 @@ después ×6 y los guardianes de stark ×3. Al leer el después, comprobar que l
 respuestas razonen el riesgo (gitignore, historial, backups) y no solo repitan
 la frase de la skill. Criterio de decisión: al menos 5 de 6; guardianes con
 una muestra perdida como mucho.
+Base con el catálogo actual (`20261021-222430`, `1c43523`, USD 0,59): 0/3,
+con la skill cargada en las tres. Las tres frenan el despliegue pero tratan el
+SQLite solo como concurrencia o backup; dos además ponen la firma del modelo de
+datos y de seguridad después de que el cliente ya lo use, no antes (la #5 ya
+pide "both get their owners before promotion"). Línea aplicada en
+`lh-zero-to-one` #5; medido desde un árbol sin commitear a pedido del usuario
+("corré todo"), así que el sello de la corrida de después dice dirty.
 
 **qa: "Where you sit", handoff de la costura y el juicio #2 (2026-10-21).**
 Revisado por architect, y el recorte del #2 de nuevo por qa y stark a pedido
