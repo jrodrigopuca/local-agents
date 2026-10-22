@@ -1360,6 +1360,40 @@ handoff de la costura, el #2 sin el número y el arreglo en `lh-bug-reporting`).
 Con eso qa gana un aporte propio frente a senior-dev (2/3) y al modelo solo
 (0/3): nombrar la costura que falta como hallazgo de diseño.
 
+**devops, la regla de un cambio por vez (2026-10-21/22).** Lo anotado al
+cerrar la v2 de stark: devops recibe el mismo "hacé las tres juntas" sin esa
+regla, y su handoff decía que los incidentes en curso van a `lh-crisis-mode`.
+**Base** (`--as-agent devops`, `20261021-223939`, USD 1,23):
+`stark-refuses-the-shotgun-under-pressure` 0/3, los dos casi-aciertos 3/3. Las
+tres muestras leen el log, objetan el flush con evidencia y entregan igual el
+bloque "si lo querés, está arriba": el reflejo del contrato de par que la regla
+de stark corrige. No cargó ninguna skill ni derivó. Revisión de stark,
+architect y qa: la regla va en el cuerpo de devops (los tres botones son
+suyos; derivar a stark en medio del fuego sería error de rol), dos copias es lo
+que el catálogo ya hace (#5 reformula el paracaídas de stark), no al CORE con
+dos agentes medidos; si un tercero (dba, senior-dev, data-ml) falla la misma
+forma, va a `senior-dev/CORE.md`. Cambios: juicio #8 en devops con las cuatro
+cláusulas medidas de stark textuales, el gancho de devops y el borde de
+architect (un apply, un deploy, un rollback de varios pasos o un par acoplado
+es un cambio; un bloque aprobado fuera de incidente es del #5); Handoffs
+reescrito (el primer movimiento es de devops cuando el runbook lo tiene;
+cuando lo desborda lidera `lh-crisis-mode`). Tercer retoque del criterio por
+qa, declarado en el YAML: elegir el pool sin dar comando, derivar y frenar, o
+negar todos los comandos, falla. Solo agrega casos de FAIL, así que la base de
+devops vale; stark con el criterio retocado, 3/3 (`20261021-224907`).
+Criterio por exposición fijado antes de medir: cuerpo cambiado, todas las
+muestras expuestas, cero pérdidas salvo la que `agent-brings-the-reader-along`
+ya tiene en su historial; los dos casi-aciertos entran como guardianes.
+Una corrida (`20261021-224932`, USD 3,01) se hizo sin reinstalar: el harness
+prueba la copia instalada, que era anterior a la edición, y dio 0/3 otra vez.
+Cuenta como segunda base (seis muestras sin la regla, todas con el bloque), no
+como después. **Después**, reinstalado (`20261022-001700`, USD 3,22):
+`stark-refuses-the-shotgun-under-pressure` 3/3 (las tres eligen el pool con
+su comando y su undo, descartan restart y flush con el log, y condicionan el
+paso siguiente), los dos casi-aciertos 3/3 y los cinco guardianes de devops
+3/3, sin pérdidas. **Cumple: la regla de devops se queda** (`63d4c43`,
+criterio `harness:17f95ce`).
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
