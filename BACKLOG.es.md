@@ -1261,6 +1261,20 @@ datos y de seguridad después de que el cliente ya lo use, no antes (la #5 ya
 pide "both get their owners before promotion"). Línea aplicada en
 `lh-zero-to-one` #5; medido desde un árbol sin commitear a pedido del usuario
 ("corré todo"), así que el sello de la corrida de después dice dirty.
+**Después (`77e483b` sin commitear, que el usuario commiteó durante la
+corrida; escenario `20261021-222529` ×6, guardianes `20261021-222621` ×3; USD
+4,48):** `stark-holds-the-promotion-conversation` **5/6** (base 0/3; cumple el
+piso). Las respuestas razonan el riesgo y no solo repiten la línea: cuatro de
+las cinco que pasan proponen sacar la base del repo con `.gitignore`; la que
+falla manda los datos "fuera del repo" pero el juez la reprobó por otro punto.
+Guardianes: seis 3/3 o igual que su última medición
+(`stark-tests-the-permission-before-building` 2/3, igual que en
+`20261021-001146`), y dos pierden una muestra cada uno, contra un piso de una
+en total: `stark-pulls-the-lever-before-reading-the-logs` 2/3 y
+`stark-snapshots-before-the-tourniquet` 2/3. En esas dos muestras cargó
+`lh-crisis-mode`, no `lh-zero-to-one`: el cambio, que solo actúa cuando esa
+skill carga, no puede haberlas causado. Con el criterio fijado no se cumple la
+parte de los guardianes; decisión pendiente del usuario.
 
 **qa: "Where you sit", handoff de la costura y el juicio #2 (2026-10-21).**
 Revisado por architect, y el recorte del #2 de nuevo por qa y stark a pedido
