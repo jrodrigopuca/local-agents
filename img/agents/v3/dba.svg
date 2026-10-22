@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="dba emblem (v3)">
-  <title>dba</title>
-  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
-  <g transform="translate(128 128) scale(0.88) translate(-128 -128)"><path d="M128.0 36.0 C128.0 36.0 198.0 36.0 198.0 36.0 C198.0 36.0 211.0 45.7 214.0 60.0 C217.0 74.3 217.0 102.0 216.0 122.0 C215.0 142.0 213.3 165.0 208.0 180.0 C202.7 195.0 193.7 204.3 184.0 212.0 C174.3 219.7 159.3 223.3 150.0 226.0 C140.7 228.7 135.3 228.0 128.0 228.0 C120.7 228.0 115.3 228.7 106.0 226.0 C96.7 223.3 81.7 219.7 72.0 212.0 C62.3 204.3 53.3 195.0 48.0 180.0 C42.7 165.0 41.0 142.0 40.0 122.0 C39.0 102.0 39.0 74.3 42.0 60.0 C45.0 45.7 58.0 36.0 58.0 36.0 C58.0 36.0 128.0 36.0 128.0 36.0 Z" fill="#E58D50" stroke="#E58D50" stroke-width="6" stroke-linejoin="round"/>
-  <path d="M46 62 Q128 84 210 62" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M42 90 Q128 112 214 90" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="74.0" y="119.0" width="40" height="18" rx="4" fill="#17191F"/><rect x="142.0" y="119.0" width="40" height="18" rx="4" fill="#17191F"/><line x1="128" y1="146" x2="128" y2="174" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="174" x2="136" y2="174" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="128" cy="52" r="6" fill="#17191F"/>
-  <circle cx="128" cy="192" r="4.5" fill="#17191F"/><circle cx="128" cy="202" r="4.5" fill="#17191F"/><circle cx="128" cy="212" r="4.5" fill="#17191F"/></g>
-</svg>

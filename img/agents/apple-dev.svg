@@ -1,15 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="apple-dev emblem">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="apple-dev emblem (v6)">
   <title>apple-dev</title>
-  <defs>
-    <linearGradient id="g-apple-dev" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6B6B75"/>
-      <stop offset="1" stop-color="#232328"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-apple-dev)"/>
-  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <polyline points="40,196 76,196 76,160 112,160 112,124 148,124 148,88 184,88 184,52 216,52" fill="none"/>
-  <circle cx="60" cy="176" r="9" fill="#F7F6F2" stroke="none"/>
-  <circle cx="200" cy="32" r="11" fill="#F2C14E" stroke="none"/>
-  </g>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.94) translate(-128 -128)"><defs><clipPath id="c6-apple-dev"><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z"/></clipPath></defs><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z" fill="#38A5AD"/><g clip-path="url(#c6-apple-dev)" fill="#FFFFFF"><rect x="0" y="40" width="256" height="58"/></g><rect x="83.0" y="113.0" width="30" height="22" rx="9" fill="#17191F"/><rect x="143.0" y="113.0" width="30" height="22" rx="9" fill="#17191F"/><line x1="128" y1="142" x2="128" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="170" x2="136" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="108" cy="84" r="5" fill="#17191F"/><circle cx="128" cy="70" r="5" fill="#17191F"/><circle cx="148" cy="56" r="7" fill="none" stroke="#17191F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="128" cy="194" r="4.5" fill="#17191F"/><circle cx="128" cy="204" r="4.5" fill="#17191F"/><circle cx="128" cy="214" r="4.5" fill="#17191F"/></g>
 </svg>

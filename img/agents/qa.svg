@@ -1,18 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="qa emblem">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="qa emblem (v7)">
   <title>qa</title>
-  <defs>
-    <linearGradient id="g-qa" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#E8AC2A"/>
-      <stop offset="1" stop-color="#A86E0A"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-qa)"/>
-  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="108" cy="108" r="54" fill="none"/>
-  <line x1="148" y1="148" x2="208" y2="208" stroke-width="16"/>
-  <polyline points="72,140 108,104 140,80" stroke-width="7"/>
-  <polyline points="108,104 136,132" stroke-width="7"/>
-  <circle cx="140" cy="80" r="7" fill="#F7F6F2" stroke="none"/>
-  <circle cx="136" cy="132" r="7" fill="#F7F6F2" stroke="none"/>
-  </g>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.94) translate(-128 -128)"><defs><clipPath id="c7-qa"><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z"/></clipPath></defs><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z" fill="#38A5AD"/><g clip-path="url(#c7-qa)" fill="#F09F42"><polygon points="130,0 144,62 112,106 144,150 112,194 128,256 256,256 256,0"/></g><circle cx="98" cy="122" r="12.0" fill="#17191F"/><circle cx="158" cy="122" r="12.0" fill="#17191F"/><line x1="128" y1="142" x2="128" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="170" x2="136" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><path d="M86 50 L110 74 M110 50 L86 74" fill="none" stroke="#17191F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="128" cy="194" r="4.5" fill="#17191F"/><circle cx="128" cy="204" r="4.5" fill="#17191F"/><circle cx="128" cy="214" r="4.5" fill="#17191F"/></g>
 </svg>

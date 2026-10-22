@@ -1,19 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="gamification emblem">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="gamification emblem (v6)">
   <title>gamification</title>
-  <defs>
-    <linearGradient id="g-gamification" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#79C34A"/>
-      <stop offset="1" stop-color="#3F7F1F"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-gamification)"/>
-  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <path d="M194 128 A66 66 0 1 1 161 70.8" fill="none"/>
-  <circle cx="128" cy="62" r="11" fill="#F7F6F2" stroke="none"/>
-  <circle cx="194" cy="128" r="11" fill="#F7F6F2" stroke="none"/>
-  <circle cx="128" cy="194" r="11" fill="#F7F6F2" stroke="none"/>
-  <circle cx="62" cy="128" r="11" fill="#F7F6F2" stroke="none"/>
-  <polygon points="128,100 136,120 156,128 136,136 128,156 120,136 100,128 120,120" fill="#F2C14E" stroke="none"/>
-  <polygon points="177,80 155,81 167,60" fill="#F7F6F2" stroke="none"/>
-  </g>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.94) translate(-128 -128)"><defs><clipPath id="c6-gamification"><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z"/></clipPath></defs><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z" fill="#F09F42"/><g clip-path="url(#c6-gamification)" fill="#FADDBD"><polygon points="0,150 128,96 256,150 256,176 128,122 0,176"/></g><polygon points="98,105.0 113.0,118 98,131.0 83.0,118" fill="#17191F" stroke="#17191F" stroke-width="4" stroke-linejoin="round"/><polygon points="158,105.0 173.0,118 158,131.0 143.0,118" fill="#17191F" stroke="#17191F" stroke-width="4" stroke-linejoin="round"/><line x1="128" y1="142" x2="128" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="170" x2="136" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><polygon points="128.0,53.0 130.9,62.0 140.4,62.0 132.8,67.5 135.6,76.5 128.0,71.0 120.4,76.5 123.2,67.5 115.6,62.0 125.1,62.0" fill="#17191F" stroke="#17191F" stroke-width="2" stroke-linejoin="round"/><circle cx="128" cy="66" r="21" fill="none" stroke="#17191F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="9 7"/><line x1="122" y1="195" x2="122" y2="213" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="134" y1="195" x2="134" y2="213" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
 </svg>

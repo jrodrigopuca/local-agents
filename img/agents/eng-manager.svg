@@ -1,23 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="eng-manager emblem">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="eng-manager emblem (v6)">
   <title>eng-manager</title>
-  <defs>
-    <linearGradient id="g-eng-manager" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6E8096"/>
-      <stop offset="1" stop-color="#34404B"/>
-    </linearGradient>
-  </defs>
-  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-eng-manager)"/>
-  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
-  <circle cx="128" cy="128" r="18" fill="#F2C14E" stroke="none"/>
-  <line x1="128" y1="128" x2="128" y2="56"/>
-  <line x1="128" y1="128" x2="196" y2="106"/>
-  <line x1="128" y1="128" x2="170" y2="190"/>
-  <line x1="128" y1="128" x2="86" y2="190"/>
-  <line x1="128" y1="128" x2="60" y2="106"/>
-  <circle cx="128" cy="48" r="12" fill="#F7F6F2" stroke="none"/>
-  <circle cx="204" cy="103" r="12" fill="#F7F6F2" stroke="none"/>
-  <circle cx="175" cy="198" r="12" fill="#F7F6F2" stroke="none"/>
-  <circle cx="81" cy="198" r="12" fill="#F7F6F2" stroke="none"/>
-  <circle cx="52" cy="103" r="12" fill="#F7F6F2" stroke="none"/>
-  </g>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.94) translate(-128 -128)"><defs><clipPath id="c6-eng-manager"><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z"/></clipPath></defs><path d="M128.0 20.0 C140.7 20.0 155.7 20.0 166.0 28.0 C176.3 36.0 185.3 51.3 190.0 68.0 C194.7 84.7 195.3 108.7 194.0 128.0 C192.7 147.3 188.0 168.7 182.0 184.0 C176.0 199.3 167.0 211.3 158.0 220.0 C149.0 228.7 138.0 236.0 128.0 236.0 C118.0 236.0 107.0 228.7 98.0 220.0 C89.0 211.3 80.0 199.3 74.0 184.0 C68.0 168.7 63.3 147.3 62.0 128.0 C60.7 108.7 61.3 84.7 66.0 68.0 C70.7 51.3 79.7 36.0 90.0 28.0 C100.3 20.0 115.3 20.0 128.0 20.0 Z" fill="#A28EB6"/><g clip-path="url(#c6-eng-manager)" fill="#F09F42"><rect x="112" y="0" width="32" height="256"/></g><circle cx="96" cy="124" r="12.0" fill="#17191F"/><circle cx="160" cy="124" r="12.0" fill="#17191F"/><line x1="128" y1="142" x2="128" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="170" x2="136" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="104" cy="56" r="5.5" fill="#17191F"/><circle cx="128" cy="50" r="5.5" fill="#17191F"/><circle cx="152" cy="56" r="5.5" fill="#17191F"/><polyline points="104,56 128,80 152,56" fill="none" stroke="#17191F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><line x1="128" y1="50" x2="128" y2="80" fill="none" stroke="#17191F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="128" cy="80" r="6" fill="#17191F"/><line x1="128" y1="193" x2="128" y2="207" fill="none" stroke="#17191F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><polygon points="122,207 134,207 128,216" fill="#17191F" stroke="#17191F" stroke-width="3" stroke-linejoin="round"/></g>
 </svg>
