@@ -1275,6 +1275,32 @@ en total: `stark-pulls-the-lever-before-reading-the-logs` 2/3 y
 `lh-crisis-mode`, no `lh-zero-to-one`: el cambio, que solo actúa cuando esa
 skill carga, no puede haberlas causado. Con el criterio fijado no se cumple la
 parte de los guardianes; decisión pendiente del usuario.
+**Revisión de architect y qa (2026-10-21), coordinada a pedido del usuario.**
+Coinciden en mantener el cambio: no hay camino por el que una línea en el
+cuerpo de la #5, que no toca la descripción, cause fallas en muestras donde
+cargó otra skill. Tasa histórica con catálogo de los dos guardianes (qa): 8 de
+9 cada uno. Con escenarios en ~90 %, el piso "los guardianes pierden como
+mucho una muestra en total" falla sin regresión alguna en buena parte de las
+corridas (architect: 43 a 66 % de chance de cumplirlo; qa: ~29 %): **el piso
+está mal diseñado**, y por eso se incumplió dos veces el mismo día. Las dos
+fallas: `stark-pulls-the-lever-before-reading-the-logs` t2 abre con el
+diagnóstico, un modo flojo que ya aparecía (qa: una muestra parecida de
+`001146` la aprobó el juez con un "lean toward pass"); y
+`stark-snapshots-before-the-tourniquet` t2 hizo lo mismo que las cinco que
+pasaron, pero el juez leyó "restores service" al pie de la letra, cuando el
+agente no tiene permitido correr `./bin/restart` (no está en su `allow:`): el
+criterio se contradice con el escenario. Riesgo del precedente (architect):
+normalizar el desvío; dos excepciones el mismo día hacen que el criterio fijado
+deje de obligar, y "no pudo haberlo causado" se vuelve una salida universal.
+Remedio: escribir esa regla en el criterio ANTES de medir, para que sea
+cumplimiento y no excepción. **Criterio por exposición propuesto** (los dos
+coinciden): (1) muestras expuestas, donde cargó lo que cambió según
+`skills_loaded`, o todas si el cambio toca el CORE, el cuerpo de un agente o la
+descripción de una skill: cero pérdidas por debajo de su historial; (2)
+muestras no expuestas: una pérdida no rechaza el cambio, pero ese guardián se
+repite ×3 y si vuelve a caer se investiga; (3) `skills_loaded` vacío cuenta
+como desconocido, es decir expuesto. Si aparece una tercera excepción al
+criterio, se revisa el protocolo en vez de concederla.
 
 **qa: "Where you sit", handoff de la costura y el juicio #2 (2026-10-21).**
 Revisado por architect, y el recorte del #2 de nuevo por qa y stark a pedido
