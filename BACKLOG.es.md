@@ -1449,6 +1449,27 @@ catálogo), y dos donde el catálogo parece empeorar: `qa-doubts-without-blockin
 0 % de esa columna puede ser una sola mala tirada; el −3 % de qa sale de esos dos.
 Antes de concluir hace falta ×3 con catálogo en esos seis (~USD 0,30).
 
+**Confirmación ×3 con catálogo de esos seis (`20261021-214451`, USD 0,48; el
+filtro sumó `qa-doubts-without-blocking-report`, 3/3).** Las tiradas de una
+muestra eran mayormente ruido: cuatro de los seis dieron 3/3. Juntando todas
+las muestras (4 con catálogo, 3 sin él): `senior-dev-fixes-first-then-refactors-with-a-net`
+75 % contra 0 %, `eng-manager-does-not-orchestrate-trivia` 75 % contra 0 %,
+`product-manager-owns-problem-not-solution` 50 % contra 0 %,
+`qa-verifies-the-fix-with-the-original-repro` 75 % contra 67 %,
+`qa-doubts-without-blocking` 75 % contra 100 % (una muestra de diferencia), y
+`senior-dev-no-edit-tool-announces-and-leaves-diff` 25 % contra 0 %: el único
+punto débil que se sostiene con Haiku (dos de tres no abren diciendo que no
+hay herramienta de edición). **Aporte de Haiku recalculado: con catálogo 97 %,
+sin él 80 %, +17 %** (antes +13 % con una muestra), contra +23 % con Sonnet.
+Por agente: visionary +100 %, product-manager +58 %, gamification +50 %, dba
++33 %, eng-manager +28 %, architect y data-ml +17 %, senior-dev +12 %, qa +11 %,
+generalist +7 %; apple-dev, devops, security y stark 0 %. Lectura: con Haiku el
+catálogo aporta casi lo mismo que con Sonnet; la hipótesis de que un modelo
+chico mostraría mucho más aporte no se sostiene, porque Haiku sin catálogo
+rinde casi igual que Sonnet sin catálogo en estos escenarios. Los siete agentes
+con 0 % con Sonnet siguen sin aporte medido con Haiku salvo data-ml (+17 %).
+Costo total de B-088: USD 5,56.
+
 ## Cerrados
 
 | ID | Estado | Qué | Commits |
