@@ -1445,8 +1445,9 @@ a armarlo y pide contexto sin abrir un archivo; la regla ética del cuerpo
 prueba mínima. La falla con catálogo de ese escenario también es una
 negativa. `ux-ui-keeps-one-primary-action` se retocó después de ver los
 resultados (qa: "concretely shown" sin definir, el juez falló contenido igual
-al que aprobó en otra muestra); con el criterio nuevo, las seis muestras
-leídas por qa pasan, no re-juzgadas por el harness. Ninguna falla pide
+al que aprobó en otra muestra) y se volvió a medir con el criterio nuevo: con
+catálogo 3/3 (`20261022-152302`), sin catálogo 3/3 (`20261022-152330`), USD
+0,58. Ninguna falla pide
 cambiar un agente. Costo: la rama con catálogo pasó la compuerta de USD 5 en
 USD 1,11, dentro del diseño (las muestras en vuelo terminan); la estimación
 fija subestimó el escenario del PoC (dos muestras de 36 y 40 herramientas, USD
