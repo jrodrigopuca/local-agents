@@ -125,25 +125,29 @@ means the prompt did not reach it.
 
 ## The roster
 
-| Agent | What it's for | Skills |
-|-------|---------------|--------|
-| [`generalist`](generalist/AGENTS.md) | Base reasoning loop: verification habits, decomposition, next-step decisions. Every other agent inherits this. | 3 |
-| [`architect`](architect/AGENTS.md) | Architecture, expensive-to-reverse decisions, design review, mentoring. Helpful first, challenging when it counts. | 3 |
-| [`senior-dev`](senior-dev/AGENTS.md) | Building and modifying application code as a work peer. Stack-agnostic judgment; the ecosystem arrives as skills. Defines the Peer Contract the team inherits. | 4 |
-| [`ux-ui`](ux-ui/AGENTS.md) | Screen and flow design, mockups, design-to-dev handoff. Dev-fluent: speaks tokens, states, constraints. | 4 |
-| [`qa`](qa/AGENTS.md) | Hunts unconsidered flows and edge cases. Writes test code, never fixes product code. | 3 |
-| [`security`](security/AGENTS.md) | Defensive security: threat modeling, adversarial code audit, remediation. | 3 |
-| [`devops`](devops/AGENTS.md) | CI/CD, infrastructure-as-code, observability, SLOs. Makes deploys boring and reversible. | 3 |
-| [`data-ml`](data-ml/AGENTS.md) | Data pipelines, honest ML modeling, LLM integration (RAG, evals, cost/latency). | 3 |
-| [`dba`](dba/AGENTS.md) | Owner of the data model: schema, migrations, indexes, integrity. Constrains what architect and devops can do to it. | 3 |
-| [`apple-dev`](apple-dev/AGENTS.md) | Swift/iOS/macOS as a sustained mentor: Socratic teaching, severity-tagged reviews, shipping. | 4 |
-| [`product-manager`](product-manager/AGENTS.md) | Discovery, backlog, prioritization. Owns the why/what/for-whom. | 3 |
-| [`visionary`](visionary/AGENTS.md) | Product vision and brutally honest critique. Focus as subtraction. | 3 |
-| [`gamification`](gamification/AGENTS.md) | Flow analysis, engagement and habit mechanics — with an explicit ethics line. | 3 |
-| [`stark`](stark/AGENTS.md) | Complex/stuck problems, 0→1 products, crises. First principles, build-to-think. | 3 |
-| [`eng-manager`](eng-manager/AGENTS.md) | Orchestration: routes work across the roster, de-risks delivery. Knows every agent. | 3 |
+| | Agent | What it's for | Skills |
+|:-:|-------|---------------|--------|
+| <img src="img/agents/generalist.svg" width="40" height="40" alt="generalist mask"> | [`generalist`](generalist/AGENTS.md) | Base reasoning loop: verification habits, decomposition, next-step decisions. Every other agent inherits this. | 3 |
+| <img src="img/agents/architect.svg" width="40" height="40" alt="architect mask"> | [`architect`](architect/AGENTS.md) | Architecture, expensive-to-reverse decisions, design review, mentoring. Helpful first, challenging when it counts. | 3 |
+| <img src="img/agents/senior-dev.svg" width="40" height="40" alt="senior-dev mask"> | [`senior-dev`](senior-dev/AGENTS.md) | Building and modifying application code as a work peer. Stack-agnostic judgment; the ecosystem arrives as skills. Defines the Peer Contract the team inherits. | 4 |
+| <img src="img/agents/ux-ui.svg" width="40" height="40" alt="ux-ui mask"> | [`ux-ui`](ux-ui/AGENTS.md) | Screen and flow design, mockups, design-to-dev handoff. Dev-fluent: speaks tokens, states, constraints. | 4 |
+| <img src="img/agents/qa.svg" width="40" height="40" alt="qa mask"> | [`qa`](qa/AGENTS.md) | Hunts unconsidered flows and edge cases. Writes test code, never fixes product code. | 3 |
+| <img src="img/agents/security.svg" width="40" height="40" alt="security mask"> | [`security`](security/AGENTS.md) | Defensive security: threat modeling, adversarial code audit, remediation. | 3 |
+| <img src="img/agents/devops.svg" width="40" height="40" alt="devops mask"> | [`devops`](devops/AGENTS.md) | CI/CD, infrastructure-as-code, observability, SLOs. Makes deploys boring and reversible. | 3 |
+| <img src="img/agents/data-ml.svg" width="40" height="40" alt="data-ml mask"> | [`data-ml`](data-ml/AGENTS.md) | Data pipelines, honest ML modeling, LLM integration (RAG, evals, cost/latency). | 3 |
+| <img src="img/agents/dba.svg" width="40" height="40" alt="dba mask"> | [`dba`](dba/AGENTS.md) | Owner of the data model: schema, migrations, indexes, integrity. Constrains what architect and devops can do to it. | 3 |
+| <img src="img/agents/apple-dev.svg" width="40" height="40" alt="apple-dev mask"> | [`apple-dev`](apple-dev/AGENTS.md) | Swift/iOS/macOS as a sustained mentor: Socratic teaching, severity-tagged reviews, shipping. | 4 |
+| <img src="img/agents/product-manager.svg" width="40" height="40" alt="product-manager mask"> | [`product-manager`](product-manager/AGENTS.md) | Discovery, backlog, prioritization. Owns the why/what/for-whom. | 3 |
+| <img src="img/agents/visionary.svg" width="40" height="40" alt="visionary mask"> | [`visionary`](visionary/AGENTS.md) | Product vision and brutally honest critique. Focus as subtraction. | 3 |
+| <img src="img/agents/gamification.svg" width="40" height="40" alt="gamification mask"> | [`gamification`](gamification/AGENTS.md) | Flow analysis, engagement and habit mechanics — with an explicit ethics line. | 3 |
+| <img src="img/agents/stark.svg" width="40" height="40" alt="stark mask"> | [`stark`](stark/AGENTS.md) | Complex/stuck problems, 0→1 products, crises. First principles, build-to-think. | 3 |
+| <img src="img/agents/eng-manager.svg" width="40" height="40" alt="eng-manager mask"> | [`eng-manager`](eng-manager/AGENTS.md) | Orchestration: routes work across the roster, de-risks delivery. Knows every agent. | 3 |
 
 Not sure which one you need? Start with `eng-manager` — routing is its job.
+
+Each agent wears a mask from the same tribe: one shape, the family's
+material, and a colour of its own. What each mask says is in
+[img/agents/README.md](img/agents/README.md).
 
 ---
 
