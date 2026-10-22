@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="visionary emblem (v2)">
+  <title>visionary</title>
+  <defs>
+    <linearGradient id="g2-visionary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#726CBE"/>
+      <stop offset="1" stop-color="#3C377C"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g2-visionary)"/>
+  <ellipse cx="100" cy="214" rx="48" ry="9" fill="#000000" opacity="0.14"/>
+  <circle cx="100" cy="160" r="52" fill="#FFF8EC"/>
+  <ellipse cx="83.6" cy="154.4" rx="7.7" ry="9.5" fill="#2D2A3A"/>
+  <circle cx="81.3" cy="151.2" r="2.7" fill="#FFFFFF"/>
+  <ellipse cx="119.6" cy="154.4" rx="7.7" ry="9.5" fill="#2D2A3A"/>
+  <circle cx="117.3" cy="151.2" r="2.7" fill="#FFFFFF"/>
+  <path d="M92.6 174.2 Q98.0 179.6 103.4 174.2" fill="none" stroke="#2D2A3A" stroke-width="5.4" stroke-linecap="round"/>
+  <ellipse cx="67.4" cy="169.7" rx="7.7" ry="5.0" fill="#FF8FA3" opacity="0.6"/>
+  <ellipse cx="128.6" cy="169.7" rx="7.7" ry="5.0" fill="#FF8FA3" opacity="0.6"/>
+  <circle cx="140" cy="116" r="4" fill="#FFF8EC" opacity="0.6"/>
+  <circle cx="156" cy="98" r="4" fill="#FFF8EC" opacity="0.6"/>
+  <polygon points="188.0,38.0 194.4,61.6 218.0,68.0 194.4,74.4 188.0,98.0 181.6,74.4 158.0,68.0 181.6,61.6" fill="#FFD166" stroke="#FFD166" stroke-width="4" stroke-linejoin="round"/>
+</svg>

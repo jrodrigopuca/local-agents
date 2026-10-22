@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="devops emblem (v2)">
+  <title>devops</title>
+  <defs>
+    <linearGradient id="g2-devops" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6FA9F5"/>
+      <stop offset="1" stop-color="#3A6CCB"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g2-devops)"/>
+  <line x1="36" y1="210" x2="220" y2="210" stroke="#2D2A3A" stroke-width="8" stroke-linecap="round" opacity="0.35"/>
+  <rect x="62" y="96" width="132" height="92" rx="28" fill="#FFF8EC"/>
+  <circle cx="94" cy="190" r="16" fill="#2D2A3A"/>
+  <circle cx="162" cy="190" r="16" fill="#2D2A3A"/>
+  <circle cx="94" cy="190" r="5" fill="#FFF8EC"/>
+  <circle cx="162" cy="190" r="5" fill="#FFF8EC"/>
+  <ellipse cx="109.0" cy="134.0" rx="8.1" ry="10.0" fill="#2D2A3A"/>
+  <circle cx="106.5" cy="130.6" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="147.0" cy="134.0" rx="8.1" ry="10.0" fill="#2D2A3A"/>
+  <circle cx="144.5" cy="130.6" r="2.8" fill="#FFFFFF"/>
+  <path d="M117.5 151.1 Q128.0 160.6 138.4 151.1" fill="none" stroke="#2D2A3A" stroke-width="5.7" stroke-linecap="round"/>
+  <ellipse cx="95.7" cy="146.3" rx="8.1" ry="5.2" fill="#FF8FA3" opacity="0.6"/>
+  <ellipse cx="160.3" cy="146.3" rx="8.1" ry="5.2" fill="#FF8FA3" opacity="0.6"/>
+  <path d="M111.1 72.1 A22 22 0 1 1 144.9 72.1" fill="none" stroke="#FFD166" stroke-width="9" stroke-linecap="round"/>
+  <polygon points="137.8,80.6 152.4,78.5 137.3,65.8" fill="#FFD166" stroke="#FFD166" stroke-width="4" stroke-linejoin="round"/>
+</svg>

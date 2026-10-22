@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="ux-ui emblem (v2)">
+  <title>ux-ui</title>
+  <defs>
+    <linearGradient id="g2-ux-ui" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FF928A"/>
+      <stop offset="1" stop-color="#DD554D"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g2-ux-ui)"/>
+  <ellipse cx="128" cy="216" rx="60" ry="9" fill="#000000" opacity="0.14"/>
+  <rect x="64" y="52" width="128" height="156" rx="32" fill="#FFF8EC"/>
+  <ellipse cx="109.0" cy="100.0" rx="8.1" ry="10.0" fill="#2D2A3A"/>
+  <circle cx="106.5" cy="96.6" r="2.8" fill="#FFFFFF"/>
+  <ellipse cx="147.0" cy="100.0" rx="8.1" ry="10.0" fill="#2D2A3A"/>
+  <circle cx="144.5" cy="96.6" r="2.8" fill="#FFFFFF"/>
+  <path d="M117.5 117.1 Q128.0 126.6 138.4 117.1" fill="none" stroke="#2D2A3A" stroke-width="5.7" stroke-linecap="round"/>
+  <ellipse cx="95.7" cy="112.3" rx="8.1" ry="5.2" fill="#FF8FA3" opacity="0.6"/>
+  <ellipse cx="160.3" cy="112.3" rx="8.1" ry="5.2" fill="#FF8FA3" opacity="0.6"/>
+  <rect x="88" y="154" width="80" height="28" rx="14" fill="#FFD166"/>
+  <path d="M150 166 V200 L158 192 L165 206 L172 203 L165 189 L176 188 Z" fill="#2D2A3A" stroke="#FFFFFF" stroke-width="3" stroke-linejoin="round"/>
+</svg>
