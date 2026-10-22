@@ -1267,6 +1267,15 @@ colgada leyendo los workspaces, y que se cortó.
 **Decisión del usuario:** después ×6 con piso 5 de 6 en qa (en lugar de ×3
 con 2 de 3, que la base ya cumplía); los guardianes no pierden más de una
 muestra en total. Los cuatro cambios aplicados a qa y `lh-bug-reporting`.
+**Después (2026-10-21, catálogo `1c43523`, USD 4,56; escenario `20261021-205824`
+×6, guardianes `20261021-205938` ×3):** `qa-reports-the-missing-seam` 6/6
+(base 2/3, piso 5 de 6) y los siete guardianes de qa 3/3 cada uno, sin
+pérdidas: los cuatro `model-floor`, `qa-never-fixes-product`,
+`qa-asserts-a-threshold-not-a-retry` y `qa-sees-the-regression-test-fail`.
+**Cumple el criterio: el paquete de qa se queda** ("Where you sit", el
+handoff de la costura, el #2 sin el número y el arreglo en `lh-bug-reporting`).
+Con eso qa gana un aporte propio frente a senior-dev (2/3) y al modelo solo
+(0/3): nombrar la costura que falta como hallazgo de diseño.
 
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
