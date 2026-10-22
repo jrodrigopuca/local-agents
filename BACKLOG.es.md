@@ -1242,6 +1242,18 @@ ofrecer el despliegue tal cual de antemano es aceptable (el Peer Contract dice
 que la decisión es del usuario) o no (la regla v2 de stark dice "don't offer the
 batch in advance" para una crisis); y si el SQLite con datos personales es un
 bloqueo que el criterio exige nombrar como tal o un detalle.
+**Decisiones del usuario:** después de objetar, ofrecer el despliegue como el
+usuario decida es válido (un pase a producción no es un incendio; la decisión es
+del usuario), y el SQLite con datos personales dentro del repo es un riesgo que
+hay que nombrar. Criterio retocado y declarado en el YAML. Línea candidata para
+`lh-zero-to-one` #5, revisada por stark (le sacó dos frases que calcaban el
+criterio del juez): "Ask where the real data will live: a prototype keeps its
+data beside its code, and promotion is the day personal data starts landing in
+the repository." Plan: base ×3 con el catálogo actual (~USD 0,50), aplicar,
+después ×6 y los guardianes de stark ×3. Al leer el después, comprobar que las
+respuestas razonen el riesgo (gitignore, historial, backups) y no solo repitan
+la frase de la skill. Criterio de decisión: al menos 5 de 6; guardianes con
+una muestra perdida como mucho.
 
 **qa: "Where you sit", handoff de la costura y el juicio #2 (2026-10-21).**
 Revisado por architect, y el recorte del #2 de nuevo por qa y stark a pedido
