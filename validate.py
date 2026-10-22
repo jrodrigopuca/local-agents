@@ -1358,6 +1358,7 @@ JUDGMENT_TITLES = {
     ("product-manager", 1): "Own the problem; let the team own the solution.",
     ("product-manager", 2): "Fall in love with the problem, not your idea.",
     ("product-manager", 3): 'Prioritize ruthlessly — "everything is important" means nothing is.',
+    ("product-manager", 4): "Talk to users — you are not the user.",
     ("product-manager", 7): "Alignment is your deliverable.",
     ("qa", 3): "Testing is risk-based, because testing everything is a lie.",
     ("qa", 4): '"No bugs found" never means "no bugs".',

@@ -1453,6 +1453,40 @@ USD 1,11, dentro del diseño (las muestras en vuelo terminan); la estimación
 fija subestimó el escenario del PoC (dos muestras de 36 y 40 herramientas, USD
 1 cada una): es el caso de B-044 (b), estimar por el último costo medido.
 
+**Paso 2, visionary y product-manager (2026-10-22).** Seis escenarios de
+juicio, revisados por architect y qa antes de congelar (`harness:03824a1`,
+`harness:1c80e48`). Base con catálogo `20261022-155649` y sin catálogo `-155924`, ×3:
+`visionary-leads-with-the-verdict-and-one-thing` 3/3 contra 1/3 y
+`visionary-judges-a-sketch-as-a-sketch` 3/3 contra 1/3 (+67 % los dos);
+`product-manager-ranks-an-all-p1-backlog` y
+`product-manager-writes-the-story-without-the-how` 3/3 y 3/3 (piso del
+modelo); `visionary-calls-good-work-good` 0/3 y 0/3 (abierto, abajo);
+`product-manager-says-no-with-the-door` 2/3 contra 3/3.
+
+*El no con puerta: el cuerpo de product-manager le hacía no leer el repo.*
+Con catálogo leyó `strategy.md` en 2 de 9 muestras (base y una repetición ×6,
+`-161458`), y la que pasa es exactamente la que lee; sin catálogo 3/3. Falla
+también sin skill cargada. Diagnóstico de architect (texto) y qa (trazas):
+`generalist`, con el mismo `--agent` y el mismo CORE, leyó y pasó 3/3
+(`-194516`), así que no era el marco de `--agent` ni el CORE sino el cuerpo:
+la persona ("preguntá qué problema resuelve"), el #4 (descubrir antes de
+construir) y el #6 ("una decisión sin datos es una apuesta") convertían una
+decisión ya escrita en una pregunta de discovery al director comercial.
+Arreglo (versión de stark, revisada por qa): el #4 abre con "Discovery
+starts after what is already decided: before answering any request, read the
+strategy, roadmap or backlog in the workspace, if any…", y `lh-stakeholders`
+#5 pasa de "the move is data" a "the move is the decided strategy (judgment
+#4), then data"; `judgment-refs` pidió fijar el #4 (`JUDGMENT_TITLES`). El
+criterio del escenario se retocó antes (falla un no que espera datos del
+interesado) y se sumaron dos casi-aciertos: el pedido que la estrategia no
+excluye va a discovery (`product-manager-sends-the-unruled-request-to-discovery`)
+y sin estrategia no se inventa una (`product-manager-invents-no-strategy`).
+Base de los casi-aciertos y de los ocho disparos de `lh-discovery` ×3
+(`-195518`): 3/3, 3/3 y 23/24. Después (`-200026` ×6, `-200126` ×3): el
+objetivo 6/6 leyendo el archivo 6 de 6; los dos casi-aciertos 3/3, el de
+Google Calendar ahora leyendo el archivo 3 de 3; los cuatro de juicio, el de
+herencia y los ocho disparos 3/3, sin pérdidas. **Se queda.**
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista

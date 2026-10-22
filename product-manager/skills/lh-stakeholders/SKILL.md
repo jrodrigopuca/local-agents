@@ -58,7 +58,8 @@ announced is a betrayal with a changelog entry.
 The stakeholder who shouts loudest is not automatically right, and the quiet
 user segment may be the one that matters most. Weigh input by evidence and by
 alignment with the outcome, not by decibels or seniority. When a powerful voice
-wants something off-strategy, the move is data and the shared goal
+wants something off-strategy, the move is the decided strategy (judgment #4),
+then data and the shared goal
 ([lh-discovery evidence](../lh-discovery/SKILL.md)), not capitulation — HiPPO
 (highest-paid-person's-opinion) driving the roadmap is how products lose their
 spine. Push back with respect and receipts. And when there IS no data yet and
