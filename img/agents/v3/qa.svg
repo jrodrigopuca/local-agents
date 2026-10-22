@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="qa emblem (v3)">
+  <title>qa</title>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.88) translate(-128 -128)"><path d="M128.0 28.0 C142.7 28.0 159.0 27.0 172.0 34.0 C185.0 41.0 199.0 55.0 206.0 70.0 C213.0 85.0 214.3 106.7 214.0 124.0 C213.7 141.3 210.0 159.7 204.0 174.0 C198.0 188.3 187.3 201.0 178.0 210.0 C168.7 219.0 156.3 224.7 148.0 228.0 C139.7 231.3 134.7 230.0 128.0 230.0 C121.3 230.0 116.3 231.3 108.0 228.0 C99.7 224.7 87.3 219.0 78.0 210.0 C68.7 201.0 58.0 188.3 52.0 174.0 C46.0 159.7 42.3 141.3 42.0 124.0 C41.7 106.7 43.0 85.0 50.0 70.0 C57.0 55.0 71.0 41.0 84.0 34.0 C97.0 27.0 113.3 28.0 128.0 28.0 Z" fill="#EBA35E" stroke="#EBA35E" stroke-width="6" stroke-linejoin="round"/>
+  <circle cx="94" cy="122" r="31" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="94" cy="122" r="18" fill="#17191F"/>
+  <path d="M142 122 Q162 106 182 122 Q162 136 142 122 Z" fill="#17191F"/>
+  <line x1="128" y1="146" x2="128" y2="172" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="172" x2="136" y2="172" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <line x1="128" y1="44" x2="128" y2="62" fill="none" stroke="#17191F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><polyline points="112,80 128,62 144,80" fill="none" stroke="#17191F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="144" cy="80" r="5" fill="#17191F"/>
+  <circle cx="128" cy="192" r="4.5" fill="#17191F"/><circle cx="128" cy="202" r="4.5" fill="#17191F"/><circle cx="128" cy="212" r="4.5" fill="#17191F"/></g>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="devops emblem (v3)">
+  <title>devops</title>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.88) translate(-128 -128)"><path d="M128.0 44.0 C146.0 44.0 166.7 41.7 182.0 48.0 C197.3 54.3 212.3 69.7 220.0 82.0 C227.7 94.3 229.3 108.3 228.0 122.0 C226.7 135.7 219.3 151.3 212.0 164.0 C204.7 176.7 194.0 189.3 184.0 198.0 C174.0 206.7 161.3 212.3 152.0 216.0 C142.7 219.7 136.0 220.0 128.0 220.0 C120.0 220.0 113.3 219.7 104.0 216.0 C94.7 212.3 82.0 206.7 72.0 198.0 C62.0 189.3 51.3 176.7 44.0 164.0 C36.7 151.3 29.3 135.7 28.0 122.0 C26.7 108.3 28.3 94.3 36.0 82.0 C43.7 69.7 58.7 54.3 74.0 48.0 C89.3 41.7 110.0 44.0 128.0 44.0 Z" fill="#D98440" stroke="#D98440" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M58 122 C58 88 108 88 128 122 C148 156 198 156 198 122 C198 88 148 88 128 122 C108 156 58 156 58 122 Z" fill="none" stroke="#17191F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="88" cy="122" r="14" fill="#17191F"/><circle cx="168" cy="122" r="14" fill="#17191F"/>
+  <line x1="104" y1="70" x2="152" y2="70" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="8 8"/>
+  <circle cx="128" cy="176" r="4.5" fill="#17191F"/><circle cx="128" cy="186" r="4.5" fill="#17191F"/><circle cx="128" cy="196" r="4.5" fill="#17191F"/></g>
+</svg>

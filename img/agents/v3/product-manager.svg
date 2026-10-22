@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="product-manager emblem (v3)">
+  <title>product-manager</title>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.88) translate(-128 -128)"><path d="M128.0 24.0 C128.0 24.0 206.0 82.0 206.0 82.0 C206.0 82.0 216.3 112.3 216.0 128.0 C215.7 143.7 210.3 162.3 204.0 176.0 C197.7 189.7 187.0 201.7 178.0 210.0 C169.0 218.3 158.3 222.7 150.0 226.0 C141.7 229.3 135.3 230.0 128.0 230.0 C120.7 230.0 114.3 229.3 106.0 226.0 C97.7 222.7 87.0 218.3 78.0 210.0 C69.0 201.7 58.3 189.7 52.0 176.0 C45.7 162.3 40.3 143.7 40.0 128.0 C39.7 112.3 50.0 82.0 50.0 82.0 C50.0 82.0 128.0 24.0 128.0 24.0 Z" fill="#4FB3A9" stroke="#4FB3A9" stroke-width="6" stroke-linejoin="round"/>
+  <rect x="73.0" y="121.5" width="42" height="13" rx="6.5" fill="#17191F"/><rect x="141.0" y="121.5" width="42" height="13" rx="6.5" fill="#17191F"/><line x1="128" y1="146" x2="128" y2="174" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="174" x2="136" y2="174" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="128" cy="84" r="18" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="128" cy="84" r="6.5" fill="#17191F"/>
+  <line x1="122" y1="193" x2="122" y2="211" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="134" y1="193" x2="134" y2="211" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></g>
+</svg>

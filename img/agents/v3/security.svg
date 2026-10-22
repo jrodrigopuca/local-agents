@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="security emblem (v3)">
+  <title>security</title>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="#17191F"/>
+  <g transform="translate(128 128) scale(0.88) translate(-128 -128)"><path d="M128.0 30.0 C128.0 30.0 208.0 54.0 208.0 54.0 C208.0 54.0 214.0 101.3 212.0 122.0 C210.0 142.7 204.3 162.3 196.0 178.0 C187.7 193.7 173.3 206.7 162.0 216.0 C150.7 225.3 128.0 234.0 128.0 234.0 C128.0 234.0 105.3 225.3 94.0 216.0 C82.7 206.7 68.3 193.7 60.0 178.0 C51.7 162.3 46.0 142.7 44.0 122.0 C42.0 101.3 48.0 54.0 48.0 54.0 C48.0 54.0 128.0 30.0 128.0 30.0 Z" fill="#C8424F" stroke="#C8424F" stroke-width="6" stroke-linejoin="round"/>
+  <line x1="56" y1="96" x2="200" y2="96" fill="none" stroke="#17191F" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="74.0" y="118.5" width="40" height="11" rx="5.5" fill="#17191F"/><rect x="142.0" y="118.5" width="40" height="11" rx="5.5" fill="#17191F"/><line x1="128" y1="142" x2="128" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/><line x1="120" y1="170" x2="136" y2="170" fill="none" stroke="#17191F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="128" cy="58" r="7" fill="#17191F"/><path d="M124 60 H132 L134 76 H122 Z" fill="#17191F"/>
+  <polygon points="128,188 138,198 128,208 118,198" fill="#17191F"/></g>
+</svg>
