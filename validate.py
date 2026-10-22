@@ -1333,6 +1333,107 @@ def check_installed_skills(cat: Catalog):
     return errs
 
 
+# Rule 14: a rule that must hold when its skill does not load lives in the
+# body as a numbered judgment, and the skill cites it as "judgment #N". A
+# number alone survives a renumbering that moves the rule under it, so every
+# cited judgment is pinned here by its bold title, the way CORE_PARITY pins
+# CORE rules. Renaming or renumbering a cited judgment fails the check until
+# the citations and the pin are updated together.
+JUDGMENT_TITLES = {
+    ("architect", 6): "Team reality beats theoretical purity.",
+    ("data-ml", 1): "Start with the decision, not the model.",
+    ("data-ml", 3): "The simplest model that clears the bar wins.",
+    ("data-ml", 4): "You don't have a model until you can measure it.",
+    ("data-ml", 5): "Reproducibility or it didn't happen.",
+    ("data-ml", 7): "Data is radioactive: privacy, bias, and consent are design inputs.",
+    ("devops", 6): "Security and cost are operational concerns, continuously.",
+    ("devops", 7): "Failure is normal; design for it.",
+    ("eng-manager", 1): "Multiply the team, don't add to it.",
+    ("eng-manager", 6): "Make decisions reversible and cheap, or escalate them.",
+    ("eng-manager", 7): "Surface reality, always — status is a mirror, not a pitch.",
+    ("gamification", 2): "Friction is classified, not eliminated.",
+    ("gamification", 3): "Intrinsic beats extrinsic — and extrinsic can poison intrinsic.",
+    ("gamification", 5): "Design for player types, not for yourself.",
+    ("gamification", 6): "Engagement is not addiction — and the line is a design decision.",
+    ("product-manager", 1): "Own the problem; let the team own the solution.",
+    ("product-manager", 2): "Fall in love with the problem, not your idea.",
+    ("product-manager", 3): 'Prioritize ruthlessly — "everything is important" means nothing is.',
+    ("product-manager", 7): "Alignment is your deliverable.",
+    ("qa", 3): "Testing is risk-based, because testing everything is a lie.",
+    ("qa", 4): '"No bugs found" never means "no bugs".',
+    ("security", 4): "Severity is exploitability × impact, stated honestly.",
+    ("security", 6): "Fix the class, not just the instance.",
+    ("senior-dev", 5): "Tests are a safety net, not a ceremony.",
+    ("stark", 2): "Build to think.",
+    ("stark", 4): "Steal from other domains shamelessly.",
+    ("stark", 5): "Know which phase you're in — the rules change.",
+    ("stark", 6): "Fast because instrumented, not because reckless.",
+    ("visionary", 6): "Details are the product.",
+    ("visionary", 7): "Real artists ship.",
+}
+
+# "judgment #N" or "judgment #N-M", optionally qualified by the agent whose
+# body it is: a link to that agent ("[senior-dev](../../../senior-dev/AGENTS.md),
+# Developer Judgment #5") or its bare name right before ("devops judgment #6").
+# Capitalised section words ("Management", "Developer") may sit in between.
+# The bare "(#N)" form is not a citation: in some skills it means the skill's
+# own pattern.
+_JUDGMENT_CITE = re.compile(
+    r"(?:\[[^\]]*\]\(\.\./\.\./\.\./(?P<link>[a-z][a-z-]*)/AGENTS\.md\),?\s+"
+    r"|\b(?P<word>[a-z][a-z-]*)\s+)?"
+    r"(?:[A-Z][A-Za-z&]*\s+)*[Jj]udgment #(?P<n>\d+)(?:-(?P<m>\d+))?")
+
+
+def judgment_section(body: str):
+    """{N: bold title} of the body's `## … Judgment — the core` list, or None."""
+    m = re.search(r"^## .*Judgment — the core\n(.*?)(?=^## |\Z)", body, re.M | re.S)
+    if not m:
+        return None
+    return {int(n): " ".join(t.split())
+            for n, t in re.findall(r"^(\d+)\. \*\*(.+?)\*\*", m.group(1), re.M | re.S)}
+
+
+def judgment_refs(agents: dict, skills: dict, pinned: dict = None) -> list:
+    """Errors for a skill citation of a body judgment that does not resolve,
+    or resolves to a different rule than the one pinned. `skills` maps a skill
+    name to (owner agent, path for messages, text)."""
+    pinned = JUDGMENT_TITLES if pinned is None else pinned
+    sections = {a: judgment_section(t) for a, t in agents.items()}
+    errs, cited = [], set()
+    for _skill, (owner, rel, text) in sorted(skills.items()):
+        for m in _JUDGMENT_CITE.finditer(text):
+            line = text[:m.start("n")].count("\n") + 1
+            agent = m.group("link") or (m.group("word") if m.group("word") in agents else None) or owner
+            hi = int(m.group("m") or m.group("n"))
+            for n in range(int(m.group("n")), hi + 1):
+                section = sections.get(agent)
+                if section is None:
+                    errs.append(f"{rel}:{line}: cites {agent} judgment #{n}, but {agent}/AGENTS.md "
+                                f"has no `## … Judgment — the core` list")
+                    continue
+                if n not in section:
+                    errs.append(f"{rel}:{line}: cites {agent} judgment #{n}, which does not exist "
+                                f"(the list has {min(section)}–{max(section)})")
+                    continue
+                cited.add((agent, n))
+                want = pinned.get((agent, n))
+                if want is None:
+                    errs.append(f"{rel}:{line}: {agent} judgment #{n} is cited but not pinned — "
+                                f"add ({agent!r}, {n}): {section[n]!r} to JUDGMENT_TITLES")
+                elif " ".join(want.split()) != section[n]:
+                    errs.append(f"{rel}:{line}: {agent} judgment #{n} is now `{section[n]}`, but "
+                                f"the citation was pinned to `{want}` — renumbered or renamed: "
+                                f"fix the citations, then the pin")
+    for key in sorted(set(pinned) - cited):
+        errs.append(f"JUDGMENT_TITLES pins {key[0]} judgment #{key[1]}, which no skill cites any more")
+    return errs
+
+
+def check_judgment_refs(cat: Catalog):
+    skills = {s: (a, str(p.relative_to(cat.root)), t) for s, (a, p, t) in cat.skills.items()}
+    return judgment_refs(cat.agents, skills)
+
+
 def check_when_to_use(cat: Catalog):
     """Rule 14: a `## When to Use` section earns its place only by saying what
     the description's trigger cannot — a NOT exclusion, or an ordering against
@@ -1365,6 +1466,7 @@ def check_when_to_use(cat: Catalog):
 CHECKS = [
     ("links", "relative markdown links resolve", check_links),
     ("when-to-use", "rule 14 — When to Use is a gate, not a repeated trigger", check_when_to_use),
+    ("judgment-refs", "rule 14 — a skill's judgment #N exists and is still the judgment it meant", check_judgment_refs),
     ("installed-skills", "skills carry no dead links once installed", check_installed_skills),
     ("frontmatter", "YAML parses and required keys present", check_frontmatter),
     ("skill-names", "frontmatter `name` matches folder", check_skill_names),

@@ -139,6 +139,16 @@ Rules for this catalog:
     does not inherit the CORE is `generalist`, whose body the CORE condenses:
     a rule added to `generalist/CORE.md` is also written into that body and
     mapped in `CORE_PARITY` (`validate.py`, `core-parity`).
+    **A rule that must hold when its skill does not load lives in the body.**
+    Skill loading is not deterministic, so such a rule is a numbered judgment
+    of the owning agent's body, and the skill cites it ("judgment #6"; across
+    agents, "senior-dev judgment #5") instead of restating it. It moves there
+    only on evidence — a rule-17 scenario that fails with the rule in the
+    skill alone; otherwise the skill keeps it, because the body is paid on
+    every turn. A pointer to the skill is not a move: measured, it does not
+    arrive either. `validate.py` checks that each citation resolves to the
+    same judgment it was pinned to (`judgment-refs`, `JUDGMENT_TITLES`); the
+    bare `(#N)` form is not a citation.
 15. **Preferences stay in the harness.** A user's CLI tool choices, pet
     analogies, or the name of a provider-specific host skill belong in that
     user's own config (`CLAUDE.md` and its equivalents), which every installed
