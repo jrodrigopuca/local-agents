@@ -1402,6 +1402,23 @@ delegado 1/3 (dos devuelven la decisión aunque se la delegaron), borde 2/3.
 Después (`20261022-003608`, USD 2,68): los tres 3/3 y los seis guardianes
 (cinco de eng-manager y `compose-checkout`) 3/3, sin pérdidas.
 
+**stark #6 no se desduplica (2026-10-22, decisión del usuario).** La revisión
+fechada (`REVISION-AGENTES.es.md`, ficha de stark, cambio 2) proponía cambiar
+el párrafo de "un cambio por vez" del #6 de stark por una cita a devops #8.
+Se cierra sin cambio, por tres razones. La dirección está invertida: el
+original es el de stark (v1 0/3 revertida, v2 3/3), y devops #8 lo copió
+textual a propósito. La cita sola es la opción que ya se descartó: una regla
+que vive en un puntero o en una skill que no carga no aparece (devops 0/6 con
+el handoff a `lh-crisis-mode`; eng-manager 2 de 4 con la regla solo en
+`lh-orchestration`). Y el cambio 1 de esa ficha (fijar el criterio de la
+captura) ya está hecho: `harness:17f95ce`, stark 3/3 en `20261021-224907`.
+Las dos copias se sostienen con una condición: coinciden en tres cláusulas
+(mirar la evidencia a mano en vez de pedirla; un cambio y el resto depende de
+lo que muestre; el bloque solo ante una segunda insistencia). Nada lo chequea
+solo, así que lo cuida la revisión de cada cambio a cualquiera de las dos.
+Quedan aparte: el par de routing stark/senior-dev (B-043) y si
+`lh-crisis-mode` debería vivir en devops ahora que el #8 está medido.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
