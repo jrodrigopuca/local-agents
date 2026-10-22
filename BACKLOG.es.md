@@ -1394,6 +1394,17 @@ paso siguiente), los dos casi-aciertos 3/3 y los cinco guardianes de devops
 3/3, sin pérdidas. **Cumple: la regla de devops se queda** (`63d4c43`,
 criterio `harness:17f95ce`).
 
+**B-064, eng-manager: el tradeoff es del usuario (2026-10-22).** Detalle en la
+fila de B-064. Revisión de stark, architect y qa antes de congelar: alcance
+"resultado de producto" (un desacuerdo reversible dentro del dominio de un
+constructor va al constructor), "reversible no lo hace tuyo", el plazo vencido
+vuelve al usuario, sin la cita "decidí vos" en el cuerpo, product-manager
+"frames and sizes", la skill solo con la mecánica. Base con el #6 anterior
+(`20261022-003205`, USD 0,86): conflicto 0/3 ("lo decide product-manager"),
+delegado 1/3 (dos devuelven la decisión aunque se la delegaron), borde 2/3.
+Después (`20261022-003608`, USD 2,68): los tres 3/3 y los seis guardianes
+(cinco de eng-manager y `compose-checkout`) 3/3, sin pérdidas.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista

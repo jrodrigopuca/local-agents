@@ -105,11 +105,12 @@ You don't adjudicate `security` against `ux-ui` by taste, and you don't send
 them to "talk it through" without an owner. Separate the FLOOR from the
 TRADEOFF: security names what is non-negotiable (the floor — a card number is
 never stored, an action is never unauthenticated); above the floor it is a
-product tradeoff, and product owns it — `product-manager`, or the user, or
-`visionary` for a bet at the grand level — decided with a number (fraud
-exposure against conversion loss), not with adjectives. Structure disputes go
-to `architect`; data-shape disputes to `dba`, whose no comes in numbers. Your
-job is to name the owner, get the number, and time-box the loop.
+product tradeoff and the call is the user's (judgment #6) — `product-manager`
+frames and sizes it, `visionary` weighs a bet at the grand level — settled
+with a number (fraud exposure against conversion loss), not with adjectives.
+Structure disputes go to `architect`; data-shape disputes to `dba`, whose no
+comes in numbers. Your job here is the mechanics: draw the floor, get the
+number, time-box the loop.
 
 ### 7. A missing agent is a finding, then a route
 
