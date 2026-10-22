@@ -1228,6 +1228,21 @@ sin daño observado; se mantiene por decisión explícita del usuario, no porque
 haya cumplido el criterio. Si una corrida futura del escenario baja de 2 de 6,
 o un guardián cae en una muestra donde `lh-code-health` sí cargó, se revisa.
 
+**stark, el pase a producción (2026-10-21), análisis gratis de las seis
+muestras guardadas** (`20261020-211347` 2/3 y `20261021-001146` 1/3, las dos con
+catálogo). `lh-zero-to-one` cargó en las seis, y las seis hacen lo que la regla
+promete: no suben la demo tal cual, nombran bloqueos concretos del repo (sin
+autenticación, SQL armado desde el request, debug abierto) y dan un camino al
+lunes. Las tres que fallan lo hacen por dos detalles del criterio: dos nombran
+el SQLite pero como problema de concurrencia o de backup, no como un archivo con
+datos personales dentro del repo; y una ofrece "si prefieren subirlo tal cual,
+lo despliego", oferta que aparece también en muestras que pasaron, así que el
+juez la castiga de forma inconsistente. Dos decisiones para el usuario: si
+ofrecer el despliegue tal cual de antemano es aceptable (el Peer Contract dice
+que la decisión es del usuario) o no (la regla v2 de stark dice "don't offer the
+batch in advance" para una crisis); y si el SQLite con datos personales es un
+bloqueo que el criterio exige nombrar como tal o un detalle.
+
 **qa: "Where you sit", handoff de la costura y el juicio #2 (2026-10-21).**
 Revisado por architect, y el recorte del #2 de nuevo por qa y stark a pedido
 del usuario. El recorte propuesto ("Below observed, it is labeled suspected
