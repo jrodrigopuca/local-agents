@@ -569,6 +569,34 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   catálogo, el estimador del harness sobrestima el costo unas 2,4 veces
   (USD 4,58 contra 12,30 estimados la primera pasada); con catálogo, 10,27
   contra 12,20.
+- **El aporte con un modelo chico (Haiku) frente a Sonnet** (Claude Code
+  2.1.303, 2026-10-21, B-088). Mismo método que B-038, agente
+  `claude-haiku-5-5`, juez Sonnet, USD 5,56. Sobre los 65 escenarios que
+  corrieron los dos modelos (Sonnet en B-038 con catálogo `e2cca79`, Haiku con
+  `1c43523`: el catálogo cambió en el medio, y eso confunde un poco la
+  comparación):
+
+  | | Sonnet con | Sonnet sin | Aporte | Haiku con | Haiku sin | Aporte |
+  |---|---|---|---|---|---|---|
+  | Total | 100 % | 79 % | +21 % | 97 % | 80 % | +17 % |
+  | hard-rule (17) | 100 % | 63 % | +37 % | 96 % | 71 % | +25 % |
+  | judgment (44) | 100 % | 86 % | +14 % | 98 % | 84 % | +14 % |
+
+  La hipótesis de partida (con un modelo chico el aporte se nota mucho más)
+  no se sostiene: Haiku sin catálogo rinde casi igual que Sonnet sin catálogo
+  (80 % contra 79 %), y lo que baja es el techo con catálogo. Los escenarios de
+  "buen criterio" no son difíciles ni para Haiku. Lo que el catálogo aporta en
+  los dos modelos son las reglas que van contra el comportamiento por defecto:
+  ocho escenarios los fallan los dos sin catálogo y los arreglan los dos con él
+  (puerta de un solo sentido, memoria del agente, no ser dueño de la máquina,
+  evidencia indirecta, qa no arregla producto, verificar la suite, visionary
+  sin escribir archivos y sin secuenciar). Diferencias entre modelos, sin
+  catálogo: Haiku es más obediente donde Sonnet rodea (no usa la shell cuando
+  le niegan la herramienta de edición: 100 % contra 0 %) y más literal donde
+  Sonnet tiene criterio de producto (orquesta trivialidades y propone mecánicas
+  sin analizar el flujo: 0 % contra 100 %). Con catálogo, el único punto donde
+  Haiku no llega es anunciar que no hay herramienta de edición (25 % contra
+  100 %). Detalle y gráficos en `MODELOS.md` del harness.
 - **El modo de permisos de Claude Code decide si una regla de prosa sobre
   escribir archivos tiene con qué cumplirse** (Claude Code 2.1.303,
   2026-10-19, B-075 y B-083). En el modo `default` el host ya rechaza solo
