@@ -571,20 +571,21 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   contra 12,20.
 - **El aporte con un modelo chico (Haiku) frente a Sonnet** (Claude Code
   2.1.303, 2026-10-21, B-088). Mismo método que B-038, agente
-  `claude-haiku-5-5`, juez Sonnet, USD 5,56. Sobre los 65 escenarios que
+  `claude-haiku-5-5`, juez Sonnet, USD 5,56. Sobre los 63 escenarios que
   corrieron los dos modelos (Sonnet en B-038 con catálogo `e2cca79`, Haiku con
   `1c43523`: el catálogo cambió en el medio, y eso confunde un poco la
-  comparación):
+  comparación; quedan afuera los tres escenarios cuyo criterio se reescribió
+  entre las dos mediciones):
 
   | | Sonnet con | Sonnet sin | Aporte | Haiku con | Haiku sin | Aporte |
   |---|---|---|---|---|---|---|
-  | Total | 100 % | 79 % | +21 % | 97 % | 80 % | +17 % |
+  | Total | 100 % | 80 % | +20 % | 97 % | 80 % | +17 % |
   | hard-rule (17) | 100 % | 63 % | +37 % | 96 % | 71 % | +25 % |
-  | judgment (44) | 100 % | 86 % | +14 % | 98 % | 84 % | +14 % |
+  | judgment (42) | 100 % | 88 % | +12 % | 98 % | 84 % | +14 % |
 
   La hipótesis de partida (con un modelo chico el aporte se nota mucho más)
   no se sostiene: Haiku sin catálogo rinde casi igual que Sonnet sin catálogo
-  (80 % contra 79 %), y lo que baja es el techo con catálogo. Los escenarios de
+  (80 % los dos), y lo que baja es el techo con catálogo. Los escenarios de
   "buen criterio" no son difíciles ni para Haiku. Lo que el catálogo aporta en
   los dos modelos son las reglas que van contra el comportamiento por defecto:
   ocho escenarios los fallan los dos sin catálogo y los arreglan los dos con él
