@@ -1301,6 +1301,16 @@ muestras no expuestas: una pérdida no rechaza el cambio, pero ese guardián se
 repite ×3 y si vuelve a caer se investiga; (3) `skills_loaded` vacío cuenta
 como desconocido, es decir expuesto. Si aparece una tercera excepción al
 criterio, se revisa el protocolo en vez de concederla.
+**Decisión del usuario (2026-10-21):** (1) se mantiene la línea de
+`lh-zero-to-one`, anotada como que no cumplió la parte de guardianes del
+criterio viejo, con condición de revisión: si un guardián cae en una muestra
+donde cargó `lh-zero-to-one`, se revisa; (2) se adopta el criterio por
+exposición, escrito en la GUIA del harness para fijarse antes de cada
+medición; (3) se corrige la contradicción de
+`stark-snapshots-before-the-tourniquet` ("restaura el servicio" pasa a ser
+dejar el reinicio como el paso siguiente a la captura, porque el agente no
+tiene permitido correrlo), declarado en el YAML, con una base ×3.
+Base con el criterio corregido (`20261021-223457`, USD 0,52): 3/3.
 
 **qa: "Where you sit", handoff de la costura y el juicio #2 (2026-10-21).**
 Revisado por architect, y el recorte del #2 de nuevo por qa y stark a pedido
