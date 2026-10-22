@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="visionary emblem">
+  <title>visionary</title>
+  <defs>
+    <linearGradient id="g-visionary" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3A365E"/>
+      <stop offset="1" stop-color="#141226"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-visionary)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M36 128 Q128 48 220 128 Q128 208 36 128 Z" fill="none"/>
+  <circle cx="128" cy="128" r="30" fill="none" stroke-width="6"/>
+  <circle cx="128" cy="128" r="12" fill="#F2C14E" stroke="none"/>
+  <line x1="128" y1="24" x2="128" y2="60" stroke-width="6"/>
+  <line x1="128" y1="196" x2="128" y2="232" stroke-width="6"/>
+  </g>
+</svg>

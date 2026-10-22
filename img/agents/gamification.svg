@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="gamification emblem">
+  <title>gamification</title>
+  <defs>
+    <linearGradient id="g-gamification" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#79C34A"/>
+      <stop offset="1" stop-color="#3F7F1F"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-gamification)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M194 128 A66 66 0 1 1 161 70.8" fill="none"/>
+  <circle cx="128" cy="62" r="11" fill="#F7F6F2" stroke="none"/>
+  <circle cx="194" cy="128" r="11" fill="#F7F6F2" stroke="none"/>
+  <circle cx="128" cy="194" r="11" fill="#F7F6F2" stroke="none"/>
+  <circle cx="62" cy="128" r="11" fill="#F7F6F2" stroke="none"/>
+  <polygon points="128,100 136,120 156,128 136,136 128,156 120,136 100,128 120,120" fill="#F2C14E" stroke="none"/>
+  <polygon points="177,80 155,81 167,60" fill="#F7F6F2" stroke="none"/>
+  </g>
+</svg>

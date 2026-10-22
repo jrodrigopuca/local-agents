@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="architect emblem">
+  <title>architect</title>
+  <defs>
+    <linearGradient id="g-architect" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D4953A"/>
+      <stop offset="1" stop-color="#8F5E14"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-architect)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M52 184 V124 A76 76 0 0 1 204 124 V184" fill="none"/>
+  <polygon points="108,38 148,38 156,74 100,74" fill="#F7F6F2" stroke="none"/>
+  <line x1="36" y1="200" x2="92" y2="200"/>
+  <line x1="164" y1="200" x2="220" y2="200"/>
+  </g>
+</svg>

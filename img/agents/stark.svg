@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="stark emblem">
+  <title>stark</title>
+  <defs>
+    <linearGradient id="g-stark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#D64535"/>
+      <stop offset="1" stop-color="#6E1A12"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-stark)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <polygon points="128,36 208,82 208,174 128,220 48,174 48,82" fill="none"/>
+  <circle cx="128" cy="128" r="40" fill="#7FE3FF" stroke="none" opacity="0.25"/>
+  <circle cx="128" cy="128" r="22" fill="#7FE3FF" stroke="none"/>
+  <line x1="128" y1="60" x2="128" y2="96" stroke-width="7"/>
+  <line x1="68" y1="162" x2="100" y2="144" stroke-width="7"/>
+  <line x1="188" y1="162" x2="156" y2="144" stroke-width="7"/>
+  </g>
+</svg>

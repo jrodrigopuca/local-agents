@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="devops emblem">
+  <title>devops</title>
+  <defs>
+    <linearGradient id="g-devops" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3B7DE0"/>
+      <stop offset="1" stop-color="#1A4A9A"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-devops)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M64 128 C64 92 112 92 128 128 C144 164 192 164 192 128 C192 92 144 92 128 128 C112 164 64 164 64 128 Z" fill="none"/>
+  <polygon points="148,104 166,92 166,116" fill="#F2C14E" stroke="none"/>
+  <line x1="56" y1="200" x2="200" y2="200" stroke-dasharray="14 12" stroke-width="7"/>
+  </g>
+</svg>

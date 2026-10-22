@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="dba emblem">
+  <title>dba</title>
+  <defs>
+    <linearGradient id="g-dba" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7F5BD0"/>
+      <stop offset="1" stop-color="#43287A"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-dba)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <ellipse cx="128" cy="76" rx="64" ry="20" fill="none"/>
+  <path d="M64 76 V180 A64 20 0 0 0 192 180 V76" fill="none"/>
+  <path d="M64 128 A64 20 0 0 0 192 128" fill="none"/>
+  <circle cx="128" cy="150" r="10" fill="#F2C14E" stroke="none"/>
+  <line x1="128" y1="160" x2="128" y2="180" stroke="#F2C14E" stroke-width="7"/>
+  </g>
+</svg>

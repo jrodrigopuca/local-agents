@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="security emblem">
+  <title>security</title>
+  <defs>
+    <linearGradient id="g-security" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2A7A60"/>
+      <stop offset="1" stop-color="#0E3327"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-security)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M128 40 L204 70 V128 C204 172 172 204 128 220 C84 204 52 172 52 128 V70 Z" fill="none"/>
+  <rect x="84" y="116" width="88" height="26" rx="13" fill="#F7F6F2" stroke="none"/>
+  <circle cx="128" cy="129" r="8" fill="#7FE3FF" stroke="none"/>
+  </g>
+</svg>

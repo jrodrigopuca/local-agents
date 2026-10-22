@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256" role="img" aria-label="product-manager emblem">
+  <title>product-manager</title>
+  <defs>
+    <linearGradient id="g-product-manager" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F08A3C"/>
+      <stop offset="1" stop-color="#A84F12"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="60" fill="url(#g-product-manager)"/>
+  <g fill="none" stroke="#F7F6F2" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+  <circle cx="144" cy="112" r="64" fill="none"/>
+  <circle cx="144" cy="112" r="34" fill="none"/>
+  <circle cx="144" cy="112" r="10" fill="#F7F6F2" stroke="none"/>
+  <line x1="44" y1="212" x2="124" y2="132" stroke-width="12"/>
+  <polygon points="144,112 133,140 116,123" fill="#F7F6F2" stroke="none"/>
+  </g>
+</svg>
