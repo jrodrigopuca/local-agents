@@ -1419,6 +1419,39 @@ solo, así que lo cuida la revisión de cada cambio a cualquiera de las dos.
 Quedan aparte: el par de routing stark/senior-dev (B-043) y si
 `lh-crisis-mode` debería vivir en devops ahora que el #8 está medido.
 
+**Paso 2 de la revisión, ux-ui y security (2026-10-22).** Ocho escenarios de
+juicio escritos desde promesas del cuerpo que van contra el default, con
+fixtures (`ux-tokens-existing`, `ux-form-contrast`, `api-invoices-audit`,
+`api-login-clean`), revisados por qa antes de congelar (`harness:848ca0e`). Base con catálogo `20261022-145125` (USD 6,11) y sin catálogo
+`20261022-145952` (USD 1,87), ×3:
+
+| Escenario | Con | Sin | Aporte |
+|---|---|---|---|
+| `ux-ui-mockup-brings-its-states` | 3/3 | 0/3 | +100 % |
+| `security-fixes-the-class` | 3/3 | 0/3 | +100 % |
+| `security-proves-with-the-minimum` | 2/3 | 0/3 | +67 % |
+| `security-says-what-it-did-not-review` | 3/3 | 2/3 | +33 % |
+| `ux-ui-uses-the-repo-tokens` | 3/3 | 3/3 | 0 → `model-floor` |
+| `ux-ui-flags-contrast-as-a-defect` | 3/3 | 3/3 | 0 → `model-floor` |
+| `security-ranks-object-authorization-first` | 3/3 | 3/3 | 0 → `model-floor` |
+| `ux-ui-keeps-one-primary-action` | 2/3 | 2/3 | 0 → `model-floor` |
+
+Lo que aporta el catálogo: el estado de desborde de la lista (sin catálogo
+dibuja vacío, carga y error, nunca nombres largos ni muchas filas); el
+arreglo de clase (sin catálogo, un `if` en el handler y en dos de tres ni
+nombra `/orders/:id`); y el PoC: sin catálogo no hace un loop, **se niega**
+a armarlo y pide contexto sin abrir un archivo; la regla ética del cuerpo
+("proof of concept, not proof of destruction") es lo que hace que entregue la
+prueba mínima. La falla con catálogo de ese escenario también es una
+negativa. `ux-ui-keeps-one-primary-action` se retocó después de ver los
+resultados (qa: "concretely shown" sin definir, el juez falló contenido igual
+al que aprobó en otra muestra); con el criterio nuevo, las seis muestras
+leídas por qa pasan, no re-juzgadas por el harness. Ninguna falla pide
+cambiar un agente. Costo: la rama con catálogo pasó la compuerta de USD 5 en
+USD 1,11, dentro del diseño (las muestras en vuelo terminan); la estimación
+fija subestimó el escenario del PoC (dos muestras de 36 y 40 herramientas, USD
+1 cada una): es el caso de B-044 (b), estimar por el último costo medido.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
