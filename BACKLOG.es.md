@@ -38,8 +38,24 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 
 ## Abiertos
 
+> **Para retomar (dejado el 2026-10-23).** La revisión fechada
+> ([REVISION-AGENTES.es.md](REVISION-AGENTES.es.md)) va así: pasos 1, 2, 4 y 5
+> hechos; el 3 se decidió no correrlo (ahorro ~1 % de la sesión) y sus dos
+> cosas puntuales quedaron en B-090; el 7 lo resolvió el usuario (apple-dev
+> par de plataforma). Quedan, en este orden sugerido: **B-089** (el disparador
+> de `lh-decomposition` cuando el usuario da el supuesto por hecho), el
+> **paso 8** (pares de routing entre vecinos, B-043: visionary/product-manager,
+> gamification/ux-ui, stark/senior-dev aparecieron hoy sin escenario) y el
+> **paso 6** (skills de stack: decidirlo mirando los repos del usuario). El
+> registro de lo medido está en B-038 (paso 2) y B-062 (paso 4). Método de la
+> casa en cada cambio: revisión de architect y qa, criterios congelados con
+> commit, base con el texto anterior, después con el texto nuevo
+> **reinstalado** (verificar la copia instalada), y la vara fijada antes.
+
 | ID | Prioridad | Estado | Qué | Por qué | Terminado cuando |
 |---|---|---|---|---|---|
+| B-089 | P3 | pendiente | `lh-decomposition` no carga cuando el supuesto sin verificar lo afirma el usuario como un hecho | `skill-decomposition-trigger-3` ("total corre en una sola instancia") y `blind-1` ("el CRM reintenta solo") no cargan: desde el modelo no queda nada sin chequear. Quedó fuera del arreglo del 2026-10-23 para no mezclar hipótesis (B-062) | Con el disparador sumando "including an assumption the user states as fact" (propuesta de qa) o una alternativa revisada, trigger-3 y blind-1 cargan en 2/3 o más, con base registrada antes, y los casi-aciertos de `lh-decomposition` y `lh-next-step` no pierden |
+| B-090 | P3 | pendiente | Los restos del paso 3 de la revisión: la nota de procedencia en el cuerpo de architect y dos duplicados (el handoff a dba en senior-dev; "el bug es el adversario" en qa y security) | Son notas para quien mantiene el catálogo o texto repetido, pagados en cada turno; el paso 3 entero no valía su costo (~USD 30 por ~1 % de la sesión), así que van con el próximo cambio que toque cada agente | Cada uno resuelto dentro de un cambio a ese agente, medido con sus guardianes, o descartado con su motivo |
 | B-032 | P3 | pendiente | El chequeo `skill` de la suite de humo en opencode pasa viendo una copia GLOBAL de la skill, no la que escribió la instalación del proyecto | opencode elige una copia por nombre (a veces la global), así que ese PASS no prueba lo que el chequeo dice probar | El chequeo verifica la copia del proyecto (o se aísla de las globales) y lo dice en su detalle |
 | B-028 | P3 | en espera | Publicar las skills como plugin de Agent Plugins | La 1.0 no porta agentes y no define dónde se publica; Claude Code no la soporta | La especificación suma agentes o un registro común: entonces se reevalúa |
 | B-029 | P3 | en espera | Modo opcional con enlaces simbólicos para las skills | Los cuatro hosts siguen los enlaces, pero el destino no puede ser el catálogo (las skills se instalan transformadas) y `--refresh` ya cubre el problema | Aparece un caso que `--refresh` no resuelve |
