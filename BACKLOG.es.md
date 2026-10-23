@@ -1703,6 +1703,32 @@ nunca se cargaron. Valor: ~USD 3,60 por skill, priorizadas. Cada corrida, con
 su OK y su tope.
 **Depende de.** B-041 (hecho); la pregunta de valor, de B-039.
 
+**Valor medido, paso 4 de la revisión fechada (2026-10-22).** Diseño de qa y
+data-ml: el paso tal como estaba (con y sin la skill, ×3) medía la
+descripción y no el método, porque la rama "con" casi no carga la skill; se
+corrió por etapas, con las reglas fijadas antes. Seis tareas contra el
+default, una por skill, revisadas por qa y architect (`harness:cd4c6f0`,
+`skill-value.yaml`). Architect y qa marcaron que en cuatro el cuerpo o el CORE
+ya llevan el patrón: un 3/3 sin la skill ahí se registra como **cubierto por
+el cuerpo**, no como piso del modelo. Etapa 1, solo sin la skill
+(`20261022-233637`, USD 2,40); etapa 2, con el catálogo, contando la carga
+(`-234820`, USD 2,17):
+
+| Skill | Sin | Con | Cargó | Decisión |
+|---|---|---|---|---|
+| `lh-pairing` | 3/3 | — | — | Sin margen; cerrada en la etapa 1. Sin cambio |
+| `lh-next-step` | 0/3 | 2/3 | 3/3 | Aporta (actualizar el estado viejo, su #6) y carga sola. Sin cambio |
+| `lh-code-audit` | 1/3 | 2/3 | 2/3 | Aporta cuando carga (las dos que pasan son las que cargaron). Sin cambio |
+| `lh-tradeoffs` | 2/3 | 2/3 | 2/3 | Sin diferencia en esta tarea; carga bien y la cita el CORE. Sin cambio |
+| `lh-mentoring` | 2/3 | 1/3 | 0/3 | Cubierta por el cuerpo (la cuarta fila de architect); no carga nunca. Si se achica, a su #3 |
+| `lh-decomposition` | 0/3 | 1/3 | 0/3 | No carga aunque el pedido calza con su disparador; sin ella el plan deja último el supuesto que lo sostiene. **Abierto: diagnosticar la carga** |
+
+Con N=3, nada de esto alcanza para cambiar el catálogo (data-ml: solo 3/3
+contra 0/3 es concluyente); por eso ninguna skill se quita, fusiona ni mueve.
+Lo que queda es la carga de `lh-decomposition`, con esta tarea como base. El
+harness ganó `--only =id` para elegir un id exacto (un gemelo `-without`
+extiende el id de su base).
+
 ## Cerrados
 
 | ID | Estado | Qué | Commits |
