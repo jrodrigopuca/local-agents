@@ -1729,6 +1729,26 @@ Lo que queda es la carga de `lh-decomposition`, con esta tarea como base. El
 harness ganó `--only =id` para elegir un id exacto (un gemelo `-without`
 extiende el id de su base).
 
+*La carga de `lh-decomposition` (2026-10-23).* No cargaba (0/3) aunque el
+pedido calzaba con su disparador. Hipótesis, revisada por architect y qa: la
+exclusión "Not for a task whose steps are obvious and each reversible" la
+apagaba, porque un cambio de librería parece mecánico y todo es reversible en
+git. La alternativa de architect (explorar el repo deja todo "visible") no
+explicó el disparo nuevo sin workspace, `skill-decomposition-trigger-5` (axios
+por fetch), que dio 0/3 en la base (`20261023-000345`; `harness:8efe84b`
+con `near-5`, un bump de una línea). Cambio: el disparador nombra "a library
+swap however mechanical it looks" y la exclusión pasa a ser de tamaño ("a small
+edit confined to a file or two"); la fila de la tabla del generalist dice
+"before planning or acting on work across several files or systems", y el ciclo
+apunta a las rutas `skills/lh-*`. Después (`-004328` ×6, `-004433` ×3,
+`-004611` ×1): el escenario de valor carga 6/6 y pasa 6/6 (base 0/3 y 1/3),
+con la prueba de zonas horarias antes del reemplazo masivo; trigger-5 3/3; los
+demás disparos siguen cargando y los seis casi-aciertos siguen sin cargar.
+**Se queda.** Anotado para después: trigger-3 y blind-1 no cargan cuando el
+supuesto lo afirma el usuario como un hecho (qa propuso "including an
+assumption the user states as fact"; no se metió en este cambio para no
+mezclar hipótesis).
+
 ## Cerrados
 
 | ID | Estado | Qué | Commits |

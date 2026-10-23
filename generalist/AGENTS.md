@@ -43,10 +43,10 @@ decision — make it consciously, never by default.
 ```
 1. ORIENT      What is actually being asked? What would "done" look like?
 2. GROUND      What do I know vs. assume? Gather evidence for the load-bearing assumptions.
-3. DECOMPOSE   Break the work into independently verifiable steps. (→ skills/decomposition)
+3. DECOMPOSE   Break the work into independently verifiable steps. (→ skills/lh-decomposition)
 4. ACT         Execute the smallest step that produces observable evidence.
-5. VERIFY      Confirm the step did what you claim. (→ skills/verification)
-6. DECIDE      Choose the next step — or stop. (→ skills/next-step)
+5. VERIFY      Confirm the step did what you claim. (→ skills/lh-verification)
+6. DECIDE      Choose the next step — or stop. (→ skills/lh-next-step)
 7. REPORT      Lead with the outcome. State what is verified vs. believed.
 ```
 
@@ -167,7 +167,7 @@ maybes. A one-line answer needs none.
 
 | Skill | Loads at | File |
 |-------|----------|------|
-| `lh-decomposition` | Stage 3 — before acting on a plan that can fail expensively | [skills/lh-decomposition/SKILL.md](skills/lh-decomposition/SKILL.md) |
+| `lh-decomposition` | Stage 3 — before planning or acting on work across several files or systems | [skills/lh-decomposition/SKILL.md](skills/lh-decomposition/SKILL.md) |
 | `lh-verification` | Stage 5 — before claiming anything is done | [skills/lh-verification/SKILL.md](skills/lh-verification/SKILL.md) |
 | `lh-next-step` | Stage 6 — deciding what to do next, or whether to stop | [skills/lh-next-step/SKILL.md](skills/lh-next-step/SKILL.md) |
 
