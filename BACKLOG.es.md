@@ -1553,6 +1553,22 @@ arreglar su disparador o subir la regla al cuerpo de gamification (regla 14;
 este escenario es la evidencia). Las seis instalaciones refrescadas a
 `61b4faf`.
 
+*El disparador de `lh-engagement` (2026-10-22).* Revisado por architect y qa:
+el disparador suma "including judging whether a shipped change moved D1/D7/D30
+before extending it", acotado a retención para no robarle el disparo a un
+test de conversión o a la métrica de un modelo. Dos escenarios de disparo
+nuevos (`harness:6660509`): uno a ciegas con otras palabras
+(`skill-engagement-trigger-5`, rachas y D30) y un casi-acierto (`near-5`,
+conversión del checkout). Base con el disparador anterior (`20261022-224243`):
+trigger-5 1/3, near-5 3/3. Después (`-224618` ×6, `-224703` ×3, `-225047`
+×1): la ventana de novedad carga la skill 6/6 (base 0/3) y pasa 5/6 (base
+0/3), con "esperar a que la curva deje de moverse"; trigger-5 3/3, near-5 3/3;
+los ocho disparos anteriores, `lh-discovery` y dos de juicio de gamification
+sin pérdidas. `gamification-asks-where-they-cheat` cayó a 2/3 (la muestra no
+cargó `lh-engagement` y no nombró una trampa concreta); repetido ×6
+(`-225944`): 6/6, ruido de una base de tres muestras. **Se queda.** Con esto,
+la opción de subir la regla al cuerpo de gamification no hizo falta.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista

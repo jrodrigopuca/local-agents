@@ -3,8 +3,9 @@ name: lh-engagement
 description: >
   Attracting users and bringing them back: onboarding as a game's first
   session, habit loops, return triggers, and honest engagement metrics.
-  Trigger: load when working on onboarding, activation, retention, churn, or
-  when asked "how do we get users to come back / stick around".
+  Trigger: load when working on onboarding, activation, retention or churn —
+  including judging whether a shipped change moved D1/D7/D30 before extending
+  it — or when asked how to get users to come back.
 license: Apache-2.0
 metadata:
   author: jrodrigopuca
