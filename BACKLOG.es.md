@@ -1534,6 +1534,25 @@ perfil antes de los pasos) y un control socrático escrito a mano, que falla.
 Medido de nuevo: par 3/3 (`-220346`), mentor 3/3 (`-220411`, instalado desde
 `016fe19` como experimento). **El cambio se queda.**
 
+**Paso 2, gamification y devops (2026-10-22).** Cuatro escenarios desde
+promesas del texto (`harness:17a3508`), revisados por architect y qa.
+Base con catálogo `20261022-221528`, sin catálogo `-221659`, ×3:
+`gamification-asks-where-they-cheat` 3/3 contra 1/3 (+67 %: sin catálogo va
+a puntos y ranking sin preguntar dónde hacen trampa en un flujo
+obligatorio); `devops-bounds-the-autoscaling` y
+`devops-blue-green-is-not-a-free-rollback` 3/3 y 3/3 (`model-floor`).
+`gamification-waits-out-the-novelty-window` dio 1/3 contra 3/3, pero el
+rejuicio mostró al juez oscilando sobre contenidos iguales; qa leyó las seis:
+ninguna da la regla de corte de `lh-engagement` #5 (mirar hasta que la curva
+de las cohortes deje de moverse, el largo de la ventana desde los datos
+propios), todas paran en D14 o D30 fijos. Criterio reescrito más estricto y
+declarado; rejuicio ×2: 0/3 y 0/3, estable. La advertencia de novedad es piso
+del modelo; la regla de corte es un hueco del catálogo: `lh-engagement` no
+cargó en ninguna muestra, aunque la pregunta es de retención. Abierto:
+arreglar su disparador o subir la regla al cuerpo de gamification (regla 14;
+este escenario es la evidencia). Las seis instalaciones refrescadas a
+`61b4faf`.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
