@@ -1487,6 +1487,23 @@ objetivo 6/6 leyendo el archivo 6 de 6; los dos casi-aciertos 3/3, el de
 Google Calendar ahora leyendo el archivo 3 de 3; los cuatro de juicio, el de
 herencia y los ocho disparos 3/3, sin pérdidas. **Se queda.**
 
+*Trabajo bueno (visionary): el criterio estaba mal, el agente no.* 0/3 con y
+sin catálogo en la base. Architect encontró una premisa falsa en el criterio
+(daba por cumplido el "10 segundos" del pitch) y diseñó pruebas con lecturas
+fijadas antes. V2, el mismo producto sin "sé brutal" (`-161426`, celda de
+diseño): con el empujón, el veredicto baja de "bueno" a "bueno, todavía no
+excelente". V1: el usuario etiquetó a ciegas, caso por caso, las seis
+respuestas de la base (con catálogo 2 PASS y 1 AMBIGUA; sin catálogo 2 FAIL y
+1 AMBIGUA); su vara fue "primero reconoce lo bueno atado a la evidencia y
+después propone mejoras", no la "segunda lista" del #4. Para eso `labels.py`
+ahora toma todas las muestras de una corrida ×3 (claves `#2`, `#3`) y tiene
+`add --only/--dev` y `rejudge --only`. Criterio reescrito desde esas
+etiquetas, declarado; el juez coincide con el usuario en las cuatro no
+ambiguas. Medido de nuevo: con catálogo 3/3 (`-211406`), sin catálogo 0/3
+(`-211512`). La baja de veredicto de V2 queda como observación, sin cambio en
+visionary: con la vara del usuario esas respuestas pasan. Ranking e historia
+de product-manager quedan `model-floor`.
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista
