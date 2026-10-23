@@ -34,7 +34,7 @@ explica a sí mismo en su `AGENTS.md`, y esta guía no lo repite.
 | [`security`](security/AGENTS.md) | Auditar lo tuyo con mirada de atacante, para defenderlo. Threat model, auditoría, remediación. | 3 |
 | [`devops`](devops/AGENTS.md) | Del "anda en mi máquina" al "corre confiable": pipelines, infra, observabilidad, deploys reversibles. | 3 |
 | [`data-ml`](data-ml/AGENTS.md) | Pipelines de datos, modelos ML, o meter un LLM en un producto sin que sea un demo que impresiona una vez. | 3 |
-| [`apple-dev`](apple-dev/AGENTS.md) | Swift / iOS / macOS — y querés que además te enseñe a resolverlo solo. | 4 |
+| [`apple-dev`](apple-dev/AGENTS.md) | Apps nativas de Apple (iOS, macOS, watchOS, visionOS): construir, revisar, depurar y publicar. Si le decís que estás aprendiendo, te enseña en vez de resolverlo. | 4 |
 | [`product-manager`](product-manager/AGENTS.md) | Convertir una idea en backlog priorizado: qué problema, para quién, en qué orden. | 3 |
 | [`visionary`](visionary/AGENTS.md) | Necesitás una opinión brutalmente honesta sobre el producto, o recortar un roadmap inflado. | 3 |
 | [`gamification`](gamification/AGENTS.md) | Un flujo pierde gente y hay que hacerlo enganchar — con línea ética explícita. | 3 |

@@ -1,8 +1,9 @@
 ---
 name: lh-debugging
 description: >
-  Debugging Apple-platform issues as taught method: crashes, leaks, hangs,
-  and weird behavior — Socratic first, tools named, root cause always.
+  Debugging Apple-platform issues: crashes, leaks, hangs and weird behavior —
+  read the artifact, reproduce, prove the cause; Socratic only when the user
+  is learning.
   Trigger: load on crashes, memory leaks, hangs, "it behaves weird", or any
   "why is this happening?" in Swift/iOS/macOS.
 license: Apache-2.0
@@ -13,18 +14,18 @@ metadata:
 ---
 
 _Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves
-these facts yearly — if the year has changed, re-check a claim before teaching it._
+these facts yearly — if the year has changed, re-check a claim before relying on it._
 
 ## Critical Patterns
 
-### 1. Debugging is the mentorship's best classroom — guide, don't grab
+### 1. Method first; Socratic only on the learning signal
 
-This is where "teach fishing" pays most: walk them through the METHOD with
-Socratic steps ("what EXACTLY does the crash log say?", "what's the last
-thing you know is true?"), because debugging skill compounds for life.
-Exceptions per the [mentorship ladder](../../AGENTS.md): cryptic
-tooling errors (code signing, DerivedData corruption, simulator weirdness)
-get the answer straight — reserve the Socratic method for bugs that teach.
+Read the artifact, reproduce, prove the cause, then fix. When the user is
+learning ([judgment #6](../../AGENTS.md)), walk the same steps as questions
+("what EXACTLY does the crash log say?", "what's the last thing you know is
+true?"), because debugging skill compounds for life; tooling errors (code
+signing, DerivedData corruption, simulator weirdness) get the answer straight
+either way.
 
 ### 2. Read the crash before theorizing
 
@@ -41,7 +42,7 @@ Every crash diagnosis starts with the artifact, not the vibes:
 | `dispatch_assert_queue` / "Incorrect actor executor assumption" | Swift 6 isolation check: `@MainActor` code entered from a non-main thread through a C/ObjC callback — the CALLER is wrong, not the annotation |
 
 Symbolicate first if it's from the field; then find the LAST frame that's
-YOUR code. The stack tells you where it died — the question to teach is
+YOUR code. The stack tells you where it died — the question to ask is
 "where did the bad state get CREATED?", which is earlier.
 
 ### 3. The reproduction discipline (inherited, domain-tuned)
@@ -60,8 +61,7 @@ different OS versions.
 
 Symptoms: memory climbing screen after screen, `deinit` never printing,
 doubled network responses (two live instances subscribed). Method: add a
-`deinit { print("...") }` to the suspect (the poor man's leak detector — it
-teaches WHY), then Instruments' Leaks/Allocations or Xcode's Memory Graph
+`deinit { print("...") }` to the suspect (the poor man's leak detector), then Instruments' Leaks/Allocations or Xcode's Memory Graph
 Debugger to SEE the retain cycle: who holds whom. The usual suspects are the
 [lh-code-review 🔴 list](../lh-code-review/SKILL.md): strong `self` in stored
 closures, strong delegates, long-lived `Task`s. Fix = ownership decision
@@ -76,7 +76,7 @@ Don't guess between them: the Hangs instrument (and Organizer's hang
 reports from the field) says WHEN the main thread stalled, then Time
 Profiler says where that time went ("performance is measured, not guessed"
 — the [senior-dev rule](../../../senior-dev/AGENTS.md), same religion).
-Teach reading the heaviest stack trace before touching any code.
+Read the heaviest stack trace before touching any code.
 
 ### 6. Weird SwiftUI behavior: it's almost always identity or ownership
 
@@ -84,8 +84,8 @@ View not updating → who owns the state, is mutation reaching the owner, is
 the model actually `@Observable`? Updating too much → observation too
 coarse, body too big. State resetting mysteriously → view IDENTITY changed
 (position in the tree, `.id()`, conditional branches) so SwiftUI built a new
-view with fresh `@State`. Animation glitches → same identity story. Teach
-the mental model — SwiftUI diffs a tree of descriptions; identity decides
+view with fresh `@State`. Animation glitches → same identity story. The
+mental model — SwiftUI diffs a tree of descriptions; identity decides
 what survives — and these bugs become predictable instead of spooky. First
 tool, before theory: `Self._printChanges()` in `body` names the property
 that triggered the re-evaluation, and Xcode 26's SwiftUI instrument shows

@@ -6,8 +6,8 @@ was extracted from the files themselves — none of it is aspirational.
 <!-- BEGIN:summary -->
 | Layer | Edges | What it means |
 |-------|------:|---------------|
-| [Inheritance](#1-inheritance) | 23 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
-| [Agent handoffs](#2-agent-handoffs) | 46 | Editorial. An agent names who takes over when a problem stops being its own. |
+| [Inheritance](#1-inheritance) | 24 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
+| [Agent handoffs](#2-agent-handoffs) | 51 | Editorial. An agent names who takes over when a problem stops being its own. |
 | [Skill references](#3-skill-references) | 106 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
@@ -17,7 +17,7 @@ was extracted from the files themselves — none of it is aspirational.
 
 `generalist` carries the reasoning loop — evidence ladder, verify-before-agreeing,
 reproduce-before-fixing. `senior-dev` adds the **Peer Contract** (disagree once
-with evidence then commit, pull your weight, flag scope creep), which <!--n:peers-->9<!--/n-->
+with evidence then commit, pull your weight, flag scope creep), which <!--n:peers-->10<!--/n-->
 agents adopt on top.
 
 <!-- BEGIN:inheritance -->
@@ -27,11 +27,11 @@ flowchart TD
     SD["senior-dev — + peer contract"]
 
     G --> SD
-    G --> apple-dev
     G --> architect
     G --> eng-manager
     G --> visionary
 
+    SD --> apple-dev
     SD --> data-ml
     SD --> dba
     SD --> devops
@@ -44,7 +44,7 @@ flowchart TD
 ```
 <!-- END:inheritance -->
 
-The <!--n:peers-->9<!--/n--> peer agents declare **both** parents directly (<!--n:inheritance-edges-->23<!--/n--> edges in the files);
+The <!--n:peers-->10<!--/n--> peer agents declare **both** parents directly (<!--n:inheritance-edges-->24<!--/n--> edges in the files);
 the graph draws the layering instead. `install.py` walks it transitively, so each
 one gets both `CORE.md` files inlined and stays self-contained after install.
 
@@ -57,6 +57,12 @@ Who routes work to whom, from the links in each `AGENTS.md`.
 <!-- BEGIN:handoffs -->
 ```mermaid
 flowchart LR
+    apple-dev --> architect
+    apple-dev --> dba
+    apple-dev --> security
+    apple-dev --> senior-dev
+    apple-dev --> ux-ui
+
     architect --> dba
     architect --> devops
     architect --> senior-dev

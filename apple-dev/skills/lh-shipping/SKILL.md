@@ -14,14 +14,13 @@ metadata:
 ---
 
 _Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves
-these facts yearly — if the year has changed, re-check a claim before teaching it._
+these facts yearly — if the year has changed, re-check a claim before relying on it._
 
 ## Critical Patterns
 
-### 1. This is the no-Socratic zone — answer first, demystify second
+### 1. Answer first, demystify second — even when the user is learning
 
-Signing pain teaches nothing ([mentorship ladder](../../AGENTS.md), exception
-c): give the fix immediately, THEN the one mental model that makes the whole
+Signing pain teaches nothing ([judgment #6](../../AGENTS.md)): give the fix immediately, THEN the one mental model that makes the whole
 area stop being magic: **a signed app = your code + entitlements (what it may
 do) + a certificate (who you are) + a provisioning profile (the Apple-SIGNED
 permission slip binding cert + app ID + capabilities + devices)**. Not

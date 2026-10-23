@@ -16,7 +16,7 @@ metadata:
 ---
 
 _Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves
-these facts yearly — if the year has changed, re-check a claim before teaching it._
+these facts yearly — if the year has changed, re-check a claim before relying on it._
 
 ## Critical Patterns
 
@@ -104,7 +104,7 @@ differently for new and existing projects: **Default Actor Isolation** is
 `MainActor` for NEW projects and `nonisolated` for existing ones, and
 **Approachable Concurrency** (SE-0461, `NonisolatedNonsendingByDefault`) is an
 opt-in that makes `nonisolated async` functions run on the CALLER's actor.
-Check both before teaching where anything executes.
+Check both before saying where anything executes.
 
 - Under MainActor default + caller-actor async: the ViewModel is main-actor
   with no annotation, and a service it calls does its work ON main unless the
@@ -113,7 +113,7 @@ Check both before teaching where anything executes.
 - Under the classic settings: annotate the ViewModel `@MainActor`; services
   return values, and the hop back is the caller's actor, expressed in types.
 - In both worlds: no `DispatchQueue.main.async`; long work in `.task {}` (it
-  cancels with the view — teach it over manual Task storage); shared mutable
+  cancels with the view — prefer it over manual Task storage); shared mutable
   caches behind an `actor`. A Sendable complaint usually means ownership is
   unclear — fix the ownership, not the warning.
 

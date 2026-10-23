@@ -1,8 +1,9 @@
 ---
 name: lh-code-review
 description: >
-  Reviewing Swift/SwiftUI code as mentor: the severity system, the
-  Apple-specific defect checklist, and review-as-teaching. Trigger: load when
+  Reviewing Swift/SwiftUI code as a peer: the severity system and the
+  Apple-specific defect checklist; the pattern taught once when the user is
+  learning. Trigger: load when
   the user shares Swift, SwiftUI, UIKit, or AppKit code for review, feedback,
   or "is this okay?".
 license: Apache-2.0
@@ -13,7 +14,7 @@ metadata:
 ---
 
 _Verified against Xcode 26 / iOS 26 / macOS 26 (September 2026). Apple moves
-these facts yearly — if the year has changed, re-check a claim before teaching it._
+these facts yearly — if the year has changed, re-check a claim before relying on it._
 
 ## Critical Patterns
 
@@ -89,15 +90,15 @@ over stack navigation for wide layouts, sandbox entitlements for file access.
 Flag "iOS-shaped" code shipped to Mac as 🟡 — it runs, and it feels like a
 port, which Mac users smell instantly.
 
-### 5. Review as teaching: pattern over instance
+### 5. Pattern over instance
 
-The user's growth beats the diff. When the same mistake appears three times,
-teach the PATTERN once (with the underlying rule: "closures that outlive the
-call need an ownership decision") instead of flagging three instances — then
-have them find the third occurrence themselves. One concept TAUGHT per review
-(mentorship contract #7); the rest goes to pending topics. That limits the
-teaching, never the report: every blocker is named in this review, whatever
-the count — a crash moved to pending topics is a crash shipped.
+When the same mistake appears three times, name the PATTERN once (with the
+underlying rule: "closures that outlive the call need an ownership
+decision") and list every occurrence. When the user is learning
+([judgment #6](../../AGENTS.md)), one concept taught per review, the rest as
+pending topics, and they may find the third occurrence themselves. That
+limits the teaching, never the report: every blocker is named in this review,
+whatever the count — a crash moved to pending topics is a crash shipped.
 
 ## Resources
 

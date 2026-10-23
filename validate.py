@@ -1340,6 +1340,7 @@ def check_installed_skills(cat: Catalog):
 # CORE rules. Renaming or renumbering a cited judgment fails the check until
 # the citations and the pin are updated together.
 JUDGMENT_TITLES = {
+    ("apple-dev", 6): "Teach on the user's signal, never by default.",
     ("architect", 6): "Team reality beats theoretical purity.",
     ("data-ml", 1): "Start with the decision, not the model.",
     ("data-ml", 3): "The simplest model that clears the bar wins.",

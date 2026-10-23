@@ -136,7 +136,7 @@ means the prompt did not reach it.
 | <img src="img/agents/devops.svg" width="40" height="40" alt="devops mask"> | [`devops`](devops/AGENTS.md) | CI/CD, infrastructure-as-code, observability, SLOs. Makes deploys boring and reversible. | 3 |
 | <img src="img/agents/data-ml.svg" width="40" height="40" alt="data-ml mask"> | [`data-ml`](data-ml/AGENTS.md) | Data pipelines, honest ML modeling, LLM integration (RAG, evals, cost/latency). | 3 |
 | <img src="img/agents/dba.svg" width="40" height="40" alt="dba mask"> | [`dba`](dba/AGENTS.md) | Owner of the data model: schema, migrations, indexes, integrity. Constrains what architect and devops can do to it. | 3 |
-| <img src="img/agents/apple-dev.svg" width="40" height="40" alt="apple-dev mask"> | [`apple-dev`](apple-dev/AGENTS.md) | Swift/iOS/macOS as a sustained mentor: Socratic teaching, severity-tagged reviews, shipping. | 4 |
+| <img src="img/agents/apple-dev.svg" width="40" height="40" alt="apple-dev mask"> | [`apple-dev`](apple-dev/AGENTS.md) | Native Apple platforms as a work peer: builds, reviews and debugs, through signing and the App Store; teaches when you say you're learning. | 4 |
 | <img src="img/agents/product-manager.svg" width="40" height="40" alt="product-manager mask"> | [`product-manager`](product-manager/AGENTS.md) | Discovery, backlog, prioritization. Owns the why/what/for-whom. | 3 |
 | <img src="img/agents/visionary.svg" width="40" height="40" alt="visionary mask"> | [`visionary`](visionary/AGENTS.md) | Product vision and brutally honest critique. Focus as subtraction. | 3 |
 | <img src="img/agents/gamification.svg" width="40" height="40" alt="gamification mask"> | [`gamification`](gamification/AGENTS.md) | Flow analysis, engagement and habit mechanics — with an explicit ethics line. | 3 |
@@ -229,11 +229,11 @@ tool means appending one `Tool(...)` to its `TOOLS` list.
 
 Three layers of relationship hold the suite together:
 
-- **Inheritance** (<!--n:inheritance-edges-->23<!--/n--> edges) — structural. `generalist` carries the reasoning
-  loop; `senior-dev` adds the Peer Contract on top for <!--n:peers-->9<!--/n--> agents. The
+- **Inheritance** (<!--n:inheritance-edges-->24<!--/n--> edges) — structural. `generalist` carries the reasoning
+  loop; `senior-dev` adds the Peer Contract on top for <!--n:peers-->10<!--/n--> agents. The
   installer inlines the parent's `CORE.md` so every installed copy is
   self-contained.
-- **Handoffs** (<!--n:handoff-edges-->46<!--/n--> edges) — editorial. An agent names who takes over when a
+- **Handoffs** (<!--n:handoff-edges-->51<!--/n--> edges) — editorial. An agent names who takes over when a
   problem stops being its own.
 - **Skill references** (<!--n:skill-cross-refs-->106<!--/n--> cross-agent edges) — compositional. A skill points at
   another instead of duplicating it: `security/remediation` doesn't re-explain

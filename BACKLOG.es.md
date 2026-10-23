@@ -1504,6 +1504,36 @@ ambiguas. Medido de nuevo: con catálogo 3/3 (`-211406`), sin catálogo 0/3
 visionary: con la vara del usuario esas respuestas pasan. Ranking e historia
 de product-manager quedan `model-floor`.
 
+**Paso 2, apple-dev: de mentor a par de plataforma (2026-10-22, decisión del
+usuario).** La revisión fechada dejaba abierta la identidad (mentor o par);
+el usuario eligió par especialista en tecnologías Apple, con la mentoría
+solo ante su señal. Revisado por stark, architect y qa en dos rondas. El
+cuerpo nuevo hereda `[senior-dev, generalist]` (el contrato de par
+inyectado; el juicio de developer no viaja, por eso el #1 nuevo "Read the
+project before writing to it") y tiene seis juicios: leer el proyecto, la
+plataforma es la spec, las APIs cambian en cada WWDC, calidad de producción
+también en un ejemplo, cada plataforma es distinta, y enseñar ante la señal
+("estoy aprendiendo", un ejercicio del curso; un "¿por qué?" sobre una regla
+recibe la razón directa y un "¿por qué se rompe?" se depura; el tooling
+primero aun enseñando). "Where you sit" (el cliente multiplataforma es de
+senior-dev), handoffs a senior-dev, ux-ui, security, dba y architect; las
+cuatro skills sin modo enseñanza por defecto; filas de AGENTS.md, README,
+REFERENCE y el routing de eng-manager (fila nueva para módulos nativos de
+apps multiplataforma); `JUDGMENT_TITLES` fija el #6.
+Escenarios (`harness:efc2eca`): dos retocados que asumían al
+mentor y seis nuevos con fixtures de Swift. Base con el mentor
+(`20261022-214225`): el "cómo hago" 1/3 y el "por qué se rompe" 0/3, los dos
+discriminadores; el resto 2/3 o 3/3. Después (`-215027`): los dos
+discriminadores 3/3, los demás y los guardianes (composición, routing, ocho
+disparos de `lh-shipping`) 3/3, salvo el error de firma (2/3 → 1/3, y 4/6 en
+`-215837`). qa: era el criterio ("abre con el arreglo" contra "pistas antes"
+dejaba en el medio una frase de diagnóstico, y el juez dio veredictos
+opuestos a aperturas casi iguales). Criterio retocado y declarado; rejuicio
+de las 12 guardadas (par 9/9, mentor 2/3, la falla es la que define qué es un
+perfil antes de los pasos) y un control socrático escrito a mano, que falla.
+Medido de nuevo: par 3/3 (`-220346`), mentor 3/3 (`-220411`, instalado desde
+`016fe19` como experimento). **El cambio se queda.**
+
 El costo de la fila (~USD 10) cubría solo la fase 2: el total honesto es USD
 25 a 40 si hay muchos Δ = 0. La Decisión 2 sigue provisional y esta corrida
 la va a destrabar, no la necesita cerrada para empezar. Por la relación vista

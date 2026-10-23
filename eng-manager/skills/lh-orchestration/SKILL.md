@@ -22,7 +22,8 @@ metadata:
 | Product: problem discovery, backlog, prioritization, requirements | `product-manager` |
 | Architecture, tradeoffs, design review, mentoring | `architect` |
 | Build or modify application code, clean code, peer review | `senior-dev` |
-| Swift / iOS / macOS, taught as mentorship | `apple-dev` |
+| Native Apple platforms (iOS, macOS, watchOS, visionOS) | `apple-dev` |
+| Native modules / Apple distribution for a cross-platform app | `apple-dev` (with `senior-dev`) |
 | UX/UI design, mockups, dev handoff | `ux-ui` |
 | Engagement, flows, game mechanics, retention | `gamification` |
 | Product vision, brutal critique, focus, inspiration | `visionary` |
@@ -130,7 +131,7 @@ narrate an invocation that didn't happen.
 - On fire right now → `devops` when it's the pipeline or the infra and the
   parachute exists (rollback, flag); `stark`/crisis-mode when the cause is
   unknown or crosses domains nobody owns. Never a planning session.
-- Teaching moment / skill growth → `architect`/mentoring or `apple-dev`.
+- Teaching moment / skill growth → `architect`/mentoring; on Apple platforms, `apple-dev`.
 
 Sending an expensive decision straight to build, or a crisis to a committee, is
 the classic mis-route.
