@@ -26,7 +26,7 @@ cross-agent skills, orchestration), the most common workflow is to install
 ./install.py --all --tool claude            # preview with --dry-run first
 ```
 
-Installs all 15 agents (each with its inheritance inlined) + all 48 skills, each
+Installs all 15 agents (each with its inheritance inlined) + all 51 skills, each
 skill installed exactly once. This is the recommended way to equip a tool with
 the complete team.
 
@@ -240,7 +240,7 @@ it and asks git for the rest:
 ```
 Claude Code  (claude)
   /Users/you/.claude
-    skills   48/48 from catalog
+    skills   51/51 from catalog
     agents   15/15 from catalog
     installed from 0035df7 — 2 commit(s) behind ed7c442
       skills changed: mockups, tradeoffs, verification
@@ -275,12 +275,12 @@ the team which catalog commit they are currently using.
 ```
 Claude Code  (claude)
   /Users/you/.claude
-    skills   48/48 from catalog · 14 foreign (untouched)
+    skills   51/51 from catalog · 14 foreign (untouched)
     agents   15/15 from catalog
 
 Codex  (codex)
   /Users/you/.codex
-    skills   48/48 from catalog · 1 foreign (untouched)
+    skills   51/51 from catalog · 1 foreign (untouched)
     agents   15/15 from catalog
       roster: 15 rows in AGENTS.md
 ```
@@ -614,7 +614,7 @@ available to both.
 
 | Flag | Purpose |
 |---|---|
-| `--all` | Install the complete suite (15 agents + 48 skills) |
+| `--all` | Install the complete suite (15 agents + 51 skills) |
 | `--no-deps` | Install only the agent's own skills, omitting inheritance and cross-agent skills |
 | `--dry-run` | Show what would happen without writing files |
 | `--catalog PATH` | Use a different catalog (default: directory containing the script) |

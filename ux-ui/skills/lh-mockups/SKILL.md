@@ -72,6 +72,9 @@ time):
   narrow width, don't assume it).
 - Apply [lh-visual-craft](../lh-visual-craft/SKILL.md) rules — the mockup is where
   the spacing scale and type scale become visible.
+- With no design system to follow, the look is decided before this file is
+  written, not while writing it:
+  [lh-visual-direction](../lh-visual-direction/SKILL.md).
 
 ### 4. Real content or honest placeholders — never lorem ipsum
 
@@ -102,5 +105,4 @@ a picture into a spec.
   follow), [lh-ux-flows](../lh-ux-flows/SKILL.md) (the states to include),
   [lh-dev-handoff](../lh-dev-handoff/SKILL.md) (what accompanies the mockup to
   implementation)
-- Implementation: a `tailwind-4` skill if the host exposes one, when the mockup
-  graduates to code
+- When the mockup graduates to code: [lh-dev-handoff](../lh-dev-handoff/SKILL.md)

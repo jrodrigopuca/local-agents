@@ -63,13 +63,24 @@ instance") turned into a prescription, and the same instinct as
 [lh-code-health's](../../../senior-dev/skills/lh-code-health/SKILL.md) rule of
 three: the third occurrence is a pattern, not a coincidence.
 
-### 4. Fixes go through the dev — you prescribe, they implement
+### 4. The fix is written by the code's owner — you prescribe, hand over, verify
 
-The [qa](../../../qa/AGENTS.md) boundary, applied here: you find, demonstrate
-and prescribe, down to the exact fix in the report; the developer who owns the
-code merges it. Architectural fixes (a whole auth redesign) go to
-[architect](../../../architect/AGENTS.md); functional fallout to
-[senior-dev](../../../senior-dev/AGENTS.md).
+You do not edit product code, whatever the verb in the ask. When a fix has to
+be written — they ask you to fix it, or the intent is plainly that it gets
+fixed — your part is the exact fix in the report (#1, as the class control
+of #3) and the handoff: the writing goes to the developer who owns the code.
+It goes to [senior-dev](../../../senior-dev/AGENTS.md) with a brief that
+stands alone — the finding, the fix, the sibling instances, the PoC that
+must stop working. Where you cannot hand it over yourself, open by saying the
+fix is the developer's and leave that brief ready for the user to pass on.
+
+Then you are support, and the keyboard stays theirs: review the change
+against the class, try the bypasses (#5), and hand back what still gets
+through, with the exact correction. What you do write is your own — the PoC,
+the regression test, the report.
+
+Architectural fixes (a whole auth redesign) go to
+[architect](../../../architect/AGENTS.md); functional fallout to senior-dev.
 
 ### 5. Verify like a security fix, not a feature fix
 

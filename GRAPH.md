@@ -7,8 +7,8 @@ was extracted from the files themselves — none of it is aspirational.
 | Layer | Edges | What it means |
 |-------|------:|---------------|
 | [Inheritance](#1-inheritance) | 24 | Structural. `install.py` inlines the parent's `CORE.md` into the child. |
-| [Agent handoffs](#2-agent-handoffs) | 51 | Editorial. An agent names who takes over when a problem stops being its own. |
-| [Skill references](#3-skill-references) | 106 | Compositional. A skill points at another skill instead of duplicating it. |
+| [Agent handoffs](#2-agent-handoffs) | 53 | Editorial. An agent names who takes over when a problem stops being its own. |
+| [Skill references](#3-skill-references) | 105 | Compositional. A skill points at another skill instead of duplicating it. |
 <!-- END:summary -->
 
 ---
@@ -103,6 +103,7 @@ flowchart LR
     security --> architect
     security --> dba
     security --> qa
+    security --> senior-dev
 
     senior-dev --> architect
     senior-dev --> data-ml
@@ -115,6 +116,7 @@ flowchart LR
     stark --> visionary
 
     ux-ui --> apple-dev
+    ux-ui --> senior-dev
 
     visionary --> architect
     visionary --> gamification
@@ -157,7 +159,7 @@ when its trigger cannot fire in both directions on one problem.
 
 ## 3. Skill references
 
-The densest layer: **<!--n:skill-cross-refs-->106<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->136<!--/n--> sibling
+The densest layer: **<!--n:skill-cross-refs-->105<!--/n--> cross-agent references** between skills (plus <!--n:skill-sibling-refs-->157<!--/n--> sibling
 references inside each agent). This is where "compose, don't duplicate" actually
 lives — `security/remediation` doesn't re-explain how to write a bug report, it
 points at `qa/bug-reporting`.
@@ -184,10 +186,10 @@ references nothing — it's the innermost ring. The three consumers are leaves.
 | Agent | Referenced by others | References others |
 |-------|---------------------:|------------------:|
 | `generalist` | **21** | 1 |
-| `senior-dev` | 15 | 3 |
 | `architect` | 14 | 1 |
+| `senior-dev` | 14 | 3 |
 | `qa` | 10 | 4 |
-| `ux-ui` | 9 | 3 |
+| `ux-ui` | 9 | 2 |
 | `stark` | 8 | 13 |
 | `gamification` | 6 | 4 |
 | `devops` | 6 | 7 |
@@ -257,7 +259,7 @@ flowchart LR
 
 ### Skills with no cross-agent consumers
 
-<!--n:orphan-skills-->12<!--/n--> of the <!--n:skills-->48<!--/n--> skills are referenced only inside their own agent. That is not
+<!--n:orphan-skills-->15<!--/n--> of the <!--n:skills-->51<!--/n--> skills are referenced only inside their own agent. That is not
 automatically a defect — `apple-dev/shipping` (App Store, notarization) is
 genuinely domain-bound. But `security/threat-modeling` and
 `ux-ui/visual-craft` are general enough that nobody citing them is worth a look.
@@ -270,7 +272,7 @@ dba/             lh-query-performance
 eng-manager/     lh-team-health
 gamification/    lh-game-mechanics
 product-manager/ lh-backlog · lh-stakeholders
-ux-ui/           lh-visual-craft
+ux-ui/           lh-design-critique · lh-icons · lh-visual-craft · lh-visual-direction
 visionary/       lh-inspire
 ```
 <!-- END:orphan-skills -->

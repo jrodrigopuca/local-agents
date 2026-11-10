@@ -93,18 +93,18 @@ class InstallTest(unittest.TestCase):
 
     def test_the_default_command_twice_creates_no_duplicates(self):
         # Before B-058 the second run renamed every file it found, ours too:
-        # 48 → 96 skills and 15 → 30 agents.
+        # 51 → 102 skills and 15 → 30 agents.
         self.install_all()
         self.install_all()
         self.assertFalse([p for p in self.skills.iterdir() if p.name.endswith("-2")])
         self.assertFalse([p for p in self.agents.iterdir() if "-2" in p.stem])
-        self.assertEqual(len(list(self.skills.iterdir())), 48)
+        self.assertEqual(len(list(self.skills.iterdir())), 51)
         self.assertEqual(len(list(self.agents.iterdir())), 15)
 
     def test_the_stamp_records_what_we_own_and_its_hash(self):
         self.install_all()
         stamp = json.loads(self.stamp.read_text())
-        self.assertEqual(len(stamp["skills"]), 48)
+        self.assertEqual(len(stamp["skills"]), 51)
         self.assertEqual(len(stamp["agents"]), 15)
         self.assertTrue(all(len(r["sha256"]) == 64 for r in stamp["skills"].values()))
 
@@ -264,7 +264,7 @@ class InstallTest(unittest.TestCase):
         self.assertTrue(all(self.is_ours(d) for d in self.skills.iterdir()))
         self.assertFalse([p for p in self.agents.iterdir() if "-2" in p.stem])
         stamp = json.loads(self.stamp.read_text())
-        self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (48, 15))
+        self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (51, 15))
 
     # -- found by review: every path records what it wrote ---------------- #
 
@@ -305,7 +305,7 @@ class InstallTest(unittest.TestCase):
         self.install_all()
         stamp = json.loads(self.stamp.read_text())
         self.assertNotIn("catalog_commit", stamp)
-        self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (48, 15))
+        self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (51, 15))
         md = self.skills / "lh-tradeoffs" / "SKILL.md"
         md.write_text(md.read_text() + "\nMY EDIT\n")
         self.install_all()
@@ -359,7 +359,7 @@ class InstallTest(unittest.TestCase):
         self.assertIn("my own rule", agent.read_text())
         self.assertIn("edited by hand", run.stdout)
         stamp = json.loads(self.stamp.read_text())
-        self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (48, 15))
+        self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (51, 15))
 
     def test_a_pre_b058_install_from_an_unknown_commit_says_so(self):
         self.install_all()

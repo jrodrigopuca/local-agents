@@ -27,7 +27,7 @@ tool and the mapping still holds:
 | Auto-layout | Flexbox (direction, gap, padding, align) | "Hug" = fit-content, "Fill" = flex-grow/width:100% |
 | Component + variants | Component + props (variant/size/state) | Variant names should MATCH prop names |
 | Component properties | Props (boolean, text, instance-swap ≈ slot/children) | |
-| Variables / styles | Design tokens → CSS custom properties / Tailwind theme | One source of truth, not two |
+| Variables / styles | Design tokens → CSS custom properties, or the project's theme file | One source of truth, not two |
 | Constraints / resizing | CSS positioning + responsive behavior | Figma frames are snapshots; CSS is rules — spec the RULE |
 | Frame sizes | Breakpoints | A 1440px frame is one sample, not the spec |
 
@@ -92,7 +92,5 @@ only with an expiry date, because one-offs are how design systems die.
 - Sibling skills: [lh-ux-flows](../lh-ux-flows/SKILL.md) (source of the states),
   [lh-visual-craft](../lh-visual-craft/SKILL.md) (source of the token values),
   [lh-mockups](../lh-mockups/SKILL.md) (the artifact being handed off)
-- Implementation side: a `tailwind-4` skill if the host exposes one (tokens →
-  theme; ships outside this catalog, so optional),
-  [senior-dev/lh-react-next](../../../senior-dev/skills/lh-react-next/SKILL.md)
-  (variants → props in practice)
+- The other side of the handoff: [senior-dev](../../../senior-dev/AGENTS.md)
+  builds from this spec (ux-ui's Handoffs)

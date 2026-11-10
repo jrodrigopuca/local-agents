@@ -1,6 +1,6 @@
 # local-agents
 
-A catalog of **<!--n:agents-->15<!--/n--> specialized AI agents and <!--n:skills-->48<!--/n--> skills** for software development,
+A catalog of **<!--n:agents-->15<!--/n--> specialized AI agents and <!--n:skills-->51<!--/n--> skills** for software development,
 installable into Claude Code, opencode, Kiro CLI, Codex, Antigravity CLI, or any harness that can
 read files.
 
@@ -130,7 +130,7 @@ means the prompt did not reach it.
 | <img src="img/agents/generalist.svg" width="40" height="40" alt="generalist mask"> | [`generalist`](generalist/AGENTS.md) | Base reasoning loop: verification habits, decomposition, next-step decisions. Every other agent inherits this. | 3 |
 | <img src="img/agents/architect.svg" width="40" height="40" alt="architect mask"> | [`architect`](architect/AGENTS.md) | Architecture, expensive-to-reverse decisions, design review, mentoring. Helpful first, challenging when it counts. | 3 |
 | <img src="img/agents/senior-dev.svg" width="40" height="40" alt="senior-dev mask"> | [`senior-dev`](senior-dev/AGENTS.md) | Building and modifying application code as a work peer. Stack-agnostic judgment; the ecosystem arrives as skills. Defines the Peer Contract the team inherits. | 4 |
-| <img src="img/agents/ux-ui.svg" width="40" height="40" alt="ux-ui mask"> | [`ux-ui`](ux-ui/AGENTS.md) | Screen and flow design, mockups, design-to-dev handoff. Dev-fluent: speaks tokens, states, constraints. | 4 |
+| <img src="img/agents/ux-ui.svg" width="40" height="40" alt="ux-ui mask"> | [`ux-ui`](ux-ui/AGENTS.md) | Screen and flow design, design and style review, icons, mockups, design-to-dev handoff. Dev-fluent: speaks tokens, states, constraints; product code goes to `senior-dev`. | 7 |
 | <img src="img/agents/qa.svg" width="40" height="40" alt="qa mask"> | [`qa`](qa/AGENTS.md) | Hunts unconsidered flows and edge cases. Writes test code, never fixes product code. | 3 |
 | <img src="img/agents/security.svg" width="40" height="40" alt="security mask"> | [`security`](security/AGENTS.md) | Defensive security: threat modeling, adversarial code audit, remediation. | 3 |
 | <img src="img/agents/devops.svg" width="40" height="40" alt="devops mask"> | [`devops`](devops/AGENTS.md) | CI/CD, infrastructure-as-code, observability, SLOs. Makes deploys boring and reversible. | 3 |
@@ -233,9 +233,9 @@ Three layers of relationship hold the suite together:
   loop; `senior-dev` adds the Peer Contract on top for <!--n:peers-->10<!--/n--> agents. The
   installer inlines the parent's `CORE.md` so every installed copy is
   self-contained.
-- **Handoffs** (<!--n:handoff-edges-->51<!--/n--> edges) — editorial. An agent names who takes over when a
+- **Handoffs** (<!--n:handoff-edges-->53<!--/n--> edges) — editorial. An agent names who takes over when a
   problem stops being its own.
-- **Skill references** (<!--n:skill-cross-refs-->106<!--/n--> cross-agent edges) — compositional. A skill points at
+- **Skill references** (<!--n:skill-cross-refs-->105<!--/n--> cross-agent edges) — compositional. A skill points at
   another instead of duplicating it: `security/remediation` doesn't re-explain
   bug reports, it cites `qa/bug-reporting`.
 
@@ -268,7 +268,7 @@ Skills are **not** loaded upfront. Each agent's `AGENTS.md` says when to load
 each one — progressive disclosure keeps the base context small.
 
 Referencing skills that ship *outside* this catalog (`react-19`, `playwright`,
-`tailwind-4`, …) is done **by name and conditionally** — never by path. The
+`pytest`, …) is done **by name and conditionally** — never by path. The
 catalog installs into several tools, each with its own layout, so a hardcoded
 `~/.claude/skills/...` would be a lie in all the others.
 

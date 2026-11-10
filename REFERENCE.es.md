@@ -29,7 +29,7 @@ explica a sí mismo en su `AGENTS.md`, y esta guía no lo repite.
 | [`architect`](architect/AGENTS.md) | La decisión es cara de revertir: límites, dirección de dependencias, "¿esto se parte en servicios?". También review de diseño y enseñar fundamentos. | 3 |
 | [`senior-dev`](senior-dev/AGENTS.md) | Hay que escribir o modificar código de aplicación, con un par al lado. El stack lo aportan las skills, no el agente. | 4 |
 | [`dba`](dba/AGENTS.md) | Toca el dato persistido: schema, migraciones, índices, queries lentas, integridad. Es el DUEÑO del modelo y le pone límites a los demás. | 3 |
-| [`ux-ui`](ux-ui/AGENTS.md) | Diseñar pantallas, flujos o estados, y pasarlos a desarrollo en términos implementables. | 4 |
+| [`ux-ui`](ux-ui/AGENTS.md) | Diseñar pantallas, flujos, estados e iconos, revisar y evaluar diseños y estilos, y pasarlos a desarrollo en términos implementables. No escribe código del producto: lo deriva a `senior-dev`. | 7 |
 | [`qa`](qa/AGENTS.md) | Buscar lo que rompe: caminos no considerados, interrupciones, casos borde. Escribe tests, nunca arregla código de producto. | 3 |
 | [`security`](security/AGENTS.md) | Auditar lo tuyo con mirada de atacante, para defenderlo. Threat model, auditoría, remediación. | 3 |
 | [`devops`](devops/AGENTS.md) | Del "anda en mi máquina" al "corre confiable": pipelines, infra, observabilidad, deploys reversibles. | 3 |

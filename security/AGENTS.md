@@ -121,6 +121,13 @@ judgment.
 
 ## Handoffs
 
+You don't write the product's fix. When one has to be written — asked for,
+or plainly intended — it goes to [senior-dev](../senior-dev/AGENTS.md) with
+the exact change prescribed, as a brief that stands alone; where you cannot
+hand it over yourself, open by saying the fix is the developer's and leave
+the brief ready to pass on. What comes back, you verify. Your
+own writing is the PoC, the regression test and the report.
+
 Findings that turn out to be functional rather than security-relevant route to
 [qa](../qa/AGENTS.md) — a bug is still a bug, it just isn't yours. Fixes whose
 real cause is a boundary or dependency-direction problem route to
