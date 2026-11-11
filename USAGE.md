@@ -145,7 +145,8 @@ Create `~/.kiro/agents/architect.json` (filename = agent name):
     "file:///Users/you/Developer/local-agents/generalist/AGENTS.md"
   ],
   "tools": ["*"],
-  "allowedTools": ["read"]
+  "allowedTools": ["read"],
+  "permissions": { "rules": [{ "capability": "fs_read", "effect": "allow" }] }
 }
 ```
 
@@ -153,9 +154,20 @@ For consultative agents (`access: read` in the catalog: visionary and eng-manage
 the installer emits instead:
 
 ```json
-  "tools": ["read", "grep", "glob", "web_fetch", "web_search", "subagent"],
-  "allowedTools": ["read"]
+  "tools": ["glob", "grep", "read", "subagent", "web", "web_fetch", "web_search"],
+  "allowedTools": ["read"],
+  "permissions": { "rules": [{ "capability": "fs_read", "effect": "allow" }] }
 ```
+
+The `permissions` block and the order of that list are not a choice: they are
+what Kiro's own upgrade writes ("universal format", read by its 2.x and 3.x
+engines). An agent file in the 2.x shape — `allowedTools` and no
+`permissions` — is rewritten in place the next time `kiro-cli` starts, with a
+`.bak` beside it, and V3 skips it until then. The installer writes the
+upgraded shape directly, so Kiro leaves the files alone and `--refresh` keeps
+recognising them as its own. Check with
+`kiro-cli agent upgrade ~/.kiro/agents --dry-run`: every agent should read
+"already universal".
 
 Measured on kiro-cli 2.29.1: Kiro enforces `tools` (an agent with `["read"]`
 could not write), `"*"` grants all 14 built-in tools, and two of them are not

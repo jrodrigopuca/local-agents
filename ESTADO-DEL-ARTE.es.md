@@ -547,6 +547,35 @@ corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
   `ux-ui` como el que llama y tope 0,20 no se pudo medir: gastó el tope
   solo antes de delegar. Costo de las cinco muestras, USD 0,96.
 
+### Kiro reescribe los agentes en el formato 2.x (kiro-cli 2.29.1, 2026-11-11)
+
+*Medido*, sin consultar al modelo (B-099).
+
+- **Cada arranque de `kiro-cli` actualiza los agentes que encuentra en el
+  formato viejo.** Un JSON con `allowedTools` y sin bloque `permissions` se
+  reescribe en el lugar y deja un `.bak` al lado: le agrega
+  `"permissions": {"rules": [{"capability": "fs_read", "effect": "allow"}]}`,
+  ordena una lista `tools` explícita y le suma la etiqueta `web` junto a
+  `web_fetch` y `web_search`. Pasó el 2026-10-23 a las 16:55 y volvió a pasar
+  el 2026-11-11 a la 01:36, un minuto después de reinstalar, al pedirle la
+  ayuda al CLI. La doc lo llama formato universal, el que cargan sus motores
+  2.x y 3.x, y dice que el motor 3.x saltea un agente 2.x hasta que se
+  actualiza (*documentado*).
+- **El instalador lo tomó por una edición a mano.** El archivo reescrito ya no
+  coincidía con el hash registrado, y `--refresh` no pisa lo editado: Kiro
+  corrió 19 días con el catálogo del 23-10 mientras `--status` decía
+  "15 edited by hand". El aviso por archivo existía, perdido entre cientos de
+  líneas.
+- **Arreglo.** `install.py` escribe directamente la forma que deja Kiro. Con
+  eso `kiro-cli agent upgrade ~/.kiro/agents --dry-run` da "already universal"
+  en los 15, arrancar el CLI no toca ningún archivo (mismo hash antes y
+  después) y `--status` no marca nada. Además, toda corrida del instalador
+  cierra con un `NOT UPDATED` cuando dejó archivos sin actualizar.
+- **Sin medir:** si el tier de solo lectura se sostiene en el motor 3.x. La
+  lista `tools` sigue sin `write` ni `shell`, pero en 3.x los permisos son
+  reglas por capacidad y a un agente llamado por otro se le aplican también
+  los de quien lo llama (B-097).
+
 ### Otros hallazgos medidos
 
 - **Esconder una herramienta no es negarla** (Claude Code 2.1.299, 2026-10-16

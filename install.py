@@ -406,8 +406,20 @@ CLAUDE_READ_TOOLS = "Read, Grep, Glob, WebFetch, WebSearch, Agent, Skill"
 # `subagent` stays, and a delegated agent can write — the same as `Agent` in
 # Claude Code, and what rule 16 means by "delegate".
 # `kiro-cli agent validate` accepts unknown tags, so it cannot check this.
-KIRO_TOOLS = {"read": ["read", "grep", "glob", "web_fetch", "web_search", "subagent"],
+#
+# The lists and KIRO_PERMISSIONS are written the way Kiro's own upgrade leaves
+# them ("universal format", loaded by its 2.x and 3.x engines). Measured on
+# kiro-cli 2.29.1, 2026-10-23 and 2026-11-11: every launch of the CLI rewrites
+# a 2.x agent file in place — it appends this `permissions` block (what
+# `allowedTools: ["read"]` becomes), sorts an explicit `tools` list and adds
+# the `web` category tag next to `web_fetch`/`web_search` — and keeps a `.bak`.
+# The rewritten file no longer matched the hash we recorded, so it read as
+# "edited by hand" and `--refresh` left it alone: Kiro ran a 19-day-old catalog
+# (B-099). Written this way from the start, `kiro-cli agent upgrade --dry-run`
+# reports each file "already universal" and leaves it untouched.
+KIRO_TOOLS = {"read": ["glob", "grep", "read", "subagent", "web", "web_fetch", "web_search"],
               "full": ["*"]}
+KIRO_PERMISSIONS = {"rules": [{"capability": "fs_read", "effect": "allow"}]}
 # Antigravity needs `tools:` on EVERY agent, not only the read tier. Measured
 # against agy 1.3.3: with the field omitted a subagent gets a minimal default
 # (view_file, read_url_content, search_web, ...) — no grep, no write, no shell —
@@ -690,6 +702,8 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
             "tools": KIRO_TOOLS[tier],
             "allowedTools": ["read"],
             "resources": [f"skill://~/.kiro/skills/{s}/SKILL.md" for s in skill_names],
+            # Last, as Kiro's upgrade appends it: see KIRO_PERMISSIONS.
+            "permissions": KIRO_PERMISSIONS,
         }
         return tool.agents_dir / f"{name}.json", json.dumps(obj, indent=2, ensure_ascii=False)
     if tool.agent_style == "codex_toml":
@@ -1027,7 +1041,28 @@ def decide(kind: str, policy: str, interactive: bool, what: str) -> str:
                 return "skip"
     print(f"    · {what}: {why} — left alone "
           f"(--on-conflict overwrite replaces it)")
+    LEFT_ALONE.append(what)
     return "skip"
+
+
+# What a run did NOT update. Each one is said where it happens, in the middle
+# of a few hundred lines; said once more at the end, where it is read. Kiro
+# sat 19 days on an old catalog behind fifteen of those lines (B-099).
+LEFT_ALONE = []
+
+
+def report_left_alone():
+    if not LEFT_ALONE:
+        return
+    shown = ", ".join(LEFT_ALONE[:6]) + (f" and {len(LEFT_ALONE) - 6} more"
+                                         if len(LEFT_ALONE) > 6 else "")
+    print(f"\nNOT UPDATED: {len(LEFT_ALONE)} file(s) left alone because they are not as this "
+          f"installer wrote them — {shown}.\n  They keep their old content. "
+          f"`--on-conflict overwrite` replaces them; `--status` lists them.")
+
+
+import atexit  # noqa: E402
+atexit.register(report_left_alone)
 
 
 def copy_skill(skill: Skill, tool: Tool, name: str, dry_run: bool):

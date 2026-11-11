@@ -359,6 +359,16 @@ def check_kiro_contract(cat: Catalog):
     if documented and emitted and documented != emitted:
         errs.append(f"install.py emits Kiro tool sets {emitted} but USAGE.md documents "
                     f"{documented} — they must agree; an unknown tag is a Kiro config error")
+    # B-099: without the `permissions` block Kiro rewrites the file at its next
+    # launch, and --refresh then takes it for a hand edit and stops updating it.
+    rule = re.compile(r'"capability":\s*"fs_read",\s*"effect":\s*"allow"')
+    block = re.search(r"KIRO_PERMISSIONS\s*=\s*(\{.*\})", install)
+    if not block or not rule.search(block.group(1)):
+        errs.append("install.py: KIRO_PERMISSIONS must carry the fs_read allow rule Kiro's "
+                    "upgrade writes — without it every agent is rewritten at launch (B-099)")
+    if len(rule.findall(usage)) < 2:
+        errs.append("USAGE.md: both Kiro recipes must show the `permissions` block the "
+                    "installer emits (fs_read, allow)")
     return errs
 
 
