@@ -334,15 +334,15 @@ relevamiento, pero no estaban acá. Lo de este mes son cambios de producto
 **Qué recibe y qué puede hacer el agente llamado, host por host.** Es la
 pregunta que decide cómo escribir un encargo que sirva en todos. Claude Code,
 *medido* en las trazas del 2026-11-10; el resto, *documentado* en la doc de
-cada host leída ese día, sin probar (Kiro, *reportado*: su página redirige y
-solo leímos el resumen).
+cada host leída ese día, sin probar (la fila de Kiro, releída el 2026-11-11
+en su página de subagentes, ya con la CLI 3.x).
 
 | | Arranca con | Sus permisos | Quién puede llamarlo | Niveles | Qué vuelve |
 |---|---|---|---|---|---|
 | **Claude Code 2.1.322** | Contexto limpio y el encargo; un *fork* hereda la conversación entera | Los de su propio archivo (`tools:`) | Quien tenga la herramienta `Agent` | 3 | Un informe; se lanza en segundo plano y se lo puede retomar con un mensaje |
 | **opencode** | "Fresh context", en una sesión hija | "The child uses its own configured permissions" | Reglas `subagent` en los permisos del que llama | Sin regla general documentada | Sin documentar |
 | **Codex** | Sin documentar | **Hereda el sandbox del que llama**; el archivo del agente no puede cambiarlo | Por nombre, en lenguaje natural | 1 | Una respuesta consolidada cuando terminan todos |
-| **Kiro** | Su propia ventana de contexto | Los de la sesión que llama también se le aplican | `availableAgents` | Sin relevar | Sin relevar |
+| **Kiro (CLI 3.x)** | Su propia ventana; comparte con quien llama los archivos de steering, los servidores MCP, el workspace, los permisos y los hooks, no la conversación | Dos políticas por cada llamada: la de la sesión que llama y la suya, y gana la más estricta; si la sesión no tiene regla, pregunta al usuario aunque la del agente permita. Un agente propio solo tiene las herramientas de su `tools` | `subagent/<nombre>` en `tools`; con `*` o `@builtin` puede lanzar a cualquiera. Un nombre que no existe falla, no cae al agente por defecto | Sin documentar | "Findings" al agente principal, que los junta |
 | **Antigravity** | "Clean slate": no hereda el historial | Hereda la configuración de seguridad del que llama, y el principal decide sus herramientas | `subagent: true` en el agente | 10 | Un mensaje de resultado; queda en espera y despierta con otro mensaje |
 
 Tres cosas salen de la tabla:
