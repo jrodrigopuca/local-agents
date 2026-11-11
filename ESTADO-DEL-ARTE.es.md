@@ -670,6 +670,32 @@ corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
   mismo resultado: intentó editar, después escribir el archivo entero, y al
   segundo rechazo pegó el código en la respuesta. Esta vez no probó la shell.
 
+### ACP en los otros hosts (2026-11-11)
+
+*Medido* mirando la ayuda de cada CLI y abriendo una sesión sin mandar
+pedido; lo de los adaptadores, *reportado*.
+
+| Host | ACP | Cómo ofrece los agentes del catálogo |
+|---|---|---|
+| Kiro (kiro-cli 3.2.0) | `kiro-cli acp` | Como "modes" de la sesión; se cambia con `session/set_mode` |
+| opencode 2.1.3 | `opencode acp` | Como una opción de configuración de categoría `mode`; se cambia con `session/set_config_option` |
+| Claude Code 2.1.322 | Sin modo propio en su ayuda | Se reporta un adaptador de terceros; no está instalado ni probado |
+| Codex | Sin modo propio; trae un servidor con otro protocolo (`app-server`, experimental) | Se reporta un adaptador; sin probar |
+| Antigravity (agy 1.4.0) | Nada en su ayuda | Sin relevar |
+
+- **Dos de cinco, con el mismo cliente.** `acp.py` abre sesión como `ux-ui`
+  en Kiro y en opencode. Los dos listan los 15 agentes instalados, cada uno
+  por un método distinto; el cliente entiende los dos.
+- **En opencode no se mandó ningún pedido**: falta ver ahí los pedidos de
+  permiso. Su `initialize` avisa además que informa lo que pasa en las
+  sesiones hijas (`opencode/child-session-updates`), que es donde corren sus
+  subagentes.
+- **Claude Code queda afuera por ahora**, y es el único host donde hay
+  evidencia de conducta. El harness lo maneja por su propio formato
+  (`claude -p --output-format stream-json`), que también deja ver los
+  rechazos; un director tendría que hablar los dos idiomas o depender de un
+  adaptador ajeno.
+
 ### En Kiro, `ux-ui` no delegó y rodeó un rechazo (kiro-cli 3.2.0, 2026-11-11)
 
 *Medido*, dos muestras, modelo `auto` de Kiro (no dice cuál respondió), modo
