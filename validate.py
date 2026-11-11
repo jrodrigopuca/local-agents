@@ -359,26 +359,32 @@ def check_kiro_contract(cat: Catalog):
     if documented and emitted and documented != emitted:
         errs.append(f"install.py emits Kiro tool sets {emitted} but USAGE.md documents "
                     f"{documented} — they must agree; an unknown tag is a Kiro config error")
-    # B-099: without the `permissions` block Kiro rewrites the file at its next
-    # launch, and --refresh then takes it for a hand edit and stops updating it.
-    rule = re.compile(r'"capability":\s*"fs_read",\s*"effect":\s*"allow"')
-    block = re.search(r"KIRO_PERMISSIONS\s*=\s*(\{.*?\]\})", install, re.S)
-    if not block or not rule.search(block.group(1)):
-        errs.append("install.py: KIRO_PERMISSIONS must carry the fs_read allow rule — Kiro "
-                    "skips or rewrites an agent without a `permissions` block (B-099)")
-    if len(rule.findall(usage)) < 2:
-        errs.append("USAGE.md: both Kiro recipes must show the `permissions` block the "
-                    "installer emits (fs_read, allow)")
-    # A 2.x trust field next to `permissions` is what makes Kiro rewrite the file.
+    # B-099. Kiro upgrades the 2.x file itself and owns what it adds. The
+    # renderer writes neither of those fields — a hand-written `permissions`
+    # with no `allowedTools` lists fine and then fails to start ("Mode not
+    # found", measured on kiro-cli 3.2.0) — and it keeps `allowedTools`, the
+    # field that makes Kiro do the upgrade.
+    host = re.search(r"KIRO_HOST_KEYS\s*=\s*\(([^)]*)\)", install)
+    owned = re.findall(r'"(\w+)"', host.group(1)) if host else []
+    if sorted(owned) != ["kiroUpgrade", "permissions"]:
+        errs.append("install.py: KIRO_HOST_KEYS must name exactly `permissions` and "
+                    "`kiroUpgrade`, the fields Kiro adds to an agent on its own (B-099)")
     kiro_block = re.search(r'if tool\.agent_style == "kiro_json":(.*?)return tool\.agents_dir',
                            install, re.S)
-    if kiro_block and re.search(r'"(allowedTools|toolsSettings)"\s*:', kiro_block.group(1)):
-        errs.append("install.py: the Kiro renderer emits a 2.x trust field (`allowedTools` / "
-                    "`toolsSettings`) — Kiro rewrites such a file at launch and --refresh "
-                    "then stops updating it (B-099)")
-    if re.search(r'"allowedTools"\s*:', usage):
-        errs.append("USAGE.md: a Kiro recipe still shows `allowedTools`, which the installer "
-                    "no longer writes (B-099)")
+    body = kiro_block.group(1) if kiro_block else ""
+    for key in owned:
+        if re.search(rf'"{key}"\s*:', body):
+            errs.append(f"install.py: the Kiro renderer writes `{key}`, a field Kiro owns — "
+                        f"a hand-written one does not start in Kiro 3.x (B-099)")
+    if not re.search(r'"allowedTools"\s*:', body):
+        errs.append("install.py: the Kiro renderer must keep `allowedTools`: it is what makes "
+                    "Kiro upgrade the file to the form it can start (B-099)")
+    if len(re.findall(r'"allowedTools":\s*\["read"\]', usage)) < 2:
+        errs.append("USAGE.md: both Kiro recipes must show `\"allowedTools\": [\"read\"]`, "
+                    "as the installer writes it")
+    if re.search(r'"(permissions|kiroUpgrade)"\s*:', usage):
+        errs.append("USAGE.md: a Kiro recipe shows a field Kiro adds on its own; the "
+                    "installer does not write it (B-099)")
     return errs
 
 

@@ -407,24 +407,25 @@ CLAUDE_READ_TOOLS = "Read, Grep, Glob, WebFetch, WebSearch, Agent, Skill"
 # Claude Code, and what rule 16 means by "delegate".
 # `kiro-cli agent validate` accepts unknown tags, so it cannot check this.
 #
-# Kiro has two agent formats and rewrites the old one by itself (B-099). A
-# 2.x file — `allowedTools`, no `permissions` — is upgraded in place at every
-# launch of the CLI, with a `.bak` beside it. The rewritten file no longer
-# matched the hash we recorded, read as "edited by hand", and `--refresh` left
-# it alone: Kiro ran a 19-day-old catalog. Measured twice on 2026-11-11:
-#   - kiro-cli 2.29.1 appended `permissions` (fs_read) and sorted `tools`,
-#     adding the `web` tag; a file already like that it left alone.
-#   - kiro-cli 3.2.0, an hour later, rewrote THAT file too: it added a `skill`
-#     rule and a `kiroUpgrade` marker holding two hashes of its own.
-# Chasing each revision loses; the marker cannot be written from here. What
-# both versions leave untouched is a file with NO 2.x trust field at all:
-# `permissions` and no `allowedTools` ("v3-only" in `kiro-cli agent upgrade
-# --dry-run`). That is what the renderer writes. The price is paid only on the
-# 2.x engine, where reads are no longer pre-approved and ask once.
+# Kiro has two agent formats and upgrades the old one by itself (B-099). A
+# file with `allowedTools` is rewritten in place at every launch of the CLI:
+# it gains a `permissions` block and, since 3.x, a `kiroUpgrade` marker with
+# two hashes of Kiro's own. Measured on 2026-11-11, three ways of living with
+# that, two of them wrong:
+#   1. Writing the shape 2.29.1 left: 3.2.0 rewrote it again five minutes on.
+#   2. Writing `permissions` and no `allowedTools`, which `agent upgrade
+#      --dry-run` calls "v3-only" and leaves alone: `kiro-cli chat --agent`
+#      then fails with "Mode not found". The agents were unusable.
+#   3. Writing the 2.x file and letting Kiro upgrade it — the only file Kiro
+#      itself produces, and the only one seen to start. This is what we do.
+# So the host's rewrite is expected, and KIRO_HOST_KEYS are the fields it
+# owns: agent_hash() leaves them out, which keeps a file Kiro upgraded ours
+# to update instead of "edited by hand" (how Kiro once ran a 19-day-old
+# catalog). `tools` is already sorted and carries `web`, the way Kiro leaves
+# it, so the upgrade has nothing to change in a field we do compare.
 KIRO_TOOLS = {"read": ["glob", "grep", "read", "subagent", "web", "web_fetch", "web_search"],
               "full": ["*"]}
-KIRO_PERMISSIONS = {"rules": [{"capability": "fs_read", "effect": "allow"},
-                              {"capability": "skill", "effect": "allow"}]}
+KIRO_HOST_KEYS = ("permissions", "kiroUpgrade")
 # Antigravity needs `tools:` on EVERY agent, not only the read tier. Measured
 # against agy 1.3.3: with the field omitted a subagent gets a minimal default
 # (view_file, read_url_content, search_web, ...) — no grep, no write, no shell —
@@ -705,9 +706,9 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
             # and deleting, and there is no `edit` tool — an unknown tag is a
             # config error, so keep KIRO_TOOLS in sync with USAGE.md's recipe.
             "tools": KIRO_TOOLS[tier],
+            "allowedTools": ["read"],
             "resources": [f"skill://~/.kiro/skills/{s}/SKILL.md" for s in skill_names],
-            # No `allowedTools`: with it Kiro rewrites the file. See KIRO_PERMISSIONS.
-            "permissions": KIRO_PERMISSIONS,
+            # Nothing of KIRO_HOST_KEYS: Kiro adds those itself at its next launch.
         }
         return tool.agents_dir / f"{name}.json", json.dumps(obj, indent=2, ensure_ascii=False)
     if tool.agent_style == "codex_toml":
@@ -870,6 +871,30 @@ def file_hash(f: Path) -> str:
         return UNREADABLE
 
 
+def agent_text_hash(text: str, name: str) -> str:
+    """The hash of an agent file as WE wrote it. For a Kiro JSON agent the
+    fields the host adds on its own (KIRO_HOST_KEYS) are left out and the rest
+    is hashed in a canonical form: Kiro upgrading the file is not somebody
+    editing it. Any other file, or a JSON that does not parse, is hashed as
+    it is."""
+    if name.endswith(".json"):
+        try:
+            obj = json.loads(text)
+        except ValueError:
+            obj = None
+        if isinstance(obj, dict):
+            ours = {k: v for k, v in obj.items() if k not in KIRO_HOST_KEYS}
+            text = json.dumps(ours, sort_keys=True, ensure_ascii=False)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def agent_hash(f: Path) -> str:
+    try:
+        return agent_text_hash(f.read_text(encoding="utf-8"), f.name)
+    except (OSError, UnicodeDecodeError):
+        return UNREADABLE
+
+
 @dataclass
 class Run:
     """One install run on one host: the stamp as it was BEFORE the run (what we
@@ -955,7 +980,7 @@ def legacy_records(tool: Tool, commit: Optional[str]):
                 meta, desc, body = compose_agent(ag, inherited)
                 dest, text = render_agent(tool, name, body, desc, sorted(s.name for s in deps), meta)
                 if dest.exists():
-                    agents[dest.name] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+                    agents[dest.name] = agent_text_hash(text, dest.name)
     return skills, agents
 
 
@@ -1008,7 +1033,9 @@ def classify_agent(f: Path, agent_names: set, stamp: Optional[dict]) -> str:
         return OURS if f.stem in agent_names else FOREIGN
     if f.name not in recs:
         return FOREIGN
-    return OURS if recs[f.name] == file_hash(f) else EDITED
+    # file_hash too: a record written before agent_hash existed holds the raw
+    # hash, and a file nobody touched since must not turn "edited" overnight.
+    return OURS if recs[f.name] in (agent_hash(f), file_hash(f)) else EDITED
 
 
 _SAFE = {
@@ -1413,7 +1440,13 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
     print(f"    agent  → {dest}")
     if not dry_run:
         dest.parent.mkdir(parents=True, exist_ok=True)
-        dest.write_text(contents, encoding="utf-8")
+        # A host that upgrades our file (Kiro) keeps a backup each time it
+        # does. When what WE wrote is unchanged, leave the host's version in
+        # place: rewriting it would only make the host upgrade it again.
+        if not (dest.is_file() and not dest.is_symlink()
+                and agent_hash(dest) == agent_text_hash(contents, dest.name)
+                and file_hash(dest) != hashlib.sha256(contents.encode("utf-8")).hexdigest()):
+            dest.write_text(contents, encoding="utf-8")
         run.agents_written.add(dest.name)
 
     # Tools with no named-agent concept only find the body through the roster,
@@ -1637,11 +1670,11 @@ def owned_records(tool: Tool, catalog: Path) -> tuple:
             if f.is_symlink():
                 continue
             if f.name in run.agents_written:
-                agents[f.name] = file_hash(f)
+                agents[f.name] = agent_hash(f)
             elif old_agents is not None and f.name in old_agents:
                 agents[f.name] = old_agents[f.name]
             elif old_agents is None and old and f.stem in names:
-                agents[f.name] = file_hash(f)   # a pre-B-058 stamp: ours, once
+                agents[f.name] = agent_hash(f)   # a pre-B-058 stamp: ours, once
     return skills, agents
 
 

@@ -145,7 +145,7 @@ Create `~/.kiro/agents/architect.json` (filename = agent name):
     "file:///Users/you/Developer/local-agents/generalist/AGENTS.md"
   ],
   "tools": ["*"],
-  "permissions": { "rules": [{ "capability": "fs_read", "effect": "allow" }, { "capability": "skill", "effect": "allow" }] }
+  "allowedTools": ["read"]
 }
 ```
 
@@ -154,20 +154,21 @@ the installer emits instead:
 
 ```json
   "tools": ["glob", "grep", "read", "subagent", "web", "web_fetch", "web_search"],
-  "permissions": { "rules": [{ "capability": "fs_read", "effect": "allow" }, { "capability": "skill", "effect": "allow" }] }
+  "allowedTools": ["read"]
 ```
 
-There is no `allowedTools` on purpose. Kiro has two agent formats and upgrades
-the older one by itself: a file that carries a 2.x trust field
-(`allowedTools`, `toolsSettings`) is rewritten in place the next time
-`kiro-cli` starts, with a `.bak` beside it, and each Kiro version rewrites it
-a little differently (3.2.0 adds a `kiroUpgrade` marker with hashes of its
-own). A file with `permissions` and no 2.x field is what every version leaves
-alone, so that is what the installer writes — otherwise `--refresh` takes
-Kiro's rewrite for a hand edit and stops updating the agent. Check with
-`kiro-cli agent upgrade ~/.kiro/agents --dry-run`: it should report
-`0 would upgrade`. On the 2.x engine the cost is one prompt the first time an
-agent reads a file.
+Kiro then finishes the file itself. It has two agent formats and upgrades the
+older one on its own: the next time `kiro-cli` starts, a file with
+`allowedTools` is rewritten in place — it gains a `permissions` block and,
+from 3.x, a `kiroUpgrade` marker — with a `.bak` beside it. That is expected,
+and it is the only form seen to work: a hand-written `permissions` with no
+`allowedTools` is listed by `kiro-cli agent list` and then fails at
+`kiro-cli chat --agent` with "Mode not found" (measured on 3.2.0). So do not
+write those two fields yourself, and do not undo Kiro's rewrite. The installer
+ignores them when it compares a file with what it wrote, so an upgraded agent
+still counts as its own and `--refresh` keeps updating it; it also leaves the
+file alone when nothing of ours changed, so Kiro has nothing to redo. The
+`.bak` files are Kiro's and can be deleted.
 
 Measured on kiro-cli 2.29.1: Kiro enforces `tools` (an agent with `["read"]`
 could not write), `"*"` grants all 14 built-in tools, and two of them are not

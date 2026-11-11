@@ -476,48 +476,65 @@ class InstallTest(unittest.TestCase):
         self.assertIn("new in the catalog", (self.skills / SKILL / "SKILL.md").read_text())
 
 
-    def test_kiro_agents_carry_no_field_that_makes_kiro_rewrite_them(self):
-        """B-099. kiro-cli rewrites at launch any agent file with a 2.x trust
-        field, and each version rewrites it differently (2.29.1 appended
-        `permissions`; 3.2.0 also a `kiroUpgrade` marker with its own hashes).
-        The rewritten file read as edited by hand and --refresh skipped it for
-        19 days. What both versions leave alone is `permissions` with no
-        `allowedTools`: this pins that shape."""
+    def kiro_upgrade(self, name):
+        """What kiro-cli does to an agent file at its next launch (measured on
+        3.2.0): a `permissions` block and a `kiroUpgrade` marker appended, the
+        rest untouched, written with its own formatting."""
+        target = self.home / ".kiro" / "agents" / f"{name}.json"
+        agent = json.loads(target.read_text())
+        agent["permissions"] = {"rules": [{"capability": "fs_read", "effect": "allow"},
+                                          {"capability": "skill", "effect": "allow"}]}
+        agent["kiroUpgrade"] = {"revision": 2, "fingerprint": "sha256:f", "source": "sha256:s"}
+        target.write_text(json.dumps(agent, indent=4, ensure_ascii=False) + "\n")
+        return target
+
+    def test_kiro_agents_are_the_file_kiro_knows_how_to_upgrade(self):
+        """B-099. Three shapes were tried on 2026-11-11. The one that starts in
+        Kiro 3.x is the 2.x file, upgraded by Kiro itself: `allowedTools`, and
+        nothing of what Kiro adds. A hand-written `permissions` without
+        `allowedTools` lists fine and fails at `chat --agent`."""
         run = self.install("--all", "--tool", "kiro")
         self.assertEqual(run.returncode, 0, run.stderr[-500:])
         agents = self.home / ".kiro" / "agents"
         full = json.loads((agents / "senior-dev.json").read_text())
         read = json.loads((agents / "eng-manager.json").read_text())
-        rules = {"rules": [{"capability": "fs_read", "effect": "allow"},
-                           {"capability": "skill", "effect": "allow"}]}
         for agent in (full, read):
-            self.assertEqual(agent["permissions"], rules)
-            self.assertFalse({"allowedTools", "toolsSettings", "kiroUpgrade"} & set(agent))
+            self.assertEqual(agent["allowedTools"], ["read"])
+            self.assertFalse({"permissions", "kiroUpgrade", "toolsSettings"} & set(agent))
             self.assertTrue(agent["resources"])
         self.assertEqual(full["tools"], ["*"])
         self.assertEqual(read["tools"], sorted(read["tools"]))
         self.assertTrue({"web", "web_fetch", "web_search", "subagent"} <= set(read["tools"]))
         self.assertFalse({"write", "shell", "code"} & set(read["tools"]))
 
-    def test_a_kiro_file_in_the_old_shape_is_ours_to_update_after_this_change(self):
-        """What a machine holds today: agents Kiro already rewrote. A refresh
-        writes the current shape over them when told to overwrite, and from
-        then on --status reports nothing edited."""
+    def test_an_agent_kiro_upgraded_is_still_ours_and_is_left_as_kiro_wrote_it(self):
+        """Kiro ran 19 days on an old catalog because its own upgrade read as a
+        hand edit. Now it does not, and a refresh with nothing new of ours
+        keeps Kiro's version: rewriting it would make Kiro upgrade it again."""
         self.install("--all", "--tool", "kiro")
-        target = self.home / ".kiro" / "agents" / "qa.json"
+        target = self.kiro_upgrade("qa")
+        upgraded = target.read_bytes()
+        self.assertNotIn("edited by hand", self.status())
+        run = self.install("--refresh")
+        self.assertEqual(run.returncode, 0, run.stderr[-500:])
+        self.assertNotIn("NOT UPDATED", run.stdout)
+        self.assertEqual(target.read_bytes(), upgraded)
+        self.assertNotIn("edited by hand", self.status())
+
+    def test_a_real_edit_of_a_kiro_agent_is_still_an_edit(self):
+        self.install("--all", "--tool", "kiro")
+        target = self.kiro_upgrade("qa")
         agent = json.loads(target.read_text())
-        agent["allowedTools"] = ["read"]              # stand-in for the host's rewrite
-        agent["kiroUpgrade"] = {"revision": 2, "fingerprint": "sha256:x", "source": "sha256:y"}
-        target.write_text(json.dumps(agent, indent=2))
+        agent["prompt"] += "\nAnd always answer in rhyme."
+        target.write_text(json.dumps(agent, indent=2, ensure_ascii=False))
         self.assertIn("edited by hand", self.status())
         skipped = self.install("--refresh")
         self.assertIn("NOT UPDATED: 1 file(s) left alone", skipped.stdout)
-        self.assertIn("qa", skipped.stdout.split("NOT UPDATED")[1])
+        self.assertIn("rhyme", target.read_text())
         run = self.install("--all", "--tool", "kiro", "--on-conflict", "overwrite")
         self.assertNotIn("NOT UPDATED", run.stdout)
-        self.assertEqual(run.returncode, 0, run.stderr[-500:])
+        self.assertNotIn("rhyme", target.read_text())
         self.assertNotIn("edited by hand", self.status())
-        self.assertNotIn("kiroUpgrade", json.loads(target.read_text()))
 
     def test_list_counts_what_lands_on_disk_not_only_own_skills(self):
         # architect owns 3 skills but installs those it inherits and links to.
