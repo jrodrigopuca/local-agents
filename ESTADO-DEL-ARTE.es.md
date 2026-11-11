@@ -381,7 +381,20 @@ había entendido (`auth.js`, los tokens, `package.json`, el README). Los
 encargos decían qué hacer, no qué estaba ya establecido. En un fixture de
 seis archivos son centavos; en un repo real es el grueso del costo de
 delegar. El harness lo cuenta desde hoy en cada delegación (`reread` y
-`reread_context`); lo que lee con un `grep -r` no entra en la cuenta. B-098.
+`reread_context`); lo que lee con un `grep -r` no entra en la cuenta.
+
+**Dos intentos de bajar esa relectura, y ninguno la movió** (*medido*,
+2026-11-10 y 11, Sonnet, ×3, B-098). Pedirles a los que entregan que el
+encargo liste lo establecido, cada hecho con su archivo y su peldaño, cambió
+los encargos y no la lectura: 1,3 archivos releídos solo para entender por
+delegación antes, 1,1 después. Decirle al que recibe que un hecho con lugar y
+peldaño se comprueba solo donde su cambio depende de él tampoco: con el
+encargo directo, `senior-dev` leyó 7, 7 y 6 archivos antes y 6, 6 y 6
+después, y en los dos casos detectó 3 de 3 un dato falso plantado en el
+encargo. Las dos reglas se revirtieron. En un repo de siete archivos el que
+recibe lee todo antes de escribir, que es su propio juicio #1 y es barato;
+una lista de hechos no compite con eso. Queda sin medir el caso que
+importa: un repo donde leer todo no es posible.
 
 **Dónde nos toca.** Este catálogo es un roster por rol, que es justo la
 forma de partir que la guía desaconseja, y el 2026-11-10 hicimos que `ux-ui`
