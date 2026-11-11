@@ -415,6 +415,54 @@ Lo que la guía sí nos discute: la cadena fija de `lh-orchestration`
 escribiendo los tests de lo que construyó `senior-dev` es el pase que ellos
 midieron mal. No lo cambiamos sin medir (regla 17): B-095.
 
+### Orquestar sin depender de que el agente obedezca (2026-11-11)
+
+Relevado después de ver a `ux-ui` escribir el código en Kiro con el mismo
+texto que en Claude Code lo hacía delegar (sección 4). La pregunta: qué
+mecanismos hay para que un límite de rol o un pase entre agentes se cumpla
+sin apoyarse en la prosa del agente, y cuáles sirven en más de un host.
+Salvo aclaración, *reportado*: resúmenes de búsqueda y notas de terceros.
+
+**La idea que se repite en las fuentes.** El código es dueño del flujo y el
+modelo del criterio; el texto orienta la conducta y los permisos fijan la
+capacidad. Un hook "es código: corre cada vez, le parezca relevante al modelo
+o no", mientras que una instrucción escrita pierde peso cuando el contexto se
+llena. Y un patrón concreto para nuestro problema: el que coordina tiene
+herramientas para delegar y ninguna para editar, el que ejecuta tiene para
+editar y ninguna para delegar; así no hay ni "lo hago yo" ni bucles de
+delegación.
+
+**Los mecanismos, del más débil al más fuerte:**
+
+| Mecanismo | Qué garantiza | Dónde existe | Para nosotros |
+|---|---|---|---|
+| Prosa en el agente | Nada; depende del modelo | Todos | Es lo que tenemos. 3/3 en Claude Code con Sonnet, 0 de 2 en Kiro con `auto` |
+| Permisos declarados | La herramienta o la ruta no está, o se niega | Todos, cada uno con su sintaxis: allowlist y reglas en Claude Code, `permission` por ruta en opencode, `permissions.rules` con `deny` y globs en Kiro 3.x, sandbox en Codex (por sesión, no por agente), `tools:` en Antigravity | La regla 16 ya lo pide. Hoy solo distingue leer de todo; no hay un "escribe, pero solo sus archivos" |
+| Hooks antes de la herramienta | Código que aprueba o niega cada llamada | Claude Code, Codex (estable), Kiro 3.x (si el hook falla, niega), Antigravity CLI; en opencode por plugin, y se reporta que no corre en subagentes | Ya instalamos dos, solo en Claude Code y opcionales |
+| Flujo en código dentro del host | El orden de los pasos, no lo que hace cada agente | Workflows de Claude Code (scripts, en vista previa, caros en tokens), specs y grafos de tareas de Kiro (se fijan de entrada), lotes de Codex | Cada uno es de un solo host: no es portable |
+| Orquestador fuera del host | Quién corre, con qué proveedor y en qué orden | [CLI Agent Orchestrator](https://awslabs.github.io/cli-agent-orchestrator/docs/intro) de awslabs: un supervisor y trabajadores, cada uno un CLI real en su terminal de tmux; diez proveedores, entre ellos Claude Code, Kiro, Codex, opencode y Antigravity; tres modos (pase sincrónico, asignación asincrónica, mensaje directo); perfiles en markdown que nombran su proveedor (*documentado*) | Es la única opción que cruza proveedores de verdad. Sin probar: pide tmux y un servidor, y cada trabajador es una sesión entera |
+| Protocolo entre cliente y agente | Una forma común de abrir sesiones, mandar pedidos y recibir pedidos de permiso | ACP, de Zed y JetBrains, con decenas de agentes; Kiro 3.x lo usa por dentro (*medido*: sus logs dicen `ACP session/new`) | No orquesta; le serviría al harness para manejar otros hosts como hoy maneja Claude Code (B-071) |
+
+**Qué sale de ahí para el catálogo:**
+
+- **Un límite de rol es un permiso, no una frase.** "`ux-ui` no escribe código
+  del producto" se puede decir como capacidad: escribe archivos de diseño
+  (spec, mockup, icono) y nada más. Por tipo de archivo sirve en cualquier
+  proyecto, cosa que una ruta no. Es una tercera forma de acceso entre `read`
+  y `full`. B-101.
+- **El pase lo decide el que conversa, no el que no puede.** Si `ux-ui` no
+  tiene con qué escribir el componente, no hay nada que rodear: el host lo
+  niega y el agente avisa, que es lo que ya hace bien cuando falta una
+  herramienta. El pase a `senior-dev` deja de depender de que el agente
+  recuerde una regla.
+- **Orquestar entre proveedores no se resuelve dentro de un agente.** Un
+  `eng-manager` que rutea vive en un host y hereda sus reglas; para mezclar
+  Claude Code, Kiro y Codex en una misma tarea hace falta algo afuera. Hay
+  uno hecho; conviene probarlo antes de pensar en uno propio. B-102.
+- **Lo que no conviene:** escribir el flujo en código para cada host. Son
+  cinco formatos, uno en vista previa, y el catálogo ya midió que una cadena
+  fija pasa por pasos que la tarea no necesita.
+
 ### El balance
 
 **Donde este catálogo va adelante:**
@@ -1000,6 +1048,16 @@ Cómo se midió cada cosa, y cómo repetirlo, está en los comentarios de
     por otro, tres de los cinco hosts le aplican los permisos del que llama.
     Un agente de solo lectura que otro agente invoca no tiene garantía hasta
     que se mida.
+16. **Lo medido en un host con un modelo no se traslada solo.** Dos reglas
+    que en Claude Code con Sonnet daban 3/3 y 6/6 fallaron en Kiro las dos
+    veces que se probaron. Un escenario verde dice "este texto, en este host,
+    con este modelo"; para otro host es una hipótesis, igual que su
+    documentación (consideración 2).
+17. **Lo que tiene que cumplirse en todos los hosts no puede ser prosa.** La
+    prosa es el único mecanismo portable y el único que no garantiza nada. Un
+    límite que importa se expresa donde el host lo hace cumplir (permisos,
+    después hooks), aunque haya que escribirlo cinco veces; la frase queda
+    para explicarle al agente por qué, no para sostener el límite.
 
 ---
 
