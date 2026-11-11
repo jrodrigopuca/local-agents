@@ -64,7 +64,6 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 | B-032 | P3 | pendiente | El chequeo `skill` de la suite de humo en opencode pasa viendo una copia GLOBAL de la skill, no la que escribió la instalación del proyecto | opencode elige una copia por nombre (a veces la global), así que ese PASS no prueba lo que el chequeo dice probar | El chequeo verifica la copia del proyecto (o se aísla de las globales) y lo dice en su detalle |
 | B-028 | P3 | en espera | Publicar las skills como plugin de Agent Plugins | La 1.0 no porta agentes y no define dónde se publica; Claude Code no la soporta | La especificación suma agentes o un registro común: entonces se reevalúa |
 | B-029 | P3 | en espera | Modo opcional con enlaces simbólicos para las skills | Los cuatro hosts siguen los enlaces, pero el destino no puede ser el catálogo (las skills se instalan transformadas) y `--refresh` ya cubre el problema | Aparece un caso que `--refresh` no resuelve |
-| B-044 | P1 | en curso | Harness: tope de costo por corrida, por muestra y por ventana de cuota | B-038, B-041 y B-045 multiplican el gasto; hasta (a) nada cortaba una corrida que se disparaba ni miraba la cuota de la suscripción | (a) hecha en `harness:4d8f192`. De (b), hecha el 2026-11-10 la estimación: es la última medida de cada escenario con la misma huella, modelo, juez y rama, y `--dry-run` dice cuánto está medido y cuánto va a tarifa plana (routing ×3 estimaba USD 10,80 y costó 5,38; ahora estima 5,38). También de (b), hechos el 2026-11-10: la nota de la estimación dice qué modelo respondió y de cuándo es su cifra más vieja, una corrida completa a más de 25 % de lo estimado lo avisa y cada muestra guarda sus tokens (los precios y los alias cambian); y `--resume`, que completa una corrida `capped` pagando solo las muestras que faltan, las fusiona en la misma carpeta y se niega si cambió la instalación o un escenario. Y `--quota` (una llamada mínima paga lee las dos ventanas, pronostica dónde las dejaría la corrida con lo que un dólar las movió en corridas anteriores, y con `--max-cost-usd` no arranca si alguna pasaría del 100 %) y la lista de precios publicada, que se lee gratis antes de cada corrida, se guarda en `run.json` y se compara con la anterior (no hay endpoint de precios). `--quota` probado contra el host el 2026-11-10 (la lectura costó USD 0,002: ventana de 5 h al 86 %, semanal al 30 %). Medido también el 2026-11-10 el corte con delegación: `--max-budget-usd` cuenta lo que gasta el agente llamado y corta mientras trabaja, con el mismo `error_max_budget_usd`, pasándose ~9 % del tope y dejando en disco lo que el llamado ya escribió (ESTADO-DEL-ARTE §4; USD 0,96 en cinco muestras, `runs-experiments/20261110-2313*` a `-2316*`); de paso, una muestra cortada no registraba a quién había delegado. Falta de (b): probar `--resume` contra una corrida cortada real (el intento de cortar una a propósito no cortó: `20261110-205430` costó USD 0,43 con tope 0,45, la tarifa plana acertó), y medir el formato real de un corte por `--max-budget-usd` con delegación |
 | B-039 | P1 | en curso | Harness: calibrar el juez contra etiquetas humanas | Ningún veredicto del juez se comparó nunca con un humano; toda la evidencia del catálogo descansa en él (ESTADO-DEL-ARTE §3 y §5.7) | Primera etapa hecha (`harness:0b646e3` a `harness:4599337`): `graded` y hash del criterio por muestra, 80 etiquetas, tres jueces medidos, 5 criterios corregidos, Sonnet juez por defecto; cifras en ESTADO-DEL-ARTE §4. Falta: ≥ 20 FAIL etiquetados (hay 10) y TPR y TNR sobre una reserva que tenga FAIL (hoy no tiene ninguno); TNR ≥ 0,90 ahí o un ítem abierto para corregirlo |
 | B-038 | P1 | pendiente | Harness: rama sin agente para medir cuánto aporta cada persona (Δ) | Un escenario que pasa igual sin agente mide al modelo base, no al catálogo (ESTADO-DEL-ARTE §5.8); `claude plugin eval` y skill-creator reportan Δ, nosotros no | La rama SIN corre sin agentes ni skills en el workspace, queda como `branch: without` y nunca es línea base; `viz.py` muestra CON, SIN y Δ; cada Δ = 0 confirmado en N/3 quedó reformulado o con `protects:` y su motivo |
 | B-040 | P2 | pendiente | Harness: veredicto INDETERMINADO del juez | Hoy un caso ambiguo se fuerza a PASS o FAIL; superpowers y Anthropic le dan al juez la opción "no se puede saber" | El juez puede responder INDETERMINADO, que nunca cuenta como PASS y con `--repeat` deja el escenario INDETERMINADO; `viz.py` lo muestra aparte; una respuesta ambigua fija, vuelta a juzgar, lo produce 3/3; o el ítem se descarta si B-039 no encontró ambiguas |
@@ -120,9 +119,9 @@ en cualquier orden.
 
 **Fase 1: el tope de costo.**
 
-5. **B-044.** (a) hecha: el tope, la compuerta y el freno por cuota protegen
-   las corridas que siguen. (b) queda pendiente: `--resume`, la estimación
-   medida y `--quota`. **B-060** pone el mismo tope en `project.py`.
+5. **B-044.** Hecho (2026-11-10): el tope, la compuerta y el freno por cuota
+   protegen las corridas, y la estimación medida, `--resume` y `--quota`
+   quedaron con (b). **B-060** pone el mismo tope en `project.py`.
 
 **Fase 2: medir al instrumento.**
 
@@ -166,75 +165,6 @@ próximo ítem; correr `git log` en los dos repos para ver qué se cerró
 (los cierres citan commits). Los números de línea citados en los detalles
 (`run.py:885`, `viz.py:292`…) son del 2026-10-12: se vuelven a ubicar antes de
 editar.
-
-### B-044: tope de costo por corrida
-
-**Qué se busca.** Que ninguna corrida pueda gastar más de lo autorizado. El
-tope es la contraparte mecánica de la regla de trabajo "ninguna corrida sin
-preguntar": la pregunta fija el monto y el flag lo hace cumplir.
-
-**Avance (2026-10-14).** El diseño creció con la discusión: además del tope
-por corrida, un tope por muestra y un freno por la cuota de la suscripción,
-que cada respuesta del CLI reporta (`rate_limit_event`, ventanas de 5 h y
-semanal). Una suite completa consume 15 a 19 puntos de la ventana de 5 h y ~1
-de la semanal; la corrida `20261012-131428` terminó al 97 %. Se partió en dos
-entregas:
-
-- **(a), hecha en `harness:4d8f192`.** `--max-cost-usd` obligatorio; no
-  arranca si la estimación no entra; compuerta antes de cada lanzamiento por
-  tope o por la ventana de 5 h al 90 %; las muestras en vuelo terminan con su
-  juez; `--max-budget-usd` por muestra (1 / 12 USD por tipo, sobre 0,40 y 6,86
-  medidos), y un corte es ERROR "budget" con su costo contado; `capped` en
-  `run.json`, código 2, nunca línea base; `--applicability` solo usa los
-  escenarios con todas sus muestras. La estimación pasó a 0,15 / 3,00 por
-  escenario (12,45 contra 11,83 reales). 11 tests nuevos y 7 mutaciones
-  detectadas.
-- **(b), en curso.** Hecha el 2026-11-10 la estimación medida por escenario,
-  huella, modelo, juez y rama (`measured_costs`; un modelo sin historia se
-  marca "not calibrated"; una muestra en ERROR no entra en el promedio),
-  con 7 tests; la antigüedad y el modelo de cada cifra, el aviso de desvío y
-  los tokens por muestra, con 5 tests; y `--resume` (fusiona en la misma
-  carpeta, la corrida deja de estar `capped` al completarse, se niega si
-  cambió la instalación, un agente, una skill, un escenario o los permisos),
-  con 13 tests y 4 mutaciones detectadas; `--quota` (la primera lectura de
-  las ventanas queda en `budget.quota_first`, la tasa es la mediana de las
-  últimas cinco corridas del modelo y hasta tenerlas va una tarifa plana
-  declarada), con 10 tests y 4 mutaciones detectadas; y la lista de precios
-  publicada, leída antes de cada corrida y comparada con la anterior, con 7
-  tests. `--quota` probado contra el host el 2026-11-10 (USD 0,002 la
-  lectura). Pendiente: probar `--resume` contra una corrida cortada real,
-  que solo aparece cuando el costo supera la estimación o la ventana de 5 h
-  llega al 90 % (no se puede forzar con un tope bajo: la corrida no arranca
-  si la estimación no entra); y medir con una
-  muestra con delegación (~USD 3, con OK) si `--max-budget-usd` cuenta los
-  subagentes y cómo llega el corte.
-
-Los criterios de abajo son los originales y los cubre (a).
-
-**Criterios de aceptación.**
-- Las muestras dejan de encolarse de una vez (`pool.map` sobre todas las
-  tareas) y se lanzan detrás de una compuerta de presupuesto. Con el tope
-  alcanzado no sale ninguna muestra nueva; las que están en vuelo terminan,
-  así que el exceso máximo es el de `--jobs` muestras.
-- Los jueces de las muestras ya lanzadas siempre corren: una muestra sin
-  veredicto es plata tirada.
-- `run.json` registra `capped: true`, el tope, el costo real y el exceso. No se
-  usa la palabra `partial`, que en `viz.py` ya tiene dos significados.
-- `viz.py` nunca toma una corrida `capped` como línea base, aunque cubra
-  todos los IDs. Con `--repeat` las pasadas son de suite entera, así que una
-  corrida cortada en la segunda pasada parecería completa.
-- La estimación por muestra deja de ser `COST_PER_CALL` fijo para los
-  escenarios con delegación, que cuestan unos USD 3.
-- `--dry-run` muestra el tope junto a la estimación.
-- Su test va a `tests/` del harness, que existe desde B-052. Usa un ejecutor falso
-  de costo fijo y no llama al modelo.
-
-**Costo.** Cero: no necesita corridas reales.
-**Depende de.** Nada. (El paso 0 de B-047 decidió construirlo en `run.py`.)
-Como referencia de diseño, el `--max-cost-usd` de `claude plugin eval` hace lo
-mismo: mira el gasto antes de lanzar cada corrida, el exceso queda acotado a
-las que están en vuelo y el JSON sale con `partial: true` y
-`partialReason: "cost_ceiling"`.
 
 ### B-039: calibrar el juez
 
@@ -1833,3 +1763,4 @@ mezclar hipótesis).
 | B-091 | hecho | `ux-ui` y `security` no escriben código del producto: lo pasan a `senior-dev` con un brief que se sostiene solo (decisión del usuario del 2026-11-10; el texto dice a quién VA el trabajo, por el chequeo `agent-invocation`). `ux-ui` lee el código y escribe archivos de diseño aparte (spec, mockup, icono); `security` prescribe el arreglo exacto, lo pasa y verifica (`lh-remediation` #4, antes "you prescribe, they implement" solo en la skill). Tres skills nuevas en `ux-ui`: `lh-design-critique` (revisar y evaluar diseños, auditar estilos), `lh-visual-direction` (la dirección sale del mundo del producto y se escribe antes del mockup, contra la interfaz genérica) y `lh-icons` (el estilo del set se lee de la marca; gráficos chicos). Fuera Tailwind y React del cuerpo y las skills de `ux-ui` (reglas 5 y 15) y "GDE and Microsoft MVP" de `architect`. Revisado por architect y qa en dos rondas: tres escenarios tenían la respuesta en el ejemplo de la skill que medían y se separaron. Sonnet de agente y de juez, ×3. Base `20261110-191413` con el texto anterior → después `20261110-194100` y `20261110-195807`: componente, arreglo de estilos y arreglo pedido a security 0/3 → 3/3 (en la base editaban ellos; después, 6 de 9 delegaron en senior-dev y 3 dejaron el brief); dirección visual 0/3 → 3/3; estilo de iconos 2/3 → 3/3; `security-fixes-the-class` 2/3 → 3/3 con criterio reescrito ese día; dos guardianes de security 3/3 → 3/3. Disparos de las tres skills (`20261110-194811`): 9/9 en 3/3. Guardianes (`20261110-200101`): 7 de 8 en 3/3 y `architect-teaches-one-lesson-and-checks` 2/3, su tasa anterior. En el harness, `forbid_files` y `forbid_own_edits`: las aserciones de disco marcaban roja a la muestra que delegó, porque el disco no sabe quién escribió. Sin medir: si los mockups se ven distintos (el juez lee la respuesta), una escritura por la shell, y security proponiendo ir de soporte por iniciativa propia. Costo USD 23,54 | `fc357b7`, `harness:d3cd49b` |
 | B-043 | hecho | Routing con pares de vecinos. Ocho pares, dos pedidos del mismo tema a cada lado de una frontera, escritos desde los cuerpos y antes de medir (16 escenarios `route-pair-*`, después 17): stark/devops, visionary/product-manager, gamification/ux-ui, stark/senior-dev, architect/senior-dev, dba/data-ml, eng-manager/product-manager y qa/security. Sonnet de agente y de juez, ×3. Base (`20261110-201313`, `20261110-201412`, USD 5,12): los 7 viejos y seis fronteras en 3/3; el incidente con rollback a mano iba a stark (`route-pair-incident-with-rollback` 1/3) y ordenar el roadmap iba a visionary (`route-pair-roadmap-order` 1/3). Una cláusula en tres descripciones: devops toma el primer movimiento de un incidente cuando un rollback, un flag o un runbook lo cubre; las crisis de stark son las que no tienen runbook; visionary es foco como qué cortar y qué debería ser el producto, y el orden de lo que queda es del product manager. Después (`20261110-201702`, `20261110-201735`, USD 5,38): los 24 en 3/3. `route-pair-late-what-to-drop` esperaba product-manager y fue a visionary 3/3: el error era del escenario, porque `lh-focus` ya dice que el recorte por fecha es de visionary; por decisión del usuario se respeta lo escrito (cortar es de visionary, ordenar de product-manager), el escenario espera visionary y el lado de product-manager es `route-pair-late-which-problem-first`, sin base propia. Los pares no pasaron por revisión de qa | `0c4ad33`, `harness:8a5106f`, `harness:3ba7afa` |
 | B-094 | hecho | El harness registra la delegación en toda muestra. `delegation_tree` corre siempre, no solo en los escenarios con `delegate: true`, y por cada llamada guarda el agente, si fue un agente con nombre o un fork (que hereda la conversación del que llama y no es el agente del catálogo; activado por defecto en `claude -p` desde Claude Code 2.1.302), el nivel y las skills que cargó el llamado; la corrida cierra con una línea que lo resume, y la huella guarda la profundidad máxima y el ajuste de forks que vio el CLI (no se fijan: cambiarlos movería lo ya medido). `--resume` deja de negarse por una clave de huella que la corrida vieja no tenía. Releídas con el código nuevo las corridas `20261110-194100` y `20261110-195807`: seis muestras principales delegaron, todas en `senior-dev` por nombre, a nivel 1, sin forks y sin que el llamado cargara skills; una de las seis, `security-fixes-the-class`, no se había notado. 9 tests sin modelo y 3 de 4 mutaciones detectadas (la cuarta es equivalente) | `harness:7c329d7` |
+| B-044 | hecho | Tope de costo del harness, por corrida, por muestra y por ventana de cuota. (a) `--max-cost-usd` obligatorio, compuerta antes de cada muestra por tope o por la ventana de 5 h al 90 %, `--max-budget-usd` por muestra, `capped` en `run.json` y nunca línea base. (b), del 2026-11-10: la estimación es el último costo medido de cada escenario con la misma huella, modelo, juez y rama, y dice cuánto está medido, qué modelo respondió y de cuándo es su cifra más vieja (routing ×3 estimaba USD 10,80 y costó 5,38; ahora estima 5,38); una corrida completa a más de 25 % de lo estimado lo avisa y cada muestra guarda sus tokens, porque los precios y los alias cambian; la lista de precios publicada se lee gratis antes de cada corrida, se guarda en `run.json` y se compara con la anterior (no hay endpoint de precios: la API de modelos no los devuelve); `--resume` completa una corrida `capped` pagando solo las muestras que faltan, las fusiona en la misma carpeta y se niega si cambió la instalación, un agente, una skill, un escenario o los permisos; `--quota` lee las dos ventanas con una llamada mínima (USD 0,002, probado contra el host: 86 % y 30 %), pronostica dónde las dejaría la corrida con lo que un dólar las movió en corridas anteriores y, con `--max-cost-usd`, no arranca si alguna pasaría del 100 %; y el corte con delegación está medido (`runs-experiments/20261110-2313*` a `-2316*`, USD 0,96): `--max-budget-usd` cuenta lo que gasta el agente llamado y corta mientras trabaja, con el mismo `error_max_budget_usd`, ~9 % por encima del tope y sin deshacer lo que el llamado ya escribió. Sin probar contra el host: `--resume` sobre una corrida cortada real. No se puede forzar con un tope bajo, porque la corrida no arranca si la estimación no entra; una corrida solo se corta cuando el costo supera lo estimado o la ventana llega al 90 %. Tiene 13 tests, uno de punta a punta con ejecutor falso, y el aviso de corrida cortada imprime el comando para retomarla: se prueba la primera vez que una se corte sola | `harness:4d8f192`, `harness:c08a648`, `harness:6e7113f`, `harness:fe9a50b`, `harness:0e0790e`, `harness:0f1067d` |

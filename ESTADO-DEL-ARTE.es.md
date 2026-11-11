@@ -420,7 +420,7 @@ midieron mal. No lo cambiamos sin medir (regla 17): B-095.
 | Evals de disparo con casi-aciertos | skill-creator | B-041 hecho; B-043 (routing) pendiente |
 | Usar la herramienta oficial antes que construir | `claude plugin eval` | B-047, descartado: exige un plugin (§4) |
 | Actualizar con un comando, sin gestionar el clon | `npx skills` | B-050, B-051 |
-| Tope de costo por corrida | `claude plugin eval` | B-044 |
+| Tope de costo por corrida | `claude plugin eval` | B-044, hecho |
 | Humo con CLI reales en CI | wshobson | B-046 hecho para claude y opencode; kiro pide login |
 | Escenarios bajo presión con excusas registradas | superpowers | B-045 |
 | Saber si conviene precargar una skill en vez de esperar que cargue | Claude Code (`skills:` en el agente) | B-093 |
