@@ -639,6 +639,26 @@ corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
   fue en otra sesión), y si el tier de solo lectura se sostiene en el motor
   3.x (B-097).
 
+### Kiro por ACP (kiro-cli 3.2.0, 2026-11-11)
+
+*Medido* sin mandar ningún pedido, así que sin consultar al modelo (B-103).
+
+- **`kiro-cli acp` habla el protocolo tal como está escrito.** JSON-RPC por
+  stdio, un mensaje por línea. `initialize` no pide autenticación si el CLI
+  ya tiene sesión.
+- **Los agentes del catálogo son "modes" de la sesión.** `session/new`
+  devuelve los 15 junto con los propios de Kiro, y los modelos disponibles
+  (`auto`, `claude-sonnet-4.5`, `claude-haiku-4.5` y otros). `session/set_mode`
+  con `ux-ui` cambia de agente. Un mode que no existe es un error.
+- **Kiro agrega notificaciones propias** fuera de la especificación, entre
+  ellas una lista de subagentes en curso (`_kiro.dev/subagent/list_update`).
+- **Lo que dice la especificación y falta medir con un pedido real:** el
+  agente le manda al cliente un `session/request_permission` por cada llamada
+  que necesita aprobación, con opciones de aprobar o rechazar una vez o
+  siempre, y el cliente contesta. El cliente del harness (`acp.py`) rechaza
+  todo salvo los tipos de herramienta que se le permitan, y nunca elige una
+  opción "siempre": la decisión es suya cada vez.
+
 ### En Kiro, `ux-ui` no delegó y rodeó un rechazo (kiro-cli 3.2.0, 2026-11-11)
 
 *Medido*, dos muestras, modelo `auto` de Kiro (no dice cuál respondió), modo
