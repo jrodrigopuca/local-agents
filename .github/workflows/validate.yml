@@ -8,7 +8,13 @@ on:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    # Pinned, not `ubuntu-latest`: this job tests the Python floor install.py
+    # promises (3.9, what macOS still ships), and setup-python has no 3.9 build
+    # for Ubuntu 26.04 — when `ubuntu-latest` moved there, the job died before
+    # running a single check. 24.04 is the newest image that has one. When
+    # this image is retired, the choice is a 3.9 from another source or a
+    # higher floor, and the second is a change to what the README promises.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
