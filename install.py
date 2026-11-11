@@ -407,19 +407,24 @@ CLAUDE_READ_TOOLS = "Read, Grep, Glob, WebFetch, WebSearch, Agent, Skill"
 # Claude Code, and what rule 16 means by "delegate".
 # `kiro-cli agent validate` accepts unknown tags, so it cannot check this.
 #
-# The lists and KIRO_PERMISSIONS are written the way Kiro's own upgrade leaves
-# them ("universal format", loaded by its 2.x and 3.x engines). Measured on
-# kiro-cli 2.29.1, 2026-10-23 and 2026-11-11: every launch of the CLI rewrites
-# a 2.x agent file in place — it appends this `permissions` block (what
-# `allowedTools: ["read"]` becomes), sorts an explicit `tools` list and adds
-# the `web` category tag next to `web_fetch`/`web_search` — and keeps a `.bak`.
-# The rewritten file no longer matched the hash we recorded, so it read as
-# "edited by hand" and `--refresh` left it alone: Kiro ran a 19-day-old catalog
-# (B-099). Written this way from the start, `kiro-cli agent upgrade --dry-run`
-# reports each file "already universal" and leaves it untouched.
+# Kiro has two agent formats and rewrites the old one by itself (B-099). A
+# 2.x file — `allowedTools`, no `permissions` — is upgraded in place at every
+# launch of the CLI, with a `.bak` beside it. The rewritten file no longer
+# matched the hash we recorded, read as "edited by hand", and `--refresh` left
+# it alone: Kiro ran a 19-day-old catalog. Measured twice on 2026-11-11:
+#   - kiro-cli 2.29.1 appended `permissions` (fs_read) and sorted `tools`,
+#     adding the `web` tag; a file already like that it left alone.
+#   - kiro-cli 3.2.0, an hour later, rewrote THAT file too: it added a `skill`
+#     rule and a `kiroUpgrade` marker holding two hashes of its own.
+# Chasing each revision loses; the marker cannot be written from here. What
+# both versions leave untouched is a file with NO 2.x trust field at all:
+# `permissions` and no `allowedTools` ("v3-only" in `kiro-cli agent upgrade
+# --dry-run`). That is what the renderer writes. The price is paid only on the
+# 2.x engine, where reads are no longer pre-approved and ask once.
 KIRO_TOOLS = {"read": ["glob", "grep", "read", "subagent", "web", "web_fetch", "web_search"],
               "full": ["*"]}
-KIRO_PERMISSIONS = {"rules": [{"capability": "fs_read", "effect": "allow"}]}
+KIRO_PERMISSIONS = {"rules": [{"capability": "fs_read", "effect": "allow"},
+                              {"capability": "skill", "effect": "allow"}]}
 # Antigravity needs `tools:` on EVERY agent, not only the read tier. Measured
 # against agy 1.3.3: with the field omitted a subagent gets a minimal default
 # (view_file, read_url_content, search_web, ...) — no grep, no write, no shell —
@@ -700,9 +705,8 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
             # and deleting, and there is no `edit` tool — an unknown tag is a
             # config error, so keep KIRO_TOOLS in sync with USAGE.md's recipe.
             "tools": KIRO_TOOLS[tier],
-            "allowedTools": ["read"],
             "resources": [f"skill://~/.kiro/skills/{s}/SKILL.md" for s in skill_names],
-            # Last, as Kiro's upgrade appends it: see KIRO_PERMISSIONS.
+            # No `allowedTools`: with it Kiro rewrites the file. See KIRO_PERMISSIONS.
             "permissions": KIRO_PERMISSIONS,
         }
         return tool.agents_dir / f"{name}.json", json.dumps(obj, indent=2, ensure_ascii=False)

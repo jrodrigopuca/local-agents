@@ -547,32 +547,41 @@ corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
   `ux-ui` como el que llama y tope 0,20 no se pudo medir: gastó el tope
   solo antes de delegar. Costo de las cinco muestras, USD 0,96.
 
-### Kiro reescribe los agentes en el formato 2.x (kiro-cli 2.29.1, 2026-11-11)
+### Kiro reescribe los agentes en el formato 2.x (kiro-cli 2.29.1 y 3.2.0, 2026-11-11)
 
 *Medido*, sin consultar al modelo (B-099).
 
 - **Cada arranque de `kiro-cli` actualiza los agentes que encuentra en el
-  formato viejo.** Un JSON con `allowedTools` y sin bloque `permissions` se
-  reescribe en el lugar y deja un `.bak` al lado: le agrega
+  formato viejo.** Un JSON con `allowedTools` se reescribe en el lugar y deja
+  un `.bak` al lado. Pasó el 2026-10-23 a las 16:55 y volvió a pasar el
+  2026-11-11 a la 01:36, un minuto después de reinstalar, al pedirle la ayuda
+  al CLI. La doc lo llama formato universal, el que cargan sus motores 2.x y
+  3.x, y dice que el motor 3.x saltea un agente 2.x hasta que se actualiza
+  (*documentado*).
+- **Cada versión lo reescribe distinto.** La 2.29.1 agregaba
   `"permissions": {"rules": [{"capability": "fs_read", "effect": "allow"}]}`,
-  ordena una lista `tools` explícita y le suma la etiqueta `web` junto a
-  `web_fetch` y `web_search`. Pasó el 2026-10-23 a las 16:55 y volvió a pasar
-  el 2026-11-11 a la 01:36, un minuto después de reinstalar, al pedirle la
-  ayuda al CLI. La doc lo llama formato universal, el que cargan sus motores
-  2.x y 3.x, y dice que el motor 3.x saltea un agente 2.x hasta que se
-  actualiza (*documentado*).
-- **El instalador lo tomó por una edición a mano.** El archivo reescrito ya no
-  coincidía con el hash registrado, y `--refresh` no pisa lo editado: Kiro
+  ordenaba una lista `tools` explícita y le sumaba la etiqueta `web`; un
+  archivo que ya venía así lo dejaba quieto. La 3.2.0, que se instaló sola
+  esa misma noche a la 01:44, reescribió también ese: agregó una regla
+  `skill` y un marcador `kiroUpgrade` con dos hashes propios. El primer
+  arreglo, escribir la forma que dejaba la 2.29.1, duró cinco minutos.
+- **El instalador lo tomaba por una edición a mano.** El archivo reescrito ya
+  no coincidía con el hash registrado, y `--refresh` no pisa lo editado: Kiro
   corrió 19 días con el catálogo del 23-10 mientras `--status` decía
   "15 edited by hand". El aviso por archivo existía, perdido entre cientos de
   líneas.
-- **Arreglo.** `install.py` escribe directamente la forma que deja Kiro. Con
-  eso `kiro-cli agent upgrade ~/.kiro/agents --dry-run` da "already universal"
-  en los 15, arrancar el CLI no toca ningún archivo (mismo hash antes y
-  después) y `--status` no marca nada. Además, toda corrida del instalador
-  cierra con un `NOT UPDATED` cuando dejó archivos sin actualizar.
-- **Sin medir:** si el tier de solo lectura se sostiene en el motor 3.x. La
-  lista `tools` sigue sin `write` ni `shell`, pero en 3.x los permisos son
+- **Arreglo.** Lo que las dos versiones dejan quieto es un archivo sin ningún
+  campo de confianza 2.x: `permissions` y nada de `allowedTools` ("v3-only").
+  `install.py` escribe eso. Con la 3.2.0, `kiro-cli agent upgrade
+  ~/.kiro/agents --dry-run` da `0 would upgrade`, `kiro-cli agent list` los
+  muestra como "(v3 format)", y después de arrancar el CLI tres veces los 15
+  archivos quedan byte a byte iguales, sin `.bak` nuevos. El costo es solo
+  para quien siga en el motor 2.x: las lecturas dejan de venir preaprobadas.
+  Además, toda corrida del instalador cierra con un `NOT UPDATED` cuando dejó
+  archivos sin actualizar.
+- **Sin medir:** si arrancar un chat (que consulta al modelo) los toca; si la
+  forma nueva carga bien en una 2.x, que ya no está instalada acá; y si el
+  tier de solo lectura se sostiene en el motor 3.x, donde los permisos son
   reglas por capacidad y a un agente llamado por otro se le aplican también
   los de quien lo llama (B-097).
 

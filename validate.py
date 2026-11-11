@@ -362,13 +362,23 @@ def check_kiro_contract(cat: Catalog):
     # B-099: without the `permissions` block Kiro rewrites the file at its next
     # launch, and --refresh then takes it for a hand edit and stops updating it.
     rule = re.compile(r'"capability":\s*"fs_read",\s*"effect":\s*"allow"')
-    block = re.search(r"KIRO_PERMISSIONS\s*=\s*(\{.*\})", install)
+    block = re.search(r"KIRO_PERMISSIONS\s*=\s*(\{.*?\]\})", install, re.S)
     if not block or not rule.search(block.group(1)):
-        errs.append("install.py: KIRO_PERMISSIONS must carry the fs_read allow rule Kiro's "
-                    "upgrade writes — without it every agent is rewritten at launch (B-099)")
+        errs.append("install.py: KIRO_PERMISSIONS must carry the fs_read allow rule — Kiro "
+                    "skips or rewrites an agent without a `permissions` block (B-099)")
     if len(rule.findall(usage)) < 2:
         errs.append("USAGE.md: both Kiro recipes must show the `permissions` block the "
                     "installer emits (fs_read, allow)")
+    # A 2.x trust field next to `permissions` is what makes Kiro rewrite the file.
+    kiro_block = re.search(r'if tool\.agent_style == "kiro_json":(.*?)return tool\.agents_dir',
+                           install, re.S)
+    if kiro_block and re.search(r'"(allowedTools|toolsSettings)"\s*:', kiro_block.group(1)):
+        errs.append("install.py: the Kiro renderer emits a 2.x trust field (`allowedTools` / "
+                    "`toolsSettings`) — Kiro rewrites such a file at launch and --refresh "
+                    "then stops updating it (B-099)")
+    if re.search(r'"allowedTools"\s*:', usage):
+        errs.append("USAGE.md: a Kiro recipe still shows `allowedTools`, which the installer "
+                    "no longer writes (B-099)")
     return errs
 
 
