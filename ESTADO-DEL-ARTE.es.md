@@ -652,12 +652,23 @@ corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
   con `ux-ui` cambia de agente. Un mode que no existe es un error.
 - **Kiro agrega notificaciones propias** fuera de la especificación, entre
   ellas una lista de subagentes en curso (`_kiro.dev/subagent/list_update`).
-- **Lo que dice la especificación y falta medir con un pedido real:** el
-  agente le manda al cliente un `session/request_permission` por cada llamada
-  que necesita aprobación, con opciones de aprobar o rechazar una vez o
-  siempre, y el cliente contesta. El cliente del harness (`acp.py`) rechaza
-  todo salvo los tipos de herramienta que se le permitan, y nunca elige una
-  opción "siempre": la decisión es suya cada vez.
+- **Los pedidos de permiso llegan al cliente y el cliente decide** (*medido*
+  con un pedido real, una muestra, modelo sin informar). `ux-ui` por ACP, con
+  el cliente del harness (`acp.py`) aprobando solo leer y buscar: leyó y
+  listó sin pedir permiso (4 y 4 llamadas, que Kiro ya trae aprobadas),
+  cargó dos skills, y por cada escritura Kiro mandó un
+  `session/request_permission` — "Replace in File" y "Write File" — que el
+  cliente rechazó. La carpeta quedó sin un solo cambio. Es la pieza que hacía
+  falta para un director fuera del host: el límite de un rol lo puede
+  sostener el programa que maneja al agente, igual en cualquier host que
+  hable ACP.
+- **Dos detalles de Kiro que el cliente tuvo que absorber.** El pedido de
+  permiso no trae el tipo de herramienta (viene antes, en el aviso de la
+  llamada), y la opción de rechazo se llama `reject` a secas. El cliente
+  nunca elige una opción "siempre": la decisión es suya cada vez.
+- **`ux-ui` tampoco delegó por este camino.** Tercera muestra en Kiro con el
+  mismo resultado: intentó editar, después escribir el archivo entero, y al
+  segundo rechazo pegó el código en la respuesta. Esta vez no probó la shell.
 
 ### En Kiro, `ux-ui` no delegó y rodeó un rechazo (kiro-cli 3.2.0, 2026-11-11)
 
