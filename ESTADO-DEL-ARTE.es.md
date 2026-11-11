@@ -367,8 +367,10 @@ agente `senior-dev` por nombre: ningún fork, ningún segundo nivel. Los
 encargos tuvieron entre 96 y 470 palabras y los cinco pidieron un informe de
 vuelta; `ux-ui` escribió primero el spec en un archivo y mandó la ruta.
 `senior-dev`, llamado así, no cargó ninguna skill en las cinco. El harness no
-lo vio: `delegated_to` quedó vacío porque solo se registra en los escenarios
-que declaran `delegate: true` (B-094).
+lo vio: `delegated_to` quedó vacío porque solo se registraba en los
+escenarios que declaran `delegate: true`. Desde B-094 se registra en toda
+muestra, y al releer esas trazas con el código nuevo apareció una sexta que
+nadie había notado: `security-fixes-the-class` también delegó.
 
 **Dónde nos toca.** Este catálogo es un roster por rol, que es justo la
 forma de partir que la guía desaconseja, y el 2026-11-10 hicimos que `ux-ui`
