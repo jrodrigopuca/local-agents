@@ -331,6 +331,45 @@ relevamiento, pero no estaban acá. Lo de este mes son cambios de producto
   directo. Codex: no subir la profundidad salvo que haga falta, porque
   multiplica tokens y latencia (*reportado*).
 
+**Qué recibe y qué puede hacer el agente llamado, host por host.** Es la
+pregunta que decide cómo escribir un encargo que sirva en todos. Claude Code,
+*medido* en las trazas del 2026-11-10; el resto, *documentado* en la doc de
+cada host leída ese día, sin probar (Kiro, *reportado*: su página redirige y
+solo leímos el resumen).
+
+| | Arranca con | Sus permisos | Quién puede llamarlo | Niveles | Qué vuelve |
+|---|---|---|---|---|---|
+| **Claude Code 2.1.322** | Contexto limpio y el encargo; un *fork* hereda la conversación entera | Los de su propio archivo (`tools:`) | Quien tenga la herramienta `Agent` | 3 | Un informe; se lanza en segundo plano y se lo puede retomar con un mensaje |
+| **opencode** | "Fresh context", en una sesión hija | "The child uses its own configured permissions" | Reglas `subagent` en los permisos del que llama | Sin regla general documentada | Sin documentar |
+| **Codex** | Sin documentar | **Hereda el sandbox del que llama**; el archivo del agente no puede cambiarlo | Por nombre, en lenguaje natural | 1 | Una respuesta consolidada cuando terminan todos |
+| **Kiro** | Su propia ventana de contexto | Los de la sesión que llama también se le aplican | `availableAgents` | Sin relevar | Sin relevar |
+| **Antigravity** | "Clean slate": no hereda el historial | Hereda la configuración de seguridad del que llama, y el principal decide sus herramientas | `subagent: true` en el agente | 10 | Un mensaje de resultado; queda en espera y despierta con otro mensaje |
+
+Tres cosas salen de la tabla:
+
+- **El encargo es el único canal que existe en todos.** Salvo el fork de
+  Claude Code, el agente llamado no ve nada de la conversación. Lo que no
+  está en el encargo, o en un archivo que el encargo nombra, no llegó.
+- **El acceso declarado solo está garantizado cuando el agente es la
+  conversación.** Llamado por otro, en Codex, Kiro y Antigravity manda en
+  todo o en parte el que llama. La doc de Codex dice que `sandbox_mode` no
+  se puede fijar por agente, y la sección 4 lo midió funcionando en la
+  0.144.5 para el agente principal: no es lo mismo, y no está medido como
+  subagente. B-097.
+- **Encadenar dos pases no es portable.** Con un nivel en Codex y ninguna
+  regla en opencode, "A llama a B y B llama a C" solo existe en Claude Code y
+  Antigravity. Un agente llamado que necesita a otro tiene que devolverlo,
+  no delegarlo.
+
+**Cómo delegaron los nuestros** (*medido*, trazas guardadas del 2026-11-10,
+las cinco muestras principales que delegaron, B-091). Las cinco llamaron al
+agente `senior-dev` por nombre: ningún fork, ningún segundo nivel. Los
+encargos tuvieron entre 96 y 470 palabras y los cinco pidieron un informe de
+vuelta; `ux-ui` escribió primero el spec en un archivo y mandó la ruta.
+`senior-dev`, llamado así, no cargó ninguna skill en las cinco. El harness no
+lo vio: `delegated_to` quedó vacío porque solo se registra en los escenarios
+que declaran `delegate: true` (B-094).
+
 **Dónde nos toca.** Este catálogo es un roster por rol, que es justo la
 forma de partir que la guía desaconseja, y el 2026-11-10 hicimos que `ux-ui`
 y `security` le pasen el código a `senior-dev`. Tres cosas lo sostienen, y
@@ -438,10 +477,10 @@ corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
 
 - **Los subagentes "fork" vienen activados en `claude -p`** desde la 2.1.302
   (2026-10-16). Un fork hereda la conversación entera y las herramientas de
-  quien lo lanza, en vez de arrancar limpio con un encargo. El harness
-  registra a quién se delegó (`delegated_to`) y no distingue un fork de un
-  agente con nombre: no sabemos cuál usaron `ux-ui` y `security` al delegar.
-  B-094.
+  quien lo lanza, en vez de arrancar limpio con un encargo. Con los fork
+  activados, `ux-ui` y `security` igual llamaron a `senior-dev` por nombre en
+  las cinco muestras leídas (sección 3). El harness no distingue las dos
+  formas y solo registra la delegación donde el escenario la declara. B-094.
 - **Un subagente puede lanzar subagentes, hasta 3 niveles.** Con
   `eng-manager` delegando en especialistas que ahora también delegan, una
   corrida puede abrirse en árbol sin que el escenario lo pida. El harness no
@@ -844,6 +883,18 @@ Cómo se midió cada cosa, y cómo repetirlo, está en los comentarios de
     ninguna corrida lo registró como cambio: la huella guarda la versión del
     CLI, no qué hace distinto. Leer el changelog es parte de mantener el
     instrumento.
+14. **Entre agentes, el archivo es el canal y el mensaje es el puntero.** En
+    los cinco hosts el agente llamado arranca sin la conversación, así que lo
+    único portable es lo que queda escrito: un spec o un hallazgo en un
+    archivo, y un encargo corto que dice dónde está, qué entra y qué no, cómo
+    se comprueba y qué tiene que volver. Es lo que `lh-orchestration` ya dice
+    para el manager ("lo que cruza la costura es una ruta y un contrato") y
+    lo que `ux-ui` hizo sin que nadie se lo pidiera.
+15. **Un límite de acceso vale para quien conversa, no para quien es
+    llamado.** La regla 16 se midió con cada agente como principal. Llamado
+    por otro, tres de los cinco hosts le aplican los permisos del que llama.
+    Un agente de solo lectura que otro agente invoca no tiene garantía hasta
+    que se mida.
 
 ---
 
