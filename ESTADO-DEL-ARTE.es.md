@@ -511,6 +511,18 @@ corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
   tres cifras: dos debajo del "3 a 10 veces" de la guía y una adentro. Son
   delegaciones de un solo pase; la guía habla de sistemas enteros.
 
+- **El tope por muestra cuenta lo que gasta el agente llamado** (*medido*,
+  2.1.322, Sonnet, 2026-11-10, B-044). `eng-manager` le pasó una
+  implementación a `senior-dev` con `--max-budget-usd 0.18`: en dos de tres
+  muestras el corte llegó con el que llama en su primer turno y el llamado
+  trabajando (4 y 17 eventos suyos en la traza), como el mismo
+  `error_max_budget_usd` de siempre. El tope no es exacto: cortó en USD
+  0,195 y 0,197, y la tercera muestra terminó sola en 0,185 sin que la
+  cortara. Y el corte no deshace nada: en una muestra el llamado ya había
+  modificado dos archivos de `src/`, que quedaron a medio cambiar. Con
+  `ux-ui` como el que llama y tope 0,20 no se pudo medir: gastó el tope
+  solo antes de delegar. Costo de las cinco muestras, USD 0,96.
+
 ### Otros hallazgos medidos
 
 - **Esconder una herramienta no es negarla** (Claude Code 2.1.299, 2026-10-16
