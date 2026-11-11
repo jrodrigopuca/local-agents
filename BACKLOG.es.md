@@ -38,19 +38,33 @@ guarda el relevamiento y los hechos medidos; acá va lo que hay que hacer.
 
 ## Abiertos
 
-> **Para retomar (dejado el 2026-10-23).** La revisión fechada
-> ([REVISION-AGENTES.es.md](REVISION-AGENTES.es.md)) va así: pasos 1, 2, 4 y 5
-> hechos; el 3 se decidió no correrlo (ahorro ~1 % de la sesión) y sus dos
-> cosas puntuales quedaron en B-090; el 7 lo resolvió el usuario (apple-dev
-> par de plataforma). Quedan, en este orden sugerido: **B-089** (el disparador
-> de `lh-decomposition` cuando el usuario da el supuesto por hecho), **B-092**
-> (handoffs de un solo lado, abierto el 2026-11-10) y el **paso 6** (skills de
-> stack: decidirlo mirando los repos del usuario). Del paso 8, los pares de
-> routing quedaron cerrados el 2026-11-10 (B-043); siguen B-045 y B-040. El
-> registro de lo medido está en B-038 (paso 2) y B-062 (paso 4). Método de la
-> casa en cada cambio: revisión de architect y qa, criterios congelados con
-> commit, base con el texto anterior, después con el texto nuevo
-> **reinstalado** (verificar la copia instalada), y la vara fijada antes.
+> **Para retomar (dejado el 2026-11-11).** Dos días de trabajo, en este orden:
+> límites de rol para `ux-ui` y `security` y tres skills de diseño (B-091),
+> pares de routing (B-043), el tope de costo terminado (B-044), el registro
+> de delegación en el harness (B-094), un intento medido y descartado de
+> bajar la relectura entre agentes (B-098), y Kiro: el instalador dejó de
+> perder sus agentes cuando Kiro los reescribe (B-099).
+>
+> **Lo que quedó abierto, y por qué se frenó.** La primera prueba fuera de
+> Claude Code contradijo dos reglas: en Kiro, `ux-ui` escribe el código él
+> mismo y rodea un rechazo (B-100, tres muestras). De ahí salió la pregunta
+> de cómo orquestar sin depender de la prosa, que **no tiene todavía una
+> respuesta única**: hay un límite de rol expresable como permiso (B-101),
+> un orquestador externo sin probar (B-102) y un cliente ACP en el harness
+> que funciona con Kiro y opencode pero no con Claude Code, Codex ni
+> Antigravity (B-103, en curso: falta conectarlo a `run.py`). El relevamiento
+> completo está en ESTADO-DEL-ARTE §3 ("Orquestar sin depender de que el
+> agente obedezca") y §4 (Kiro, ACP). No se decidió por cuál seguir.
+>
+> **Si se retoma:** lo más barato es terminar B-103 (correr escenarios
+> enteros en Kiro) y con eso B-100 (¿es el modelo o el host?). Siguen
+> pendientes de antes B-039 (etiquetar FAIL: las bases del 10 y 11 de
+> noviembre dejaron muestras rojas reales), B-038, B-089 y el paso 6 (skills
+> de stack). Método de la casa en cada cambio: revisión de architect y qa,
+> base con el texto anterior, después con el texto nuevo **reinstalado**
+> (verificar la copia instalada), y la vara fijada antes. Y una lección de
+> estos días: listar un agente o simular un upgrade no prueba que arranque;
+> solo arrancarlo lo prueba.
 
 | ID | Prioridad | Estado | Qué | Por qué | Terminado cuando |
 |---|---|---|---|---|---|

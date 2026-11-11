@@ -514,7 +514,9 @@ class InstallTest(unittest.TestCase):
         self.install("--all", "--tool", "kiro")
         target = self.kiro_upgrade("qa")
         upgraded = target.read_bytes()
-        self.assertNotIn("edited by hand", self.status())
+        status = self.status()
+        self.assertNotIn("edited by hand", status)
+        self.assertNotIn("stale", status)        # upgraded by the host is not out of date
         run = self.install("--refresh")
         self.assertEqual(run.returncode, 0, run.stderr[-500:])
         self.assertNotIn("NOT UPDATED", run.stdout)

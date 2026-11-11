@@ -1987,7 +1987,9 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
             _, fresh = render_agent(tool, f.stem, body, desc,
                                     sorted(s.name for s in dep_skills), meta,
                                     guard=guard_command(tool), verify=verify_command(tool))
-            if f.read_text(encoding="utf-8") != fresh:
+            # Compared as agent_hash does: a Kiro agent that Kiro upgraded
+            # carries the host's own fields and is still current.
+            if agent_hash(f) != agent_text_hash(fresh, f.name):
                 a_stale.append(f.stem)
         a_missing = sorted(set(agents) - set(a_present))
         if stamp is None and any(f.stem in agents for f in files):
