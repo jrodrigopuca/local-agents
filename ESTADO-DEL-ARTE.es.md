@@ -372,6 +372,17 @@ escenarios que declaran `delegate: true`. Desde B-094 se registra en toda
 muestra, y al releer esas trazas con el código nuevo apareció una sexta que
 nadie había notado: `security-fixes-the-class` también delegó.
 
+**Lo que cuesta el pase en lectura** (*medido*, las mismas seis trazas). El
+agente llamado arranca sin la conversación y vuelve a leer: de los 35
+archivos que leyó `senior-dev` en las seis delegaciones, 20 ya los había
+leído quien lo llamó. La mitad de esos 20 los leyó para editarlos, y eso no
+se ahorra; los otros 10 los leyó solo para entender lo que el otro agente ya
+había entendido (`auth.js`, los tokens, `package.json`, el README). Los
+encargos decían qué hacer, no qué estaba ya establecido. En un fixture de
+seis archivos son centavos; en un repo real es el grueso del costo de
+delegar. El harness lo cuenta desde hoy en cada delegación (`reread` y
+`reread_context`); lo que lee con un `grep -r` no entra en la cuenta. B-098.
+
 **Dónde nos toca.** Este catálogo es un roster por rol, que es justo la
 forma de partir que la guía desaconseja, y el 2026-11-10 hicimos que `ux-ui`
 y `security` le pasen el código a `senior-dev`. Tres cosas lo sostienen, y
