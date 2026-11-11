@@ -11,8 +11,11 @@
 > twin, and do not translate the English docs into Spanish.*
 
 **Relevado el 2026-10-11; la comparación con otros catálogos y con las
-prácticas de evaluación (sección 3), el 2026-10-12. Próxima revisión: 2027-01,
-o antes si un host cambia de versión mayor o aparece un estándar nuevo.**
+prácticas de evaluación (sección 3), el 2026-10-12. Actualizado el 2026-11-10:
+la donación de Agent Skills (sección 1), los subagentes en cada host (sección
+2), lo que recomiendan los hosts sobre subagentes (sección 3) y los cambios de
+Claude Code de octubre y noviembre (sección 4). Próxima revisión: 2027-01, o
+antes si un host cambia de versión mayor o aparece un estándar nuevo.**
 
 Qué está pasando en la industria con los agentes y las skills, dónde estamos
 frente a otros catálogos, qué medimos nosotros contra los hosts reales, qué
@@ -45,6 +48,19 @@ mal, y solo una prueba lo mostró.
   catálogo. *Medido, agy 1.3.3.*
 - El catálogo valida cada skill contra la implementación de referencia
   (`skills-ref`) en CI.
+- **Cambió de dueño (2026-10-22).** Anthropic [donó Agent Skills](https://www.anthropic.com/news/donating-agent-skills-to-the-agentic-ai-foundation)
+  a la Agentic AI Foundation, la misma fundación de la Linux Foundation que
+  ya tenía MCP y `AGENTS.md`: el estándar, el nombre, la organización de
+  GitHub y el dominio. Lo mantienen ingenieros de Anthropic, Google, OpenAI y
+  otros, a título personal. El anuncio habla de más de 70 plataformas que lo
+  integraron, 1 millón de skills publicadas y cerca de 280 millones de
+  instalaciones. *Documentado.*
+- La hoja de ruta propuesta, todavía no definitiva, tiene tres cosas:
+  **versiones publicadas**, un **proceso formal de propuestas** y una **guía
+  de seguridad** para quien escribe e instala skills. Las dos que nos tocan:
+  hoy fijamos `skills-ref` a un commit porque no hay versiones (regla 12), y
+  la guía de seguridad va a opinar sobre lo que B-058 resolvió por su cuenta
+  (de quién es una skill que comparte nombre con otra). B-096. *Documentado.*
 
 ### Instrucciones de repo: `AGENTS.md`
 
@@ -80,6 +96,30 @@ pronto:
   exige a un cliente es cargar un plugin desde una ruta. Lo propio de cada
   cliente va bajo un namespace de dominio invertido. Codex lo soporta desde la
   0.146 (*reportado*).
+- Al 2026-11-10 nada de eso cambió: Agent Plugins sigue en borrador y sigue
+  empaquetando solo skills y servidores MCP. *Reportado.* Lo que sí se movió
+  es cuánto difieren los hosts entre sí, ya no solo en el formato:
+
+  | | Claude Code | Codex | VS Code (agente local) |
+  |---|---|---|---|
+  | Archivo | `.claude/agents/*.md` | TOML en `.codex/agents` | `.github/agents/*.agent.md` |
+  | Un subagente puede lanzar otro | Sí, hasta 3 niveles por defecto (`CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH`) | Solo un nivel por defecto (`agents.max_depth = 1`) | No por defecto; con un ajuste, hasta 5 |
+  | Quién puede delegar en quién | Cualquiera con la herramienta `Agent` | Sin campo conocido | `agents:` lista los subagentes permitidos; `[]` lo prohíbe |
+  | Modelo | Parámetro de la llamada, después `model:` del agente, después el de la conversación | Sin relevar | Igual orden, y un modelo más caro que el de la conversación no corre |
+
+  Claude Code y VS Code, *documentado* ([sub-agents](https://code.claude.com/docs/en/sub-agents),
+  [VS Code](https://code.visualstudio.com/docs/agents/run/subagents), página
+  del 2026-11-04); Codex, *reportado* (el resumen de su doc, no la página).
+  VS Code no es un host al que instalemos; va como referencia.
+- El frontmatter de un agente de Claude Code creció bastante más allá de lo
+  que `install.py` escribe (`name`, `description`, `tools`, `model`,
+  `memory`): hoy también acepta `effort`, `maxTurns`, `permissionMode`,
+  `disallowedTools`, `isolation: worktree`, `omitClaudeMd`, `hooks`,
+  `mcpServers` y **`skills:`**, que inyecta el contenido entero de las skills
+  listadas al arrancar el agente (hasta 32). Un campo que no reconoce se
+  ignora sin avisar. *Documentado.* `skills:` importa acá más que el resto:
+  es una respuesta del host a nuestro problema medido de que la skill no
+  siempre carga (B-062), al precio de pagarla en cada turno. B-093.
 - Los catálogos que apuntan a varios hosts, como
   [wshobson/agents](https://github.com/wshobson/agents), mantienen una sola
   fuente y generan la instalación para cada host. *Documentado* (detalle en la
@@ -250,6 +290,66 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   estándar es invertir el orden y quedarse con los veredictos consistentes.
   *Reportado.*
 
+### Qué recomiendan los hosts sobre subagentes (2026-11-10)
+
+Las dos guías de Anthropic son de enero y abril de 2026, anteriores a este
+relevamiento, pero no estaban acá. Lo de este mes son cambios de producto
+(sección 4), no recomendaciones nuevas. Todo *documentado* salvo aclaración.
+
+- **Cuándo conviene** ([Anthropic, 2026-01-23](https://claude.com/blog/building-multi-agent-systems-when-and-how-to-use-them)).
+  Tres casos y solo tres: proteger el contexto (la subtarea produce mucho
+  texto que no hace falta conservar), paralelizar (para cubrir más, no para
+  ir más rápido) y especializar (demasiadas herramientas, personas que se
+  contradicen, o un dominio que desborda a un generalista). Fuera de eso,
+  "los costos de coordinación suelen superar los beneficios".
+- **Cuánto cuesta.** Un sistema de varios agentes gasta "3 a 10 veces más
+  tokens" que uno solo para la misma tarea, y suele tardar más en total.
+  Nuestras tres cifras van de 1,3 a 4 veces: dos quedan debajo de ese rango
+  y una adentro (sección 4).
+- **Cómo partir el trabajo.** Por **contexto**, no por tipo de trabajo. Un
+  agente por rol (uno planifica, otro implementa, otro prueba, otro revisa)
+  es "a menudo contraproducente": cada pase pierde fidelidad, y en su
+  experimento los agentes gastaron más en coordinarse que en trabajar. "El
+  agente que construye una feature también debería escribir sus tests."
+  Buenas fronteras: investigaciones independientes, componentes con una
+  interfaz limpia y **verificación de caja negra**. Malas: fases sucesivas
+  del mismo trabajo, piezas acopladas, estado compartido.
+- **El verificador que canta victoria.** Un agente que verifica corre uno o
+  dos tests, los ve pasar y declara éxito. Remedio: criterios concretos,
+  pruebas negativas y la instrucción explícita de correr todo antes de
+  aprobar.
+- **Reglas de uso en Claude Code** ([Anthropic, 2026-04-07](https://claude.com/blog/subagents-in-claude-code)).
+  Delegar cuando hay que explorar diez archivos o más, o hay tres o más
+  piezas independientes. No delegar trabajo secuencial, ediciones al mismo
+  archivo ni tareas chicas. Un roster grande vuelve menos confiable la
+  delegación automática: "un puñado de agentes bien delimitados". El encargo
+  dice el alcance y **la forma de lo que tiene que volver**. La descripción
+  del agente nombra las condiciones que lo disparan, no su capacidad.
+- **Los demás dicen lo mismo en chico.** VS Code: delegar trabajo de alcance
+  claro que devuelve algo usable (investigar antes de implementar, comparar
+  enfoques, revisar); para una consulta rápida o un cambio chico, pedirlo
+  directo. Codex: no subir la profundidad salvo que haga falta, porque
+  multiplica tokens y latencia (*reportado*).
+
+**Dónde nos toca.** Este catálogo es un roster por rol, que es justo la
+forma de partir que la guía desaconseja, y el 2026-11-10 hicimos que `ux-ui`
+y `security` le pasen el código a `senior-dev`. Tres cosas lo sostienen, y
+conviene tenerlas a la vista porque son las que hay que seguir midiendo:
+
+- Casi siempre el agente es la conversación principal: lo elige el usuario,
+  o el host por la descripción (los 24 escenarios de routing en 3/3, B-043).
+  Eso no es un sistema de varios agentes y no paga coordinación.
+- Los dos pases que agregamos son límites de rol que el usuario decidió, no
+  una optimización: el diseñador y el auditor no tocan el código. La guía lo
+  contempla como especialización por restricciones que se contradicen.
+- `qa` y `security` revisando el trabajo de otro son la "verificación de caja
+  negra" que la guía pone del lado bueno.
+
+Lo que la guía sí nos discute: la cadena fija de `lh-orchestration`
+(diseño → construcción → verificación) es partir por fases, y `qa`
+escribiendo los tests de lo que construyó `senior-dev` es el pase que ellos
+midieron mal. No lo cambiamos sin medir (regla 17): B-095.
+
 ### El balance
 
 **Donde este catálogo va adelante:**
@@ -282,6 +382,8 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 | Tope de costo por corrida | `claude plugin eval` | B-044 |
 | Humo con CLI reales en CI | wshobson | B-046 hecho para claude y opencode; kiro pide login |
 | Escenarios bajo presión con excusas registradas | superpowers | B-045 |
+| Saber si conviene precargar una skill en vez de esperar que cargue | Claude Code (`skills:` en el agente) | B-093 |
+| El encargo a otro agente dice la forma de lo que tiene que volver | Guías de Anthropic | B-095 |
 
 **Lo que adoptamos sin código:**
 
@@ -290,6 +392,11 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
   salteaba el cuerpo). La regla 14 ya pide que el disparador nombre un
   umbral; esto suma que la descripción no anticipe los pasos. Rige para toda
   descripción que se reescriba, y B-041 la aplica.
+
+- **El encargo a otro agente se sostiene solo.** Desde el 2026-11-10 `ux-ui`
+  y `security` entregan un brief que no necesita la conversación (B-091). Es
+  la mitad de lo que piden las guías; la otra mitad, decir la forma de la
+  respuesta, está en B-095.
 
 **Lo que decidimos no copiar, y por qué:**
 
@@ -322,6 +429,46 @@ por host y tiene dependencias (los CORE, los links). Por eso no copiamos:
 | **Antigravity (agy 1.3.3)** | `~/.gemini/config/agents`, `.agents/agents`; con el mismo nombre **gana el del proyecto** | `~/.gemini/config/skills`, `.agents/skills` | allowlist `tools:` | La doc da `~/.gemini/antigravity-cli/skills/` para el CLI y **no se lee**. Sin `tools:` el agente recibe un set mínimo (sin escribir ni buscar). Un nombre de herramienta desconocido aborta el arranque. Un agente sin frontmatter se ignora: `--agent` usa el global de ese nombre si existe, o el agente principal, sin avisar |
 | **Claude Code 2.1.296** | `~/.claude/agents`, `.claude/agents` | `~/.claude/skills`, `.claude/skills`. **No** lee `~/.agents/skills` ni `.agents/skills` | allowlist `tools:` | Se puede medir gratis: el evento `init` de `claude -p --output-format stream-json --verbose` lista las skills cargadas antes de consultar al modelo. El comportamiento de los agentes lo prueba el harness |
 | **Kiro (kiro-cli 2.29.1)** | JSON en `~/.kiro/agents`, `.kiro/agents` | `~/.kiro/skills`, `.kiro/skills`, vía `resources` `skill://` (el `~` funciona también por proyecto) | lista `tools`, que se hace cumplir | **Lee solo la primera línea de la descripción de una skill**: con `description: >` la ve vacía, y la skill no se dispara nunca. `code` modifica archivos (AST rewrite) y `subagent` delega en un agente que escribe. `kiro-cli agent validate` acepta herramientas y campos inventados |
+
+### Cambios de Claude Code que tocan lo medido (2.1.299 a 2.1.322, 2026-11-10)
+
+Leídos en el [changelog](https://code.claude.com/docs/en/changelog) y en la
+doc de subagentes: *documentado*, no medido, salvo el último punto. El harness
+corrió todo el 2026-11-10 sobre la 2.1.322 sin adaptarse a ninguno.
+
+- **Los subagentes "fork" vienen activados en `claude -p`** desde la 2.1.302
+  (2026-10-16). Un fork hereda la conversación entera y las herramientas de
+  quien lo lanza, en vez de arrancar limpio con un encargo. El harness
+  registra a quién se delegó (`delegated_to`) y no distingue un fork de un
+  agente con nombre: no sabemos cuál usaron `ux-ui` y `security` al delegar.
+  B-094.
+- **Un subagente puede lanzar subagentes, hasta 3 niveles.** Con
+  `eng-manager` delegando en especialistas que ahora también delegan, una
+  corrida puede abrirse en árbol sin que el escenario lo pida. El harness no
+  fija esa profundidad. B-094.
+- **Dos ajustes de permisos nuevos.** `permissions.denyInsteadOfPrompting`
+  (2.1.319): la llamada que esperaría una aprobación se niega y el turno
+  sigue, también en subagentes. Es un rechazo que no viene del usuario, lo
+  que B-072 quiere medir. `permissions.blockWritesOutsideWorkingDirectories`
+  (2.1.314): Write y Edit rechazan rutas fuera de las carpetas de trabajo en
+  todos los modos; cubre una parte de lo que B-067 buscaba con el sandbox,
+  aunque no la shell.
+- **`claude -p` ya no falla en silencio.** Sale con código 1 cuando el
+  arranque falla (2.1.314), cuando se queda sin disco para la transcripción
+  (2.1.317) y cuando el modo auto rechaza sus acciones (2.1.319). Antes salía
+  con 0 y sin texto, que el harness leía como "sin evento de resultado".
+- **Esfuerzo por subagente.** `effort:` en el agente y
+  `CLAUDE_CODE_SUBAGENT_EFFORT` (2.1.316). Es una palanca de costo más fina
+  que `model:` y el catálogo no la usa; la decisión de `inherit` (B-036) se
+  tomó cuando no existía.
+- **Delegar costó entre 1,3 y 2,4 veces** (*medido*, 2.1.322, Sonnet, B-091).
+  El mismo pedido, antes y después de que el agente dejara de escribir el
+  código: `security` con las tres muestras delegando pasó de USD 0,45 a 1,08
+  (×2,4); `ux-ui`, con dos de tres delegando, de 0,61 a 0,82 (×1,3). No es
+  una comparación limpia: el dev que recibió el encargo además escribió
+  tests que nadie había pedido. Con el ~4× de la única medición anterior son
+  tres cifras: dos debajo del "3 a 10 veces" de la guía y una adentro. Son
+  delegaciones de un solo pase; la guía habla de sistemas enteros.
 
 ### Otros hallazgos medidos
 
@@ -673,6 +820,30 @@ Cómo se midió cada cosa, y cómo repetirlo, está en los comentarios de
    Codex; `model:` por agente, al costo; las cadenas fijas, a la falta de un
    agente que rutee. Antes de adoptar una, se comprueba que el problema
    también existe acá, y eso se mide igual que los datos de los hosts.
+10. **Un pase entre agentes se paga dos veces: en tokens y en fidelidad.**
+    Lo primero lo medimos (1,3 a 4 veces); lo segundo lo dice la guía de
+    Anthropic y no lo medimos nunca: no hay un escenario que compare lo que
+    entendió el que recibe con lo que sabía el que entregó. Un límite de rol
+    puede valer ese precio, pero es un precio, y cada handoff nuevo tiene que
+    decir qué compra.
+11. **El roster por rol se defiende mientras el agente sea la conversación.**
+    Elegido por el usuario o por el host, un especialista no coordina con
+    nadie. El costo aparece cuando un agente llama a otro, y ahí vale la
+    regla de la guía: partir por contexto, y usar al otro agente para
+    verificar antes que para continuar el mismo trabajo.
+12. **El host resuelve por su lado problemas que acá se arreglaron con
+    texto.** `skills:` precarga la skill que a veces no carga; `effort:` baja
+    el costo sin cambiar de modelo; dos ajustes de permisos hacen cumplir lo
+    que el CORE pide en prosa. Cada uno existe en un solo host, así que
+    ninguno reemplaza la regla, pero donde existe es una garantía y no una
+    promesa (regla 16). Antes de escribir otra regla, mirar si el host ya
+    tiene el mecanismo.
+13. **Un changelog de un mes cambia lo que mide el harness.** Entre la
+    2.1.296 y la 2.1.322 cambiaron el tipo de subagente por defecto, la
+    profundidad de delegación y los códigos de salida de `claude -p`, y
+    ninguna corrida lo registró como cambio: la huella guarda la versión del
+    CLI, no qué hace distinto. Leer el changelog es parte de mantener el
+    instrumento.
 
 ---
 
