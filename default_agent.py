@@ -16,6 +16,7 @@ the user's preference, not the catalog's. Run it yourself, or don't.
     ./default_agent.py --set generalist --tool claude,kiro
     ./default_agent.py --set generalist --dry-run  # show, change nothing
     ./default_agent.py --restore                   # put back what was there before
+    ./default_agent.py --status --verbose          # which setting, in which file
 
 Supported: Claude Code (`agent` in settings.json), opencode (`default_agent` in
 opencode.json; the agent must be a primary one) and Kiro CLI
@@ -43,7 +44,7 @@ from typing import Optional
 # excludes (CI, a throwaway HOME) it would read as a dirty tree in every install stamp.
 sys.dont_write_bytecode = True
 from install import (ERROR, REFUSED, TOOLS_BY_KEY, Parser, command,  # noqa: E402
-                     did_you_mean, fail, listed)
+                     did_you_mean, fail, listed, show_path)
 
 STATE = ".local-agents-default-agent.json"
 ABSENT = "absent"     # the setting did not exist; `None` would also be a legal JSON value
@@ -142,9 +143,13 @@ def current(host: Host):
     return read_json(host.path).get(host.setting, ABSENT)
 
 
+def said(value) -> str:
+    return "nothing" if value == ABSENT else f"`{value}`"
+
+
 def set_default(host: Host, name: str, dry_run: bool = False) -> str:
     if not host.tool.config_root.is_dir():
-        return f"not installed ({host.tool.config_root}): skipped"
+        return f"not detected ({show_path(host.tool.config_root)} does not exist), skipped"
     why = installed(host, name)
     if why:
         raise why
@@ -158,14 +163,14 @@ def set_default(host: Host, name: str, dry_run: bool = False) -> str:
     ours = state.get("set") is not None and before == state.get("set")
     record = {"setting": host.setting, "previous": state["previous"] if ours else before,
               "set": name, "created_file": state.get("created_file", False) if ours else not host.path.exists()}
-    was = "nothing" if before == ABSENT else f"`{before}`"
     if dry_run:
-        return f"would set `{host.setting}` to `{name}` in {host.path} (was {was})"
+        return f"would set it to `{name}` (was {said(before)})"
     like = host.path.read_text(encoding="utf-8") if host.path.exists() else ""
     write_json(host.state, record)
     data[host.setting] = name
     write_json(host.path, data, like)
-    return f"`{host.setting}` = `{name}` in {host.path} (was {was}); another agent for one session: {host.override}"
+    # The file is the person's own settings: they have to know which one was touched.
+    return f"now starts with `{name}` (was {said(before)})\n{show_path(host.path)}"
 
 
 def restore(host: Host, dry_run: bool = False) -> str:
@@ -178,12 +183,12 @@ def restore(host: Host, dry_run: bool = False) -> str:
         # Changed since: it is the user's now. Forget our record, touch nothing.
         if not dry_run:
             host.state.unlink()
-        return (f"left alone: `{host.setting}` is {'unset' if now == ABSENT else f'`{now}`'}, "
-                f"not the `{state.get('set')}` this script wrote")
+        return (f"kept: it is {'not set' if now == ABSENT else f'now `{now}`'}, "
+                f"not the `{state.get('set')}` this script set")
     previous = state.get("previous", ABSENT)
-    back = "unset" if previous == ABSENT else f"`{previous}`"
+    back = "nothing set" if previous == ABSENT else f"`{previous}`"
     if dry_run:
-        return f"would put `{host.setting}` back to {back} in {host.path}"
+        return f"would put it back to {back}"
     like = host.path.read_text(encoding="utf-8")
     if previous == ABSENT:
         data.pop(host.setting, None)
@@ -194,12 +199,12 @@ def restore(host: Host, dry_run: bool = False) -> str:
     else:
         write_json(host.path, data, like)
     host.state.unlink()
-    return f"`{host.setting}` back to {back} in {host.path}"
+    return f"back to {back}\n{show_path(host.path)}"
 
 
 def status(host: Host) -> str:
     if not host.tool.config_root.is_dir():
-        return "not installed"
+        return "not detected"
     try:
         now = current(host)
     except Refused as e:
@@ -207,6 +212,14 @@ def status(host: Host) -> str:
     ours = host.state.exists() and read_json(host.state).get("set") == now
     shown = "the host's own default assistant" if now == ABSENT else f"`{now}`"
     return f"starts with {shown}" + (" (set by this script)" if ours else "")
+
+
+def row(key: str, text: str) -> None:
+    """`  key   first line`, any further line under the first."""
+    first, *rest = text.split("\n")
+    print(f"  {key:<13} {first}")
+    for line in rest:
+        print(f"{' ' * 16}{line}")
 
 
 def main(argv=None) -> int:
@@ -218,6 +231,8 @@ def main(argv=None) -> int:
     what.add_argument("--restore", action="store_true", help="put back what was there before --set")
     ap.add_argument("--tool", default="", help=f"comma-separated subset of: {', '.join(HOSTS)} (default: all)")
     ap.add_argument("--dry-run", action="store_true", help="show what would happen, change nothing")
+    ap.add_argument("--verbose", action="store_true",
+                    help="also say which setting in which file, and how to pick another agent for one session")
     args = ap.parse_args(argv)
     keys = [k.strip() for k in args.tool.split(",") if k.strip()] or list(HOSTS)
     for k in keys:
@@ -248,19 +263,26 @@ def main(argv=None) -> int:
             line, refused = f"refused: {e}", refused + 1
             if e.fix:
                 fixes.append(e.fix)
-        print(f"{host.tool.label:12} {line}")
+        if args.verbose and host.tool.config_root.is_dir():
+            line += (f"\nsetting `{host.setting}` in {show_path(host.path)}"
+                     f"\nanother agent for one session: {host.override}")
+        row(k, line)
     if args.status:
-        for label in UNSUPPORTED.values():
-            print(f"{label:12} no default-agent setting: a session without an agent uses the host's own assistant")
-    for i, fix in enumerate(fixes):
-        print(f"{'Try: ' if i == 0 else '     '}{fix}")
-    if not refused:
-        return 0
+        for k in UNSUPPORTED:
+            row(k, "no default-agent setting")
+    tail = [f"{'Try: ' if i == 0 else '     '}{fix}" for i, fix in enumerate(fixes)]
+    if args.status:
+        tail += [f"Change it: {command('default', '--set <agent>')}",
+                 f"Undo:      {command('default', '--restore')}"]
+    elif args.set and changed and not args.dry_run:
+        tail.append(f"Undo: {command('default', '--restore')}")
     # 2 is "refused, nothing touched": only true when no tool was changed.
-    if not changed:
-        print("Nothing was changed.")
-        return REFUSED
-    return ERROR
+    code = 0 if not refused else REFUSED if not changed else ERROR
+    if code == REFUSED:
+        tail.append("Nothing was changed.")
+    if tail:
+        print("\n" + "\n".join(tail))
+    return code
 
 
 if __name__ == "__main__":

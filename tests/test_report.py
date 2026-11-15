@@ -163,10 +163,22 @@ class Refresh(Base):
         self.assertIn("Kept 1 file as it is:", out)
         self.assertRegex(out, r"(?m)^  claude +skill lh-pairing +edited by hand +"
                               r"~/\.claude/skills/lh-pairing$")
-        self.assertIn("  ./install.py --all --tool claude --on-conflict overwrite", out)
+        self.assertIn("  ./install.py --skill lh-pairing --tool claude --on-conflict overwrite", out)
         self.assertNotIn("--tool kiro --on-conflict", out)          # nothing was kept there
         self.assertIn("Done: 3 files updated in 2 tools, 1 kept.", out)
         self.assertIn("mine", mine.read_text())
+
+
+class KeptOnce(Base):
+    def test_a_kept_skill_three_agents_share_is_one_file_not_three(self):
+        self.run_install("--agent", "qa", "--agent", "security", "--agent", "architect", "--tool", "claude")
+        mine = self.claude / "skills" / SKILL / "SKILL.md"        # generalist's: all three inherit it
+        mine.write_text(mine.read_text() + "\nmine\n")
+        out = self.run_install("--agent", "qa", "--agent", "security", "--agent", "architect",
+                               "--tool", "claude")
+        self.assertIn("Kept 1 file as it is:", out)
+        self.assertEqual(len(re.findall(rf"(?m)^  skill {SKILL} +edited by hand", out)), 1)
+        self.assertIn(f"  ./install.py --skill {SKILL} --tool claude --on-conflict overwrite", out)
 
 
 class DryRun(Base):

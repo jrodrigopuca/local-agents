@@ -134,7 +134,7 @@ TOOLS = [
     Tool("antigravity", "Antigravity CLI",
          AGY_ROOT, AGY_ROOT / "skills",
          AGY_ROOT / "agents", "antigravity_md", ".agents"),
-    Tool("shared", "Shared (~/.agents — skills read by opencode + Codex)",
+    Tool("shared", "Shared: ~/.agents, skills read by opencode and Codex",
          HOME / ".agents", HOME / ".agents/skills",
          HOME / ".agents/agents", "roster_md", ".agents"),
 ]
@@ -871,42 +871,6 @@ def render_agent(tool: Tool, name: str, body: str, description: str,
 # --------------------------------------------------------------------------- #
 # Conflict resolution
 # --------------------------------------------------------------------------- #
-def resolve_name(dest_dir: Path, base: str, suffix: str, policy: str,
-                 interactive: bool) -> Optional[str]:
-    """Given a desired install name, return the final name to use, or None to
-    skip. `suffix` is "" for skill folders or ".md"/".json" for agent files."""
-    def exists(nm: str) -> bool:
-        return (dest_dir / f"{nm}{suffix}").exists()
-
-    if not exists(base):
-        return base
-
-    if policy == "overwrite":
-        return base
-    if policy == "skip":
-        print(f"    · exists, skipping: {base}")
-        return None
-    if policy == "rename":
-        return _auto_rename(exists, base)
-
-    # policy == "ask"
-    if not interactive:
-        return _auto_rename(exists, base)  # safe default in non-interactive runs
-    while True:
-        ans = input(f"    '{base}{suffix}' already exists at {dest_dir}. "
-                    f"[o]verwrite / [r]ename / [s]kip? ").strip().lower()
-        if ans in ("o", "overwrite"):
-            return base
-        if ans in ("s", "skip"):
-            return None
-        if ans in ("r", "rename"):
-            new = input(f"    new name (default {base}-2): ").strip() or f"{base}-2"
-            if exists(new):
-                print(f"    '{new}' also exists — try again.")
-                continue
-            return new
-
-
 def _auto_rename(exists_fn, base: str) -> str:
     i = 2
     while exists_fn(f"{base}-{i}"):
@@ -1183,14 +1147,35 @@ def decide(kind: str, policy: str, interactive: bool, what: str) -> str:
     if policy == "rename" and kind == FOREIGN:
         return "rename"
     if policy == "ask" and interactive:
-        while True:
-            ans = input(f"    {what} is {why}. [o]verwrite / [s]kip? ").strip().lower()
-            if ans in ("o", "overwrite"):
-                return "write"
-            if ans in ("s", "skip", ""):
-                return "skip"
+        choice = ask_conflict(what, kind)
+        if choice != "skip":
+            return choice
     REPORT.keep(what, why)
     return "skip"
+
+
+def ask_conflict(what: str, kind: str) -> str:
+    """The one question the menu asks about a file that is already there.
+    Enter keeps it: the safe answer is the default, and it is shown as such."""
+    theirs = kind == FOREIGN
+    print(f"\n{what} " + ("is not from this catalog: something else has that name."
+                           if theirs else "was edited by hand since it was installed."))
+    options = ("  [k] keep " + ("it" if theirs else "your version") + " (default)   "
+               "[r] replace with the catalog's" + ("\n  [n] install ours under another name" if theirs else ""))
+    keys = "k, r or n" if theirs else "k or r"
+    while True:
+        print(options)
+        try:
+            ans = input("  > ").strip().lower()
+        except EOFError:
+            return "skip"                   # nobody there: keep, as without a terminal
+        if ans in ("", "k", "keep", "s", "skip"):
+            return "skip"
+        if ans in ("r", "replace", "o", "overwrite"):
+            return "write"
+        if theirs and ans in ("n", "name", "rename"):
+            return "rename"
+        print(f"  Type {keys}.")
 
 
 # --------------------------------------------------------------------------- #
@@ -1237,6 +1222,7 @@ class Report:
         self.tallies, self.current = {}, None
         self.project = self.commit = None
         self.todo = []                 # (tool key, agent) left pointing at a removed agent
+        self.undo = False              # a menu install: say how to take it back
 
     # -- recording -------------------------------------------------------- #
     def open(self, title: str) -> None:
@@ -1274,6 +1260,8 @@ class Report:
             kind, _, name = what.partition(" ")
             path = (t.tool.skills_dir / name if kind == "skill" or t.tool.agents_dir is None
                     else t.tool.agents_dir / f"{name}{agent_suffix(t.tool)}")
+        if any(k[0] == what for k in t.kept):
+            return                  # met again as another agent's dependency: one file, said once
         t.kept.append((what, why, path))
         self.line("kept", what, why)
 
@@ -1370,8 +1358,14 @@ class Report:
                                   f"content. To replace {'it' if n == 1 else 'them'} with the "
                                   f"catalog's version:", 0))
                     for t in fixable:
-                        print("  " + command("install", "--all", f"--tool {t.tool.key}", scope,
+                        # Name what was kept: `--all` would install the whole
+                        # catalog into a tool that only ever had one agent.
+                        mine = [w for w, why, _ in t.kept if why != _SAFE[LINK]]
+                        flags = [f"--{w}" for w in mine] if len(mine) <= 6 else ["--all"]
+                        print("  " + command("install", *flags, f"--tool {t.tool.key}", scope,
                                              "--on-conflict overwrite"))
+                        if flags == ["--all"]:
+                            print(f"  (the whole catalog: replaces every kept file in {t.tool.key})")
         for t in tallies:
             for note in t.notes:
                 print(wrapped(f"Note ({t.tool.key}): {note}", 2))
@@ -1416,6 +1410,8 @@ class Report:
             print("Dry run: nothing was written. Run again without --dry-run to apply.")
         elif self.mode == "install" and not self.todo:
             print("Check any time: " + command("status", scope))
+            if self.undo and changed:
+                print("Undo: " + command("uninstall", f"--tool {tallies[0].tool.key}", scope))
 
 
 REPORT = Report()
@@ -2302,66 +2298,99 @@ def _warn_default_agent(tool: Tool, removed: list) -> None:
 # --------------------------------------------------------------------------- #
 # Interactive menu
 # --------------------------------------------------------------------------- #
-def choose(prompt: str, options: list) -> Optional[int]:
+class Cancelled(Exception):
+    """The person left the menu before anything was written."""
+
+
+def ask(prompt: str) -> str:
+    try:
+        return input(prompt).strip()
+    except EOFError:
+        # No one at the keyboard (a script, CI): the menu cannot be answered.
+        print(flush=True)
+        fail("the menu needs someone to answer it, and there is no input.",
+             hint="Try: " + command("list"))
+
+
+def choose(prompt: str, options: list) -> int:
     for i, o in enumerate(options, 1):
         print(f"  {i}. {o}")
     while True:
-        raw = input(f"{prompt} (number, or q to quit): ").strip().lower()
+        raw = ask(f"{prompt} (number, or q to quit): ").lower()
         if raw in ("q", "quit", ""):
-            return None
+            raise Cancelled
         if raw.isdigit() and 1 <= int(raw) <= len(options):
             return int(raw) - 1
-        print("  invalid choice.")
-
-
-def tool_menu_label(t: Tool) -> str:
-    mark = "✓" if t.config_root.exists() else "·"
-    return f"[{mark}] {t.label}  ({t.key})"
+        print(f"  Type a number from 1 to {len(options)}, or q to quit.")
 
 
 def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, project=None, catalog=None):
-    print("\nWhat do you want to install?")
-    mode = choose("select", ["The WHOLE suite (all agents + skills)",
-                             "One agent (with its skills + inherited deps)",
-                             "Standalone skill(s)"])
-    if mode is None:
-        return
+    try:
+        _interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, project, catalog)
+    except Cancelled:
+        print("Cancelled: nothing was changed.")
 
-    tool_idx = choose("target tool", [tool_menu_label(t) for t in TOOLS])
-    if tool_idx is None:
-        return
+
+def _interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, project, catalog):
+    print("What do you want to install?")
+    mode = choose("Choose", [f"The whole catalog ({len(agents)} agents, {len(skills_by_name)} skills)",
+                             "One agent, with the skills it uses",
+                             "One or more skills"])
+
+    # The same row --status prints: what is there before choosing where.
+    print("\nInto which tool?")
+    states = [tool_state(project_tool(t, project) if project else t, agents, skills_by_name, project)
+              for t in TOOLS]
+    tool_idx = choose("Choose", [
+        f"{st.tool.key:<13} " + (f"{len(st.behind)} out of date" if st.state == OUT_OF_DATE else st.state)
+        for st in states])
     tool = TOOLS[tool_idx]
     if project:
         tool = project_tool(tool, project)
         refuse_shared_project_dir(tool, agents)
     if not tool.config_root.exists():
-        ans = input(f"  {tool.label} doesn't look installed ({tool.config_root} "
-                    f"missing). Install anyway? [y/N] ").strip().lower()
+        ans = ask(f"{tool.key} was not detected ({show_path(tool.config_root, project)} does not "
+                  f"exist). Install there anyway? [y/N] ").lower()
         if ans not in ("y", "yes"):
-            return
+            raise Cancelled
 
-    print()
-    REPORT.begin(tool)
+    into = f"{tool.key} ({show_path(tool.config_root, project)})"
+    REPORT.undo = True
     if mode == 0:
+        print()
+        REPORT.open(f"Installing the whole catalog into {into}")
         install_suite(tool, policy, True, dry_run, agents, skills_by_name, catalog)
     elif mode == 1:
-        names = sorted(agents)
-        idx = choose("which agent", [f"{n}  ({len(agents[n].skills)} skills)" for n in names])
-        if idx is None:
-            return
-        install_agent(agents[names[idx]], tool, policy, True, dry_run,
+        names_ = sorted(agents)
+        print("\nWhich agent?")
+        idx = choose("Choose", [f"{n:<16} {plural(len(resolve_deps(agents[n], agents, skills_by_name)[1]), 'skill')}"
+                                for n in names_])
+        print()
+        REPORT.open(f"Installing agent {names_[idx]} into {into}")
+        install_agent(agents[names_[idx]], tool, policy, True, dry_run,
                       agents, skills_by_name, with_deps)
         write_manifest(tool, catalog, dry_run)
     else:
-        labels = [s.qualified for s in all_skills]
-        print("  (enter comma-separated numbers to install several)")
-        for i, o in enumerate(labels, 1):
-            print(f"  {i}. {o}")
-        raw = input("which skill(s): ").strip()
-        picks = [int(x) - 1 for x in re.split(r"[,\s]+", raw) if x.isdigit()]
-        for p in picks:
-            if 0 <= p < len(all_skills):
-                install_skill(all_skills[p], tool, policy, True, dry_run)
+        print("\nWhich skills?")
+        for i, sk in enumerate(all_skills, 1):
+            print(f"  {i}. {sk.qualified}")
+        while True:
+            raw = ask("Numbers, separated by commas (or q to quit): ").lower()
+            if raw in ("q", "quit", ""):
+                raise Cancelled
+            tokens = [x for x in re.split(r"[,\s]+", raw) if x]
+            bad = [x for x in tokens if not (x.isdigit() and 1 <= int(x) <= len(all_skills))]
+            if not bad:
+                break
+            # The whole line again: installing "the ones that were right" is not what was typed.
+            print(f"  {', '.join(bad)} {'is' if len(bad) == 1 else 'are'} not on the list. "
+                  f"Type numbers from 1 to {len(all_skills)}.")
+        picks = [all_skills[int(x) - 1] for x in dict.fromkeys(tokens)]
+        print()
+        REPORT.open(wrapped(f"Installing {', '.join(f'skill {sk.name}' for sk in picks)} into {into}", 2))
+        REPORT.begin(tool)
+        for sk in picks:
+            install_skill(sk, tool, policy, True, dry_run)
         relink_skills(tool, skills_by_name, dry_run)
         write_manifest(tool, catalog, dry_run)
 
@@ -2731,21 +2760,20 @@ def print_status(agents, skills_by_name, project=None, catalog=None, verbose=Fal
 
 
 def print_list(agents, all_skills, skills_by_name):
-    print("\nAgents:")
+    print(f"Agents ({len(agents)})")
     for n, a in sorted(agents.items()):
         # Installing an agent also brings what it inherits and links to, so the
         # count that matches the disk is resolve_deps', not the agent's own.
         _, deps = resolve_deps(a, agents, skills_by_name)
-        print(f"  {n}  — {len(a.skills)} own skills ({len(deps)} installed with "
-              f"inheritance): {', '.join(s.name for s in a.skills)}")
-    print(f"\nSkills: {len(all_skills)} total (address as agent:skill)")
-    print("\nTools:")
-    key_w = max(len(t.key) for t in TOOLS)
-    label_w = max(len(t.label) for t in TOOLS)
+        print(f"  {n:<16} {plural(len(a.skills), 'skill')} of its own, {len(deps)} installed with it")
+        print(wrapped(", ".join(s.name for s in a.skills), 19, " " * 19))
+    print(f"\nSkills: {len(all_skills)} in all. One alone: {command('install', '--skill <name>', '--tool <tool>')}")
+    print("\nTools")
     for t in TOOLS:
-        mark = "available" if t.config_root.exists() else "not detected"
-        agentcap = "agents+skills" if t.agents_dir else "skills only"
-        print(f"  {t.key:{key_w}}  {t.label:{label_w}}  [{mark}, {agentcap}]")
+        mark = "available" if t.config_root.exists() else NOT_DETECTED
+        holds = "agents and skills" if t.agents_dir else "skills only"
+        print(f"  {t.key:<13} {mark:<15} {holds}")
+    print(wrapped("`shared` is ~/.agents, a folder opencode and Codex both read skills from.", 2, "  "))
 
 
 def main():

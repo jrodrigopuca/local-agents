@@ -44,10 +44,22 @@ cd ~/Developer/local-agents
 ./install.py --list
 ```
 
-Displays agents with their skills, and detected tools below. An
-`[available, agents+skills]` label means the script found that tool's configuration
-directory and is ready to receive files. `[not detected]` = the tool is not
-installed (you can install anyway; it will prompt you).
+It shows each agent with the skills of its own and how many get installed
+with it (what it inherits and links to), and then the tools:
+
+```
+Agents (15)
+  architect        3 skills of its own, 7 installed with it
+                   lh-design-review, lh-mentoring, lh-tradeoffs
+  ...
+
+Tools
+  claude        available       agents and skills
+  kiro          not detected    agents and skills
+```
+
+`available` means the tool's configuration directory was found. `not detected`
+means it was not: you can still install into it, and the menu asks first.
 
 ### Step 2 — Preview with `--dry-run`
 
@@ -123,15 +135,40 @@ from catalog a319a78. Nothing to update.`
 
 ## Interactive mode (guided menus)
 
-If you don't want to remember flags, run the script directly:
+If you don't want to remember flags, run the script with none:
 
 ```bash
 ./install.py
 ```
 
-It guides you through interactive menus: whole suite / single agent / standalone
-skill? → which one? → which tool? → and if something already exists, it prompts to
-overwrite / rename / skip.
+It asks three things — what to install (the whole catalog, one agent, one or
+more skills), into which tool, and which one — and then installs and reports
+like any other run, plus the command that takes it back:
+
+```
+Into which tool?
+  1. claude        up to date
+  2. opencode      nothing installed
+  3. kiro          not detected
+Choose (number, or q to quit):
+```
+
+- The tool list shows the state of each tool, the same row `--status` prints.
+- `q` or Enter at any question leaves, and says `Cancelled: nothing was
+  changed.` An answer that is not on the list is said and asked again; a list
+  of skills with one wrong number is rejected whole, never installed in part.
+- If something is already there and is not as the installer left it, it asks.
+  Enter keeps it — the safe answer is the default, and it is shown as such:
+
+  ```
+  skill lh-mockups was edited by hand since it was installed.
+    [k] keep your version (default)   [r] replace with the catalog's
+  ```
+
+  For something that is not from this catalog and has one of our names there
+  is a third answer, `[n] install ours under another name`.
+- With no one at the keyboard (a script, CI) the menu cannot be answered: it
+  stops with an error and names `--list`.
 
 ---
 
@@ -587,6 +624,20 @@ preference, not the catalog's, so it is a separate script you run yourself:
 ./default_agent.py --restore                   # put back what was there before
 ```
 
+```
+$ ./default_agent.py --set generalist
+  claude        now starts with `generalist` (was nothing)
+                ~/.claude/settings.json
+  opencode      now starts with `generalist` (was nothing)
+                ~/.config/opencode/opencode.json
+  kiro          already `generalist`
+
+Undo: ./default_agent.py --restore
+```
+
+One row per tool, the settings file it touched under it. `--verbose` adds the
+name of the setting and how to pick another agent for one session.
+
 | Host | Setting it writes | Another agent for one session |
 |---|---|---|
 | Claude Code | `agent` in `~/.claude/settings.json` | `claude --agent NAME` |
@@ -659,20 +710,21 @@ To install ONLY the agent and its own skills, without dependencies:
 A host's skills dir is shared with every other tool that installs skills —
 `npx skills` writes there too, and 26 of our 48 skill names already exist in
 public registries. So `install.py` never decides by name. Every catalog skill
-carries `metadata.local-agents-id`, and the stamp (`.local-agents.json`)
-records the hash of every skill and agent file as it was written. With those,
+carries `metadata.local-agents-id`, and the install record — the stamp,
+`.local-agents.json` in the tool's directory — records the hash of every skill and agent file as it was written. With those,
 each thing already at a destination is one of:
 
-| Kind | How it is told | What happens |
-|---|---|---|
-| **ours** | our id, at its own name, hash as recorded | updated, always |
-| **edited** | our id (or recorded by the stamp), hash changed since we wrote it | left alone, with a warning — unless you say `--on-conflict overwrite` |
-| **foreign** | no id of ours (an agent file the stamp never recorded) | left alone, with a warning — unless you say `--on-conflict overwrite` |
-| **link** | a symlink (`npx skills` links each host to its own copy) | always left alone: never followed, never deleted |
-| **retired** | our id under another name while the real one is installed at its own name (a renamed skill's old copy, a `-2` an older installer left), or an id the catalog no longer has | removed by `--refresh` and `--all` when it is intact (the hash the stamp recorded under that old name) — otherwise a host lists both and may load the old one; an edited one, or one the stamp has no record of, is kept and reported by `--status` with its `rm` command |
-| **ours, under another name** | our id under another name, and no copy at its own name (`--on-conflict rename` next to a foreign skill) | updated in place on the next run; never offered for deletion |
+| Kind | What the output calls it | How it is told | What happens |
+|---|---|---|---|
+| **ours** | (counted as `installed`, `updated`, `unchanged`) | our id, at its own name, hash as recorded | updated, always |
+| **edited** | `edited by hand` | our id (or recorded by the stamp), hash changed since we wrote it | kept, and named at the end of the run — unless you say `--on-conflict overwrite` |
+| **foreign** | `not from this catalog` | no id of ours (an agent file the stamp never recorded) | kept, and named at the end of the run — unless you say `--on-conflict overwrite` |
+| **link** | `a link to another tool's copy` | a symlink (`npx skills` links each host to its own copy) | always kept: never followed, never deleted |
+| **retired** | `old copy` | our id under another name while the real one is installed at its own name (a renamed skill's old copy, a `-2` an older installer left), or an id the catalog no longer has | removed by `--refresh` and `--all` when it is intact (the hash the stamp recorded under that old name) — otherwise a host lists both and may load the old one; an edited one, or one the stamp has no record of, is kept and reported by `--status` with its `rm` command |
+| **ours, under another name** | `installed as <name>` | our id under another name, and no copy at its own name (`--on-conflict rename` next to a foreign skill) | updated in place on the next run; never offered for deletion |
 
-`--status` shows each kind per host. `--refresh` updates what is ours and
+The left column is the name the code uses; the second is the one you read.
+`--status --verbose` shows each kind per tool. `--refresh` updates what is ours and
 nothing else, so it is always safe to run — and it keeps the shape of the
 install: where the whole catalog was installed it brings new skills and
 agents too; where one agent or one skill was, it refreshes exactly that (the
@@ -704,7 +756,8 @@ updated and a link is always left alone.
 
 Before B-058, `ask` without a terminal renamed **everything** that existed,
 ours included: running the default command twice installed the whole catalog
-twice. Copies like that show up in `--status` as retired.
+twice. Copies like that show up in `--status` as old copies, with the `rm -r`
+that removes them.
 
 ---
 

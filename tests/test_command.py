@@ -130,7 +130,7 @@ class EndToEnd(unittest.TestCase):
         self.assertNotIn("install.py", seen)
         for must in (f"Next: {FRONT} bootstrap --all --tool claude",
                      f"Try: {FRONT} bootstrap --all --tool claude",
-                     f"{FRONT} bootstrap --all --tool claude --on-conflict overwrite",
+                     f"{FRONT} bootstrap --skill lh-pairing --tool claude --on-conflict overwrite",
                      f"Details: {FRONT} bootstrap --status --verbose",
                      f"enable: {FRONT} bootstrap --refresh --shell-write-guard",
                      f"Check any time: {FRONT} bootstrap --status"):
@@ -140,7 +140,7 @@ class EndToEnd(unittest.TestCase):
         seen = "\n".join(self.messages())
         for must in ("Next: ./install.py --all --tool claude",
                      "Try: ./install.py --all --tool claude",
-                     "  ./install.py --all --tool claude --on-conflict overwrite",
+                     "  ./install.py --skill lh-pairing --tool claude --on-conflict overwrite",
                      "Details: ./install.py --status --verbose",
                      "enable: ./install.py --refresh --shell-write-guard",
                      "Try: ./default_agent.py --restore --tool claude"):

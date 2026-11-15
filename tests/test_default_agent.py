@@ -117,7 +117,8 @@ class Restore(Base):
     def test_a_value_the_user_changed_afterwards_is_left_alone(self):
         da.set_default(self.claude, "generalist")
         self.claude.path.write_text('{"agent": "architect"}')
-        self.assertIn("left alone", da.restore(self.claude))
+        self.assertIn("kept: it is now `architect`, not the `generalist` this script set",
+                      da.restore(self.claude))
         self.assertEqual(self.settings(self.claude), {"agent": "architect"})
         self.assertFalse(self.claude.state.exists())
 
@@ -152,11 +153,35 @@ class Cli(Base):
         self.kiro.path.parent.mkdir(parents=True)
         self.kiro.path.write_text('{"chat.defaultAgent": "generalist"}')
         _, out = self.run_main("--status")
-        lines = {l.split()[0]: l for l in out.splitlines()}
-        self.assertIn("set by this script", lines["claude"])
-        self.assertNotIn("set by this script", lines["kiro"])
+        lines = {l.split()[0]: l for l in out.splitlines() if l.startswith("  ")}
+        self.assertEqual(lines["claude"].split(None, 1)[1], "starts with `generalist` (set by this script)")
+        self.assertEqual(lines["kiro"].split(None, 1)[1], "starts with `generalist`")
         self.assertIn("own default assistant", lines["opencode"])
-        self.assertIn("Codex", out)
+        self.assertEqual(lines["codex"].split(None, 1)[1], "no default-agent setting")
+        self.assertIn("Change it: ", out)
+        self.assertIn("--restore", out.splitlines()[-1])
+
+    def test_set_says_what_it_was_which_file_and_how_to_undo(self):
+        (self.claude.tool.agents_dir / "architect.md").write_text("x")
+        self.claude.path.write_text('{"agent": "architect"}')
+        _, out = self.run_main("--set", "generalist", "--tool", "claude")
+        self.assertIn("  claude        now starts with `generalist` (was `architect`)", out)
+        self.assertIn(f"{' ' * 16}{self.claude.path}", out)       # the settings file that was touched
+        self.assertIn("Undo: ", out.splitlines()[-1])
+        _, back = self.run_main("--restore", "--tool", "claude")
+        self.assertIn("  claude        back to `architect`", back)
+
+    def test_the_setting_s_name_is_for_verbose(self):
+        _, plain = self.run_main("--status")
+        _, verbose = self.run_main("--status", "--verbose")
+        self.assertNotIn("chat.defaultAgent", plain)
+        self.assertIn("setting `chat.defaultAgent` in", verbose)
+        self.assertIn("another agent for one session: claude --agent NAME", verbose)
+
+    def test_a_dry_run_offers_no_undo(self):
+        _, out = self.run_main("--set", "generalist", "--dry-run")
+        self.assertIn("would set it to `generalist` (was nothing)", out)
+        self.assertNotIn("Undo", out)
 
     def test_a_refusal_in_one_host_does_not_stop_the_others_and_exits_1(self):
         self.opencode.path.write_text("{ // x\n}")

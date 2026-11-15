@@ -125,7 +125,8 @@ class InstallTest(unittest.TestCase):
         self.assertTrue((theirs / "agents" / "openai.yaml").is_file())
         self.assertIn("Kept 1 file as it is:", run.stdout)
         self.assertRegex(run.stdout, rf"skill {NAME} +not from this catalog +~/.claude/skills/{NAME}")
-        self.assertIn("--all --tool claude --on-conflict overwrite", run.stdout)
+        # the way out names that one skill: `--all` here would be a second whole install
+        self.assertIn(f"--skill {NAME} --tool claude --on-conflict overwrite", run.stdout)
         self.assertFalse((self.skills / f"{NAME}-2").exists())
         self.assertEqual(len(list(self.agents.iterdir())), 15, "the rest must still install")
         self.assertTrue(self.stamp.is_file())
@@ -562,7 +563,7 @@ class InstallTest(unittest.TestCase):
         skipped = self.install("--refresh")
         self.assertIn("Kept 1 file as it is:", skipped.stdout)
         self.assertRegex(skipped.stdout, r"agent qa +edited by hand +~/.kiro/agents/qa.json")
-        self.assertIn("--all --tool kiro --on-conflict overwrite", skipped.stdout)
+        self.assertIn("--agent qa --tool kiro --on-conflict overwrite", skipped.stdout)
         self.assertIn("rhyme", target.read_text())
         run = self.install("--all", "--tool", "kiro", "--on-conflict", "overwrite")
         self.assertNotIn("Kept", run.stdout)
@@ -577,7 +578,7 @@ class InstallTest(unittest.TestCase):
         on_disk = sum(1 for l in dry.stdout.splitlines() if l.split()[:3] == ["would", "install", "skill"])
         self.assertRegex(self.install("--agent", "architect", "--tool", "claude", "--dry-run").stdout,
                          rf"skills +would install {on_disk}\b")
-        self.assertIn(f"({on_disk} installed with inheritance)", listed)
+        self.assertRegex(listed, rf"^  architect +3 skills of its own, {on_disk} installed with it$")
 
 
 if __name__ == "__main__":
