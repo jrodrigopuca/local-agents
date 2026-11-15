@@ -499,6 +499,63 @@ printf 'npm test\n' > .local-agents/verify             # in each repo that wants
 
 ---
 
+## Optional: starting every session with an agent (`default_agent.py`)
+
+A session started without an agent loads nothing from this catalog: the host's
+own assistant answers, under the host's own instructions, and those differ per
+host and per model (see [ESTADO-DEL-ARTE.es.md](ESTADO-DEL-ARTE.es.md),
+section 3). `default_agent.py` makes an installed catalog agent the one a
+session starts with, so its rules are there from the first turn.
+
+`install.py` never does this. Which agent a session starts with is your
+preference, not the catalog's, so it is a separate script you run yourself:
+
+```bash
+./default_agent.py --status                    # what each host starts with now
+./default_agent.py --set generalist --dry-run  # show, change nothing
+./default_agent.py --set generalist            # every supported host that is installed
+./default_agent.py --set generalist --tool claude,kiro
+./default_agent.py --restore                   # put back what was there before
+```
+
+| Host | Setting it writes | Another agent for one session |
+|---|---|---|
+| Claude Code | `agent` in `~/.claude/settings.json` | `claude --agent NAME` |
+| opencode | `default_agent` in `~/.config/opencode/opencode.json` | Tab, or `opencode --agent NAME` |
+| Kiro CLI | `chat.defaultAgent` in `~/.kiro/settings/cli.json` | `kiro-cli chat --agent NAME` |
+
+- It is the gentle way in: the default is only where a session STARTS, and
+  choosing another agent still works.
+- The agent has to be installed in that host first, and in opencode it has to
+  be a primary agent: opencode falls back to its own `build` without a word
+  otherwise. The script refuses both cases.
+- A settings file that is not plain JSON (comments, a trailing comma) is
+  refused, never rewritten: add the line by hand.
+- **The way back.** The value that was there before is recorded beside the
+  setting (`.local-agents-default-agent.json`) when the change is made.
+  `--restore` puts it back only if the setting is still the one the script
+  wrote; a value you changed afterwards is yours and is left alone.
+- In Claude Code a main-thread agent REPLACES the default system prompt
+  (documented); `CLAUDE.md` and project memory still load.
+
+**Codex and Antigravity have no such setting** (read 2026-11-15, not
+measured). The only way to reach a session without an agent there is the
+host's global rules file — `~/.codex/AGENTS.md`, `~/.gemini/AGENTS.md` — and
+nothing here writes it, because it is not the same kind of change:
+
+- it loads in EVERY session and inside every agent, yours included, and
+  cannot be skipped for one session;
+- an agent from this catalog would then carry the same rules twice;
+- the files are shared across tools: opencode reads `~/.claude/CLAUDE.md`
+  when it has no rules file of its own, and `~/.gemini/GEMINI.md` is read by
+  both Gemini CLI and Antigravity.
+
+If you want it anyway, paste the rules you need from
+[generalist/CORE.md](generalist/CORE.md) into that file yourself, between two
+marker lines of your own, so you can find and remove them later.
+
+---
+
 ## Dependencies and Inheritance (Important)
 
 When you install an agent, the script **also installs what that agent needs to

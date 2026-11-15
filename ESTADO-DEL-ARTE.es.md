@@ -463,6 +463,50 @@ delegación.
   cinco formatos, uno en vista previa, y el catálogo ya midió que una cadena
   fija pasa por pasos que la tarea no necesita.
 
+### Qué dice cada host cuando no hay agente (2026-11-15)
+
+Una sesión sin agente no carga nada del catálogo: lo único que la gobierna son
+las instrucciones por defecto del host. Importa porque en 35 días de uso real
+la mitad de los turnos fueron así, y de ahí salieron los tres commits que
+nadie pidió (B-106). Relevado por un subagente el 2026-11-15 y no repetido
+acá: *leído en el repo* donde el prompt es abierto (opencode `v1.19.5`, Codex
+`main 5cb38e7`), *documentado* donde es cerrado (Claude Code, Kiro,
+Antigravity). Lo que no figura no se encontró.
+
+| | Claude Code | opencode | Codex | Kiro | Antigravity |
+|---|---|---|---|---|---|
+| Commit solo si se pide | en la descripción de la shell; texto sin publicar | sí, en la descripción de la shell | sí en el prompt de base; **falta** en el de `gpt-5.2-codex` | no se encontró | no se encontró |
+| Preguntar o actuar | no se encontró | depende del modelo: el prompt para Claude no lo trata, los de GPT empujan a actuar | actuar: "strongly prefer making reasonable assumptions" | no se encontró | no se encontró |
+| Tras un rechazo | el modelo recibe el motivo; 3 seguidos pausan el modo `auto` | vuelve el error; solo el prompt de Gemini dice no reintentar | "don't try and circumvent approvals by using other tools" | imprime `[denied]`; instrucción al modelo, no se encontró | no se encontró |
+| Qué debe decir el informe | no se encontró | el prompt genérico dice "just stop", sin resumen | nada sobre lo no pedido | no se encontró | no se encontró |
+| El modo autónomo cambia el texto | sí: `auto` "nudges Claude to keep working without stopping for clarifying questions" | no hay tal modo; por defecto todo está permitido | `never` solo suma correr tests | documentado como solo permisos | documentado como solo permisos |
+| Archivo global de reglas | `~/.claude/CLAUDE.md` | `~/.config/opencode/AGENTS.md`; si no existe, `~/.claude/CLAUDE.md` | `~/.codex/AGENTS.md` | `~/.kiro/steering/*.md` | `~/.gemini/AGENTS.md` o `GEMINI.md` |
+| Agente por defecto | `agent` en settings | `default_agent` en `opencode.json` | no se encontró | `kiro-cli agent set-default` | no se encontró; solo `--agent` por sesión |
+
+Lo que cambia para el catálogo:
+
+- **Ningún host promete lo que promete el CORE.** Solo el prompt de Gemini
+  CLI (abierto, y otro producto que Antigravity) reúne las tres guardas: no
+  commitear, confirmar antes de ampliar el alcance y no reintentar tras un
+  rechazo. En los demás falta al menos una, y nombrar en el informe lo que
+  nadie pidió no aparece en ninguno.
+- **El mismo host se porta distinto según el modelo.** opencode elige el
+  prompt por modelo, y Codex tiene uno por familia: una regla que está en uno
+  falta en otro. Es lo que ya se había medido en Kiro (sección 4): lo que da
+  un host con un modelo no se traslada.
+- **En Claude Code el modo `auto` empuja a no preguntar**, y las 40 sesiones
+  reales corren en ese modo (B-106). Con el agente cargado la regla igual se
+  sostuvo, 54 de 54.
+- **El agente por defecto existe en tres de cinco** (Claude Code, opencode,
+  Kiro). En Codex y Antigravity el único camino a la sesión sin agente es el
+  archivo global de reglas.
+- **Dos trampas de esos archivos globales.** En Kiro el *steering* global no
+  se carga dentro de un agente propio salvo que figure en sus `resources`. Y
+  los archivos se comparten: opencode lee `~/.claude/CLAUDE.md` si no tiene el
+  suyo, y `~/.gemini/GEMINI.md` lo leen Gemini CLI y Antigravity.
+- **opencode está reescribiendo sus prompts** en la rama `dev`: lo leído vale
+  para `v1.19.5`.
+
 ### El balance
 
 **Donde este catálogo va adelante:**
@@ -1021,6 +1065,24 @@ vacío y dejarlo implementado en React.
   24+ y da una sola receta, `npx`; su CI fija node 24 como piso, además del
   LTS del momento. Con un node anterior alcanza con actualizar npm a 11. Ver
   B-051 y B-055.
+
+- **El uso real no es el que mide el harness** (Claude Code, 40 sesiones
+  interactivas de 35 días, 2026-11-15, B-106). Las 40 corren en modo `auto`;
+  29 corren sin agente (595 de 1166 turnos). Cada subagente deja su
+  transcripción en un archivo aparte (`<sesión>/subagents/agent-<id>.jsonl`,
+  con un `.meta.json` que dice el tipo): 110 archivos y 255 ediciones que un
+  lector de la sesión principal no ve. En `auto` el host inyecta `bashFirst`
+  y cerca de 1 de cada 10 cambios de archivo se hace por shell.
+- **Un `deny` con ruta se lee como la carpeta entera** (Claude Code,
+  2026-11-15, B-104 y B-106). Negar `Write(.github/workflows/security.yml)`
+  devuelve "File is in a directory that is denied by your permission
+  settings", y el agente deja de editar también `ci.yml`, que estaba
+  permitido: 2 de las 3 muestras rojas de las corridas en `auto` fueron eso
+  (la tercera leyó igual un `cat >` rechazado: como un no a toda la escritura).
+  El `deny` con patrón sí rechaza en modo `auto` (sonda con Haiku).
+- **Claude Code publica en línea sin que se lo pidan** porque la herramienta
+  de artefactos lo habilita en su propia descripción: dos publicaciones no
+  pedidas en 35 días, las dos sin agente (B-106).
 
 Cómo se midió cada cosa, y cómo repetirlo, está en los comentarios de
 `install.py` (`AGY_TOOLS`, `shadow_report`, el renderer de Codex) y en
