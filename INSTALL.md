@@ -438,35 +438,88 @@ purpose: `install.py` stays offline and deterministic, and the network failures
 stay out of it.
 
 ```bash
-./update.py check      # fetch, then list the agents, skills and CORE files that changed
-                       # since each install — writes nothing
-./update.py update     # the same report, then git pull --ff-only and install.py --refresh
+./update.py check      # is there something to bring? fetches, writes nothing
+./update.py update     # bring the catalog (git pull --ff-only), then refresh every install
 ```
 
-- **Which clone.** The one your installs were stamped from (`catalog_path` in
-  `.local-agents.json`), wherever you run the script. If two installs come from
-  two different clones it refuses, because only you can say which one is
-  right.
+`check` answers first, in the words `--status` uses, with one row per tool
+that holds an install:
+
+```
+An update is available.
+
+  upstream    origin/main @ fc0d994
+              your catalog is 2 commits behind
+  changes     skill lh-verification, agent qa
+
+  claude        update available
+  opencode      update available
+
+Next: ./update.py update
+```
+
+- **`update available` is not `out of date`.** `out of date` is this machine
+  against its own clone, and `--refresh` fixes it with no network. `update
+  available` is what the remote has that the clone does not, and it takes
+  `update`.
+- **Commits that change no installed file are not an update.** What is new
+  upstream is read from the remote's diff of what gets installed (agents,
+  skills, CORE files, the installer). A push of documentation says
+  `Everything installed is up to date.` and adds `origin/main has 3 newer
+  commits; none changes an installed file.`
+- **`update` is one answer.** It says what happened to the catalog
+  (`Catalog updated: a319a78 -> fc0d994 (2 commits)`) and then what happened
+  to the installs, in the same rows and closing line as `--refresh`. With
+  nothing to bring: `Everything installed is up to date. Nothing to do.`
+- **Which clone.** The one your installs were recorded from (`catalog_path`
+  in `.local-agents.json`), wherever you run the script. If two installs come
+  from two different clones it refuses, because only you can say which one
+  is right.
 - **It refuses rather than guesses.** It does not update a clone with
   uncommitted changes, or with commits that are not on the remote; it never
   merges, stashes or resets. On a developer's working clone, that is the
-  usual answer, and nothing is touched.
+  usual answer. A refusal has the form of every other one: `refused: …`, what
+  to do, and `Nothing was changed.`
 - **Project installs** live in the team's repository and change on purpose.
-  `update` names them and prints the `--refresh --project` command; it does not
+  `update` names them and prints the command that refreshes them; it does not
   run it.
 - **Exit codes:** `0` done or nothing to do · `1` error · `2` refused, nothing
   touched · `3` the remote could not be reached.
 
-Without a clone at all, `bootstrap` makes one where you never have to look
-(`$XDG_DATA_HOME/local-agents`, else `~/.local/share/local-agents`) and passes
-every argument after it to `install.py`:
+#### One door, with verbs
+
+Everything the catalog can do has a verb in `update.py`, so that someone who
+came in through a launcher — and never sees `install.py` — can do all of it:
+
+| Verb | What it runs |
+|---|---|
+| `check` | compares the clone with the remote |
+| `update` | brings the remote, then `install.py --refresh` |
+| `install [ARGS]` | clones the catalog the first time, then `install.py ARGS` (no arguments: the menu). `bootstrap` is its older name and keeps working |
+| `status [--verbose]` | `install.py --status` |
+| `list` | `install.py --list` |
+| `uninstall [ARGS]` | `install.py --uninstall ARGS` |
+| `default [ARGS]` | `default_agent.py ARGS` (no arguments: `--status`) |
+
+What follows a verb goes to the script untouched, so every flag in this guide
+works: `./update.py uninstall --tool kiro --dry-run`, `./update.py default
+--set generalist`. The scripts keep their own flags; a verb is only another
+way to reach them, and both print the same thing.
+
+A new verb needs no new launcher: launchers hand their arguments over as they
+are. A clone made before a verb existed learns it with `update`.
+
+Without a clone at all, `install` makes one where you never have to look
+(`$XDG_DATA_HOME/local-agents`, else `~/.local/share/local-agents`):
 
 ```bash
-python3 update.py bootstrap --all --tool claude
+python3 update.py install --all --tool claude
 ```
 
-It clones with `--filter=blob:none`: the whole history, which `--status` needs
-to count commits, without downloading old file contents.
+It clones with `--filter=blob:none`: the whole history, which `check` needs to
+count commits, without downloading old file contents. After an `uninstall`
+from that clone, the clone is what is left on the machine, and the output
+says where it is.
 
 ---
 
@@ -869,7 +922,7 @@ from how you came in:
 |---|---|
 | `./install.py …` inside the catalog | `./install.py --refresh` |
 | `install.py` from another folder | `~/path/to/catalog/install.py --refresh` |
-| `update.py …` | `./update.py update` |
+| `update.py …` | `./update.py update`, `./update.py install --all --tool claude` |
 | a launcher (`npx github:…/local-hero …`) | the launcher's own command, or its verb alone (`` `update` ``) from a launcher that does not say its name |
 
 Whoever is in front says how it was typed in the environment variable

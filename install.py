@@ -290,8 +290,8 @@ class Parser(argparse.ArgumentParser):
 # --------------------------------------------------------------------------- #
 FRONT_ENV = "LOCAL_AGENTS_FRONT"
 SELF_DIR = Path(__file__).resolve().parent
-VERBS = {"refresh": "update", "install": "bootstrap", "status": "bootstrap --status",
-         "uninstall": "bootstrap --uninstall", "list": "bootstrap --list", "menu": "bootstrap"}
+VERBS = {"refresh": "update", "install": "install", "status": "status",
+         "uninstall": "uninstall", "list": "list", "menu": "install", "default": "default"}
 FLAGS = {"refresh": "--refresh", "install": "", "status": "--status",
          "uninstall": "--uninstall", "list": "--list", "menu": ""}
 
@@ -313,7 +313,7 @@ def command(intent: str, *args: str) -> str:
     if front and intent in VERBS:
         verb = VERBS[intent]
         if intent == "refresh" and args:
-            verb = "bootstrap --refresh"    # `update` takes no options and refreshes the home installs only
+            verb = "install --refresh"      # `update` takes no options and refreshes the home installs only
         text = " ".join([verb, *args])
         return f"`{text}`" if front == "-" else f"{front} {text}"
     if intent == "default":

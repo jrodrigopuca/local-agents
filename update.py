@@ -1,10 +1,24 @@
 #!/usr/bin/env python3
 """Bring the local-agents catalog, and every install made from it, up to date.
 
-    ./update.py check                  # what changed upstream since you installed — writes nothing
-    ./update.py update                 # fast-forward the clone, then install.py --refresh
-    ./update.py bootstrap [ARGS...]    # first time: clone the catalog, then install.py ARGS
+    ./update.py check                  # what is new upstream since you installed; writes nothing
+    ./update.py update                 # bring the catalog, then refresh every install
+    ./update.py install [ARGS...]      # install: clone the catalog the first time, then install.py ARGS
+    ./update.py status [--verbose]     # what is installed on this machine, and whether it is current
+    ./update.py list                   # what the catalog holds, and which tools were found
+    ./update.py uninstall [ARGS...]    # remove what was installed, and only that
+    ./update.py default [ARGS...]      # the agent a session starts with (default_agent.py)
     ./update.py --launcher-api         # the contract version launchers check (local-hero)
+
+`bootstrap` is the older name of `install` and keeps working. `status` is this
+machine against its own copy of the catalog, with no network; `check` is that
+copy against the remote.
+
+One door, with verbs. A person who came in through a launcher never sees
+install.py or default_agent.py, so everything they can do has a verb here and
+every command this catalog suggests comes back through it (LOCAL_AGENTS_FRONT;
+see command() in install.py). Adding a verb needs no new launcher: launchers
+hand their arguments over untouched.
 
 Getting a new version and installing it are two jobs. `install.py` installs:
 no network, same output for the same input, no dependencies — and validate.py,
@@ -92,9 +106,34 @@ def typed(verb: str) -> str:
     return f"`{verb}`" if front() == "-" else f"{front()} {verb}"
 
 
-def install_hint(cat: Path) -> str:
-    """The command that installs, as the person reading it can type it."""
-    return f"install with {typed('bootstrap --all --tool <tool>')}"
+def _say(prefix: str, what: str, detail: tuple, closing: str = "") -> None:
+    import textwrap
+
+    def fold(text: str, first: str) -> str:
+        if any(len(w) > 50 for w in text.split()):      # a path cannot be folded
+            return first + text
+        return textwrap.fill(text, width=78, initial_indent=first, subsequent_indent="  ",
+                             break_long_words=False, break_on_hyphens=False)
+
+    lines = [fold(what, prefix)] + [fold(d, "  ") for d in detail if d]
+    if closing:
+        lines.append(f"  {closing}")
+    print("\n".join(lines), file=sys.stderr)
+
+
+def refuse(what: str, *detail: str) -> int:
+    """Something that could be done and is not safe to: exit 2, nothing touched."""
+    _say("refused: ", what, detail, "Nothing was changed.")
+    return REFUSED
+
+
+def error(what: str, *detail: str, code: int = 0) -> int:
+    _say("error: ", what, detail)
+    return code or ERROR
+
+
+def plural(n: int, one: str) -> str:
+    return f"{n} {one}{'' if n == 1 else 's'}"
 
 
 def git(repo: Optional[Path], *args, timeout: int = 120) -> subprocess.CompletedProcess:
@@ -163,14 +202,14 @@ def resolve_catalog(installer) -> Tuple[Optional[Path], List[Tuple[str, dict]], 
     if len(paths) > 1:
         where = "; ".join(f"{', '.join(keys)} from {p}" for p, keys in paths.items())
         return None, stamps, (f"your installs come from different clones ({where}). "
-                              f"Reinstall them from one clone with install.py --refresh, "
+                              f"Refresh them all from one clone (its install.py --refresh), "
                               f"then run this again.")
     if paths:
         cat = next(iter(paths))
         if not (cat / "install.py").is_file():
             return None, stamps, (f"the clone your installs came from is gone ({cat}). "
                                   f"To reinstall from a fresh clone: "
-                                  f"{typed('bootstrap --all --tool <tool>')}")
+                                  f"{typed('install --all --tool <tool>')}")
         return cat, stamps, ""
     return HERE, stamps, ""
 
@@ -203,44 +242,91 @@ def changed_units(installer, cat: Path, old: str, new: str) -> List[str]:
 
 
 class Standing(NamedTuple):
-    behind: int     # commits the clone lacks
-    ahead: int      # local commits the remote lacks
-    stale: bool     # some install is not at the remote's commit
+    behind: int      # commits the clone lacks
+    ahead: int       # local commits the remote lacks
+    stale: bool      # some install was made from another commit than the remote's
+    units: list      # what bringing the remote would change in an install, by name
+    waiting: list    # the tools those changes reach
 
 
-def report(installer, cat: Path, stamps, upstream: str, target: str) -> Standing:
-    """Print where the clone and the installs stand against the remote."""
+def standing(installer, cat: Path, stamps, target: str) -> Standing:
+    """Where the clone and the installs stand against the remote. What is new
+    upstream is not downloaded yet, so it cannot be compared by content the
+    way --status does: it is read from the remote's diff of install inputs. A
+    commit that touches none of them is not an update."""
     behind = int(git_out(cat, "rev-list", "--count", "HEAD..@{u}") or 0)
     ahead = int(git_out(cat, "rev-list", "--count", "@{u}..HEAD") or 0)
-    print(f"catalog  {cat}")
-    print(f"remote   {upstream} @ {target[:7]}")
-    state = "up to date" if not behind else f"{behind} commit{'s' * (behind != 1)} behind"
-    if ahead:
-        state += f", {ahead} local commit{'s' * (ahead != 1)} not on the remote"
-    print(f"clone    {state}")
-
-    stale = False
-    if not stamps:
-        print(f"installs none — {install_hint(cat)}")
+    stale, units, waiting = False, [], []
     by_commit: Dict[str, List[str]] = {}
     for key, man in stamps:
         by_commit.setdefault(man["catalog_commit"], []).append(key)
     for commit, keys in by_commit.items():
-        who = ", ".join(keys)
         if commit == target:
-            print(f"installs {who}: up to date")
             continue
         stale = True
         if git(cat, "cat-file", "-e", f"{commit}^{{commit}}").returncode != 0:
-            print(f"installs {who}: from {commit[:7]}, which is not in this history "
-                  f"— update will reinstall them")
+            # Installed from a commit this history lacks: nothing to diff against.
+            units += [u for u in ["everything: installed from a commit this history does not have"]
+                      if u not in units]
+            waiting += keys
             continue
-        n = int(git_out(cat, "rev-list", "--count", f"{commit}..{target}") or 0)
-        units = changed_units(installer, cat, commit, target)
-        print(f"installs {who}: from {commit[:7]}, {n} commit{'s' * (n != 1)} behind")
-        for u in units or ["no installed file changes (docs only)"]:
-            print(f"           · {u}")
-    return Standing(behind, ahead, stale)
+        mine = changed_units(installer, cat, commit, target)
+        units += [u for u in mine if u not in units]
+        if mine:
+            waiting += keys
+    return Standing(behind, ahead, stale, units, waiting)
+
+
+def local_states(installer, cat: Path) -> list:
+    """Each tool's state against the clone on disk, as --status computes it."""
+    agents, skills = installer.discover(cat)
+    by_name = {}
+    for s in skills:
+        by_name.setdefault(s.name, s)
+    return [installer.tool_state(t, agents, by_name, None, cat) for t in installer.TOOLS]
+
+
+def print_check(installer, cat: Path, upstream: str, target: str, st: Standing) -> None:
+    """`check`: the answer first — is there something to bring? — then one row
+    per tool that holds an install, in the words --status uses."""
+    states = [s for s in local_states(installer, cat) if s.installed]
+    if not states:
+        print(f"Nothing from this catalog is installed yet.\n\n"
+              f"Next: {typed('install --all --tool <tool>')}")
+        return
+    behind_here = [s for s in states if s.behind]
+    if st.waiting:
+        print("An update is available.\n")
+        print(f"  upstream    {upstream} @ {target[:7]}")
+        print(f"              your catalog is {plural(st.behind, 'commit')} behind" if st.behind
+              else "              your catalog already has it; the installs do not")
+        print(installer.wrapped(", ".join(st.units), 14, "  changes     "))
+        print()
+    elif behind_here:
+        print(f"{len(behind_here)} of {plural(len(states), 'tool')} "
+              f"{'is' if len(behind_here) == 1 else 'are'} out of date.\n")
+    else:
+        print("Everything installed is up to date.\n")
+    for s in states:
+        key = s.tool.key
+        if key in st.waiting:
+            print(f"  {key:<13} update available")
+        elif s.behind:
+            print(installer.wrapped(f"{len(s.behind)} out of date".ljust(15) + " "
+                                    + installer.names(s.behind), 16, f"  {key:<13} "))
+        else:
+            print(f"  {key:<13} {'up to date':<15} "
+                  f"{len(s.agents['present'])} agents, {len(s.skills['present'])} skills")
+    print()
+    if st.waiting or behind_here:
+        print(f"Next: {typed('update')}")
+    elif st.behind:
+        print(f"{upstream} has {plural(st.behind, 'newer commit')}; none changes an installed file.")
+    else:
+        print(f"Catalog {target[:7]}, same as {upstream}.")
+    if st.ahead:
+        print(f"Your catalog has {plural(st.ahead, 'local commit')} that "
+              f"{'is' if st.ahead == 1 else 'are'} not on {upstream}.")
 
 
 def prepare(installer) -> Tuple[Optional[Path], list, str, str, int]:
@@ -248,28 +334,24 @@ def prepare(installer) -> Tuple[Optional[Path], list, str, str, int]:
     prunes a deleted remote branch leaves `@{u}` pointing at nothing."""
     cat, stamps, why = resolve_catalog(installer)
     if not cat:
-        print(f"refusing: {why}", file=sys.stderr)
-        return None, stamps, "", "", REFUSED
+        return None, stamps, "", "", refuse(why)
     branch = git_out(cat, "symbolic-ref", "--quiet", "--short", "HEAD")
     if not branch or not git_out(cat, "config", f"branch.{branch}.remote"):
-        print(f"refusing: {cat} is not on a branch that tracks a remote "
-              f"(git checkout main?)", file=sys.stderr)
-        return None, stamps, "", "", REFUSED
+        return None, stamps, "", "", refuse(
+            f"{cat} is not on a branch that tracks a remote.", "Try: git checkout main")
     # No remote name here: git takes it from the branch's config, which also
     # covers remotes whose names contain a slash.
     fetch = git(cat, "fetch", "--quiet")
     if fetch.returncode != 0:
-        print(f"could not reach the remote from {cat}: {fetch.stderr.strip()[-200:]}",
-              file=sys.stderr)
-        return None, stamps, "", "", OFFLINE
+        return None, stamps, "", "", error(
+            f"could not reach the remote from {cat}.", fetch.stderr.strip()[-200:], code=OFFLINE)
     upstream = git_out(cat, "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
     target = git_out(cat, "rev-parse", "@{u}")
     if not upstream or not target:
         merge = git_out(cat, "config", f"branch.{branch}.merge") or "its upstream"
-        print(f"refusing: {branch} tracks {merge}, which the remote no longer has. "
-              f"Point it at a branch that exists (git branch -u <remote>/<branch>).",
-              file=sys.stderr)
-        return None, stamps, "", "", REFUSED
+        return None, stamps, "", "", refuse(
+            f"{branch} tracks {merge}, which the remote no longer has.",
+            "Point it at a branch that exists: git branch -u <remote>/<branch>")
     return cat, stamps, upstream, target, OK
 
 
@@ -291,15 +373,15 @@ def project_hint(installer, cat: Path):
     cwd = Path.cwd()
     mine = [k for k, man in read_stamps(installer, cwd) if stamped_path(man) == cat]
     if mine:
-        print(f"\nThis repo has a project install ({', '.join(mine)}). It is not updated "
-              f"automatically; when you want it:\n  {typed(f'bootstrap --refresh --project {cwd}')}")
+        print(f"\nNote: this repo has a project install ({', '.join(mine)}). It is not updated "
+              f"automatically; when you want it:\n  {typed(f'install --refresh --project {cwd}')}")
 
 
 def cmd_check(installer) -> int:
     cat, stamps, upstream, target, code = prepare(installer)
     if code:
         return code
-    report(installer, cat, stamps, upstream, target)
+    print_check(installer, cat, upstream, target, standing(installer, cat, stamps, target))
     return OK
 
 
@@ -307,88 +389,104 @@ def cmd_update(installer) -> int:
     cat, stamps, upstream, target, code = prepare(installer)
     if code:
         return code
-    state = report(installer, cat, stamps, upstream, target)
+    state = standing(installer, cat, stamps, target)
     changes = dirty(installer, cat)
     if changes:
-        shown = ", ".join(changes[:5]) + (" …" if len(changes) > 5 else "")
-        print(f"\nrefusing: {cat} has uncommitted changes ({shown}). Commit or "
-              f"discard them; nothing was touched.", file=sys.stderr)
-        return REFUSED
+        shown = ", ".join(changes[:5]) + (" ..." if len(changes) > 5 else "")
+        return refuse(f"{cat} has uncommitted changes ({shown}).",
+                      "Commit or discard them, then run this again.")
     if state.ahead:
-        print(f"\nrefusing: {cat} has commits that are not on {upstream}. Push or "
-              f"rebase them yourself; nothing was touched.", file=sys.stderr)
-        return REFUSED
-    if not state.behind and not state.stale:
-        print("\nNothing to do.")
+        return refuse(f"{cat} has commits that are not on {upstream}.",
+                      "Push or rebase them yourself, then run this again.")
+    if not state.behind and not state.stale and not any(
+            s.behind for s in local_states(installer, cat) if s.installed):
+        print("Everything installed is up to date. Nothing to do.")
         return OK
     before = git_out(cat, "rev-parse", "HEAD")
     if state.behind:
         merge = git(cat, "merge", "--ff-only", "--quiet", "@{u}")
         if merge.returncode != 0:
-            print(f"\nrefusing: could not fast-forward {cat}: "
-                  f"{merge.stderr.strip()[-200:]}", file=sys.stderr)
-            return REFUSED
+            return refuse(f"could not fast-forward {cat}.", merge.stderr.strip()[-200:])
+        after = git_out(cat, "rev-parse", "HEAD")
+        # The catalog's part ends here; what install.py prints next is the rest
+        # of the same answer, not another program's output.
+        print(f"Catalog updated: {before[:7]} -> {after[:7]} ({plural(state.behind, 'commit')})\n")
     after = git_out(cat, "rev-parse", "HEAD")
-    print(f"\nclone    {before[:7]} → {after[:7]}")
     if not stamps:
-        print(f"Nothing installed yet — {install_hint(cat)}.")
+        print(f"Nothing from this catalog is installed yet.\n"
+              f"Next: {typed('install --all --tool <tool>')}")
         return OK
-    print("refresh  install.py --refresh\n")
     proc = subprocess.run([sys.executable, str(cat / "install.py"), "--refresh"],
                           stdin=subprocess.DEVNULL)
     if proc.returncode != 0:
-        print(f"\ninstall.py --refresh exited {proc.returncode}; the clone is at "
-              f"{after[:7]}, run it again once the error above is fixed.", file=sys.stderr)
-        return ERROR
+        return error("the update did not finish (see above).",
+                     f"The catalog is already at {after[:7]}; only the installs are behind.",
+                     f"Try: {typed('update')}")
     project_hint(installer, cat)
     return OK
 
 
-def cmd_bootstrap(install_args: List[str]) -> int:
-    """First run on a machine: clone where the user never has to look, then
-    hand the install over to install.py. `--filter=blob:none` keeps the whole
-    history (install.py --status counts commits) without downloading old file
-    contents; `--depth 1` would break that count."""
+def cmd_install(install_args: List[str]) -> int:
+    """`install` (and `bootstrap`, its older name). The first run on a machine
+    clones where the user never has to look; every run hands the install over
+    to install.py. `--filter=blob:none` keeps the whole history (the install
+    record is a commit, and `check` counts from it) without downloading old
+    file contents; `--depth 1` would break that count."""
     dest = managed_dir()
     if (dest / ".git").exists():
         # A clone interrupted half way has a .git and no commit checked out.
         if git(dest, "rev-parse", "--verify", "--quiet", "HEAD").returncode != 0 \
                 or not (dest / "install.py").is_file():
-            print(f"refusing: {dest} is an incomplete clone (an interrupted first "
-                  f"run?). Delete it and run this again.", file=sys.stderr)
-            return REFUSED
-        print(f"catalog already cloned at {dest}; using it "
-              f"(run `update` to refresh it)")
+            return refuse(f"{dest} is an incomplete clone (an interrupted first run?).",
+                          "Delete it and run this again.")
     elif dest.exists() and any(dest.iterdir()):
-        print(f"refusing: {dest} exists, is not empty and is not a clone. Move it "
-              f"away, or set XDG_DATA_HOME to clone somewhere else.", file=sys.stderr)
-        return REFUSED
+        return refuse(f"{dest} exists, is not empty and is not a clone.",
+                      "Move it away, or set XDG_DATA_HOME to clone somewhere else.")
     else:
         # Into a side folder, renamed only once git is done: a Ctrl-C mid-clone
         # must not leave something that looks like a clone.
         dest.parent.mkdir(parents=True, exist_ok=True)
         partial = dest.with_name(f"{dest.name}.partial-{os.getpid()}")
-        print(f"cloning {REPO_URL} → {dest}")
+        print(f"Cloning the catalog into {dest}")
         proc = git(None, "clone", "--quiet", "--filter=blob:none", REPO_URL, str(partial),
                    timeout=300)
         if proc.returncode != 0:
             shutil.rmtree(partial, ignore_errors=True)
-            print(f"could not clone {REPO_URL}: {proc.stderr.strip()[-200:]}",
-                  file=sys.stderr)
-            return OFFLINE
+            return error(f"could not clone {REPO_URL}.", proc.stderr.strip()[-200:], code=OFFLINE)
         if dest.exists():
             dest.rmdir()  # empty, checked above
         partial.rename(dest)
     if not install_args:
-        # install.py with no arguments is its interactive menu (suite, agent or
-        # skill; which tool; what to do on conflict). Without a person at the
-        # keyboard it would only wait on input, so a script gets the commands.
+        # install.py with no arguments is its interactive menu (the whole
+        # catalog, an agent or skills; which tool; what to do on conflict).
+        # Without a person at the keyboard it would only wait on input, so a
+        # script gets the commands.
         if sys.stdin.isatty() and sys.stdout.isatty():
             return subprocess.run([sys.executable, str(dest / "install.py")]).returncode
-        print(f"Next: {typed('bootstrap --list')}\n"
-              f"      then {typed('bootstrap --all --tool <tool>')}")
+        print(f"Next: {typed('list')}\n"
+              f"      then {typed('install --all --tool <tool>')}")
         return OK
     return subprocess.run([sys.executable, str(dest / "install.py"), *install_args]).returncode
+
+
+def cmd_script(script: str, args: List[str]) -> int:
+    """A verb that is one of the catalog's scripts with its flags: `status` is
+    install.py --status, `default` is default_agent.py. Run from this clone."""
+    if not (HERE / script).is_file():
+        return error(f"there is no {script} next to {Path(__file__).name}.",
+                     f"Try: {typed('install')}")
+    code = subprocess.run([sys.executable, str(HERE / script), *args]).returncode
+    if code == OK and args[:1] == ["--uninstall"] and "--dry-run" not in args \
+            and HERE == managed_dir().resolve() and not read_stamps(load_installer(HERE)):
+        # Through a launcher the clone is the one thing the person never saw.
+        print(f"The catalog copy remains at {HERE}; delete that folder to remove it completely.")
+    return code
+
+
+# A verb, and what it runs. Handled before argparse: what follows the verb is
+# the script's own arguments, and argparse would eat a leading `--option`.
+SCRIPT_VERBS = {"status": ("install.py", ["--status"]), "list": ("install.py", ["--list"]),
+                "uninstall": ("install.py", ["--uninstall"]), "default": ("default_agent.py", [])}
 
 
 class Parser(argparse.ArgumentParser):
@@ -412,16 +510,26 @@ def main(argv: Optional[List[str]] = None) -> int:
     # bootstrap hands everything after it to install.py untouched. argparse's
     # REMAINDER drops a leading `--option` inside a subcommand, so the split
     # happens before argparse sees the line.
-    if argv[:1] == ["bootstrap"]:
-        return cmd_bootstrap(argv[1:])
+    if argv[:1] in (["install"], ["bootstrap"]):
+        return cmd_install(argv[1:])
+    if argv[:1] and argv[0] in SCRIPT_VERBS:
+        script, flags = SCRIPT_VERBS[argv[0]]
+        rest = argv[1:] or (["--status"] if argv[0] == "default" else [])
+        return cmd_script(script, flags + rest)
     ap = Parser(description=__doc__.split("\n")[0])
     ap.add_argument("--launcher-api", action="store_true",
                     help="print the launcher contract version and exit")
     sub = ap.add_subparsers(dest="command", parser_class=Parser)
-    sub.add_parser("check", help="show what changed upstream since you installed; writes nothing")
-    sub.add_parser("update", help="fast-forward the clone, then reinstall with install.py --refresh")
-    sub.add_parser("bootstrap", help="clone the catalog, then run install.py with every "
-                                     "argument that follows, as it is")
+    sub.add_parser("check", help="what is new upstream since you installed; writes nothing")
+    sub.add_parser("update", help="bring the catalog, then refresh every install")
+    sub.add_parser("install", help="install: clone the catalog the first time, then run "
+                                   "install.py with every argument that follows, as it is")
+    sub.add_parser("status", help="what is installed on this machine, and whether it is "
+                                  "current (--verbose for every tool in full)")
+    sub.add_parser("list", help="what the catalog holds, and which tools were found")
+    sub.add_parser("uninstall", help="remove what was installed, and only that")
+    sub.add_parser("default", help="the agent a session starts with: --set NAME, --restore")
+    sub.add_parser("bootstrap", help="the older name of `install`")
     args = ap.parse_args(argv)
 
     if args.launcher_api:
@@ -431,9 +539,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         ap.print_help()
         return ERROR
     if not (HERE / "install.py").is_file():
-        print(f"no install.py next to {Path(__file__).name}: run `bootstrap` first",
-              file=sys.stderr)
-        return ERROR
+        return error(f"there is no install.py next to {Path(__file__).name}.",
+                     f"Try: {typed('install')}")
     # The installer is loaded from HERE only to find where each host keeps its
     # stamps; the clone that gets updated, and whose install.py runs, is the
     # one those stamps name.

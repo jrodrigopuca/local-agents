@@ -18,6 +18,7 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 import install  # noqa: E402
+import update   # noqa: E402
 
 FRONT = "npx github:x/local-hero"
 
@@ -56,41 +57,51 @@ class Command(unittest.TestCase):
         self.at(ROOT, FRONT)
         self.assertEqual(install.command("refresh"), f"{FRONT} update")
         self.assertEqual(install.command("install", "--all", "--tool kiro"),
-                         f"{FRONT} bootstrap --all --tool kiro")
-        self.assertEqual(install.command("status"), f"{FRONT} bootstrap --status")
-        self.assertEqual(install.command("uninstall", "--tool kiro"),
-                         f"{FRONT} bootstrap --uninstall --tool kiro")
+                         f"{FRONT} install --all --tool kiro")
+        self.assertEqual(install.command("status"), f"{FRONT} status")
+        self.assertEqual(install.command("uninstall", "--tool kiro"), f"{FRONT} uninstall --tool kiro")
+        self.assertEqual(install.command("list"), f"{FRONT} list")
+        self.assertEqual(install.command("menu"), f"{FRONT} install")
+        self.assertEqual(install.command("default", "--restore"), f"{FRONT} default --restore")
 
-    def test_update_takes_no_options_so_a_refresh_with_any_goes_through_bootstrap(self):
+    def test_update_takes_no_options_so_a_refresh_with_any_goes_through_install(self):
         self.at(ROOT, FRONT)
         self.assertEqual(install.command("refresh", "--project /repo"),
-                         f"{FRONT} bootstrap --refresh --project /repo")
+                         f"{FRONT} install --refresh --project /repo")
         self.assertEqual(install.command("refresh", "--verify-hook"),
-                         f"{FRONT} bootstrap --refresh --verify-hook")
+                         f"{FRONT} install --refresh --verify-hook")
 
     def test_a_launcher_that_did_not_say_its_name_gets_the_verb_alone(self):
         self.at(ROOT, "-")
         self.assertEqual(install.command("refresh"), "`update`")
         self.assertEqual(install.command("install", "--all", "--tool claude"),
-                         "`bootstrap --all --tool claude`")
+                         "`install --all --tool claude`")
 
     def test_empty_arguments_leave_no_double_spaces(self):
         self.at(ROOT)
         self.assertEqual(install.command("uninstall", "", " --project /r "), "./install.py --uninstall --project /r")
 
-    def test_the_two_grammars_say_the_same_thing(self):
-        # what follows `bootstrap` is handed to install.py untouched: it must be
-        # exactly what the direct command passes
-        for intent, args in (("install", ("--all", "--tool claude")), ("status", ("--verbose",)),
-                             ("uninstall", ("--tool kiro",)), ("list", ()), ("menu", ()),
-                             ("refresh", ("--project /r",))):
+    def test_every_verb_it_suggests_is_one_update_py_has_and_runs_the_same_thing(self):
+        # A verb is a script with its flags (update.SCRIPT_VERBS), or `install`,
+        # which hands what follows to install.py untouched. Whatever command()
+        # says behind a front must come out, through that table, as exactly
+        # what it says when the script is run directly.
+        cases = (("install", ("--all", "--tool claude")), ("status", ("--verbose",)),
+                 ("uninstall", ("--tool kiro",)), ("list", ()), ("menu", ()),
+                 ("refresh", ("--project /r",)), ("default", ("--restore", "--tool claude")))
+        for intent, args in cases:
             with self.subTest(intent=intent):
                 self.at(ROOT)
-                direct = install.command(intent, *args).split()[1:]
+                script, *direct = install.command(intent, *args).split()
                 self.at(ROOT, FRONT)
-                through = install.command(intent, *args)[len(FRONT):].split()
-                self.assertEqual(through[0], "bootstrap")
-                self.assertEqual(through[1:], direct)
+                verb, *rest = install.command(intent, *args)[len(FRONT):].split()
+                if verb == "install":
+                    runs, passed = "install.py", rest
+                else:
+                    runs, flags = update.SCRIPT_VERBS[verb]
+                    passed = flags + rest
+                self.assertEqual(script, f"./{runs}")
+                self.assertEqual(passed, direct)
 
 
 class EndToEnd(unittest.TestCase):
@@ -128,12 +139,14 @@ class EndToEnd(unittest.TestCase):
     def test_behind_a_launcher_nothing_points_at_install_py(self):
         seen = "\n".join(self.messages(front=FRONT))
         self.assertNotIn("install.py", seen)
-        for must in (f"Next: {FRONT} bootstrap --all --tool claude",
-                     f"Try: {FRONT} bootstrap --all --tool claude",
-                     f"{FRONT} bootstrap --skill lh-pairing --tool claude --on-conflict overwrite",
-                     f"Details: {FRONT} bootstrap --status --verbose",
-                     f"enable: {FRONT} bootstrap --refresh --shell-write-guard",
-                     f"Check any time: {FRONT} bootstrap --status"):
+        self.assertNotIn("default_agent.py", seen)
+        for must in (f"Next: {FRONT} install --all --tool claude",
+                     f"Try: {FRONT} install --all --tool claude",
+                     f"{FRONT} install --skill lh-pairing --tool claude --on-conflict overwrite",
+                     f"Details: {FRONT} status --verbose",
+                     f"enable: {FRONT} install --refresh --shell-write-guard",
+                     f"Check any time: {FRONT} status",
+                     f"Try: {FRONT} default --restore --tool claude"):
             self.assertIn(must, seen)
 
     def test_in_one_s_own_clone_it_is_the_scripts(self):
