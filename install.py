@@ -1790,6 +1790,173 @@ def refresh_tool(tool: Tool, dry_run: bool, agents: dict, skills_by_name: dict,
 
 
 # --------------------------------------------------------------------------- #
+# Uninstall (B-107)
+#
+# The way back takes what the installer put, and only that. "Ours" is decided
+# the way every other path decides it — by identity and by the hash the stamp
+# recorded, never by name: a copy that still is what we wrote goes; one that
+# was edited since stays, because a leftover file costs less than a lost edit;
+# a stranger's file with one of our names is not ours to judge. Nothing is
+# guessed: a copy the stamp holds no record of is kept.
+# --------------------------------------------------------------------------- #
+def _rmdir_if_empty(d: Path, dry_run: bool) -> None:
+    """Take away a directory we may have made, when nothing is left in it."""
+    if dry_run or not d.is_dir() or d.is_symlink():
+        return
+    try:
+        next(d.iterdir())
+    except StopIteration:
+        d.rmdir()
+    except OSError:
+        pass
+
+
+def remove_roster_block(roster: Path, dry_run: bool) -> bool:
+    """Take our marker block out of an AGENTS.md. Everything outside the
+    markers is the user's and stays byte for byte; a file that held nothing
+    else goes with the block."""
+    if not roster.is_file():
+        return False
+    text = roster.read_text(encoding="utf-8")
+    if ROSTER_BEGIN not in text or ROSTER_END not in text:
+        return False
+    head = text[:text.index(ROSTER_BEGIN)]
+    tail = text[text.index(ROSTER_END) + len(ROSTER_END):]
+    # write_roster appends "\n\n" + block + "\n" to a file that had content,
+    # so undo exactly that; a block placed in the middle keeps both sides.
+    if head.strip() and tail.strip():
+        rest = head.rstrip("\n") + "\n\n" + tail.lstrip("\n")
+    else:
+        rest = head.rstrip("\n") + "\n" if head.strip() else tail.lstrip("\n")
+    print(f"    roster  → block removed from {roster}")
+    if not dry_run:
+        if rest.strip():
+            roster.write_text(rest, encoding="utf-8")
+        else:
+            roster.unlink()
+    return True
+
+
+def _owns_roster(tool: Tool) -> bool:
+    """Whether the block in this tool's AGENTS.md is this install's to remove.
+    A roster host's always is. Codex only left one before it had TOML agents,
+    and per project that root AGENTS.md is the `shared` install's too: while
+    its bodies are there, the block is still in use (see retire_roster_install)."""
+    if tool.agent_style == "roster_md":
+        return True
+    if tool.agent_style != "codex_toml":
+        return False
+    bodies = tool.roster.parent / ".agents" / "agents"
+    return tool.roster.parent == tool.config_root or not any(
+        f.read_text(encoding="utf-8", errors="replace").startswith("# `") for f in bodies.glob("*.md"))
+
+
+def uninstall_tool(tool: Tool, dry_run: bool, agents: dict) -> bool:
+    """Remove this host's catalog install. Returns False when there is none."""
+    stamp_file = tool.config_root / MANIFEST
+    if not stamp_file.is_file():
+        return False
+    stamp = run_for(tool).stamp or {}
+    print(f"\n  Uninstalling → {tool.label}")
+    removed, kept, strangers = [], [], 0
+
+    # Skills: ours by id, and still the bytes the stamp recorded under that name.
+    recs = stamp.get("skills") or {}
+    if tool.skills_dir.is_dir():
+        for d in sorted(tool.skills_dir.iterdir()):
+            kind, sk = classify_skill(d, stamp)
+            if kind in (FOREIGN, LINK):
+                strangers += kind == FOREIGN
+                continue
+            # A skill the catalog no longer has is still ours if the stamp recorded it here.
+            rec = recs.get(sk.id) if sk is not None else next(
+                (r for r in recs.values() if r.get("name") == d.name), None)
+            if kind != EDITED and rec and rec.get("name") == d.name and rec.get("sha256") == tree_hash(d):
+                removed.append(f"skill {d.name}")
+                if not dry_run:
+                    shutil.rmtree(d)
+            else:
+                kept.append((f"skill {d.name}", "edited since it was installed" if kind == EDITED or rec
+                             else "no install record for it"))
+
+    # Agents: the files the stamp lists, while they are what we wrote.
+    backups = []
+    if tool.agents_dir is not None and tool.agents_dir.is_dir():
+        for f in sorted(tool.agents_dir.iterdir()):
+            if not f.is_file() or not f.name.endswith(agent_suffix(tool)):
+                continue
+            kind = classify_agent(f, set(agents), stamp)
+            if kind == OURS:
+                removed.append(f"agent {f.name}")
+                # Kiro keeps its own backup of an agent it upgraded; that file is Kiro's.
+                if (f.parent / (f.name + ".bak")).is_file():
+                    backups.append(f.name + ".bak")
+                if not dry_run:
+                    f.unlink()
+            elif kind == EDITED:
+                kept.append((f"agent {f.name}", "edited since it was installed"))
+            elif kind == FOREIGN:
+                strangers += 1
+
+    # Hook scripts: only a copy whose hash is the one we recorded.
+    for rel, key in ((GUARD_REL, "shell_write_guard_sha256"), (VERIFY_REL, "verify_hook_sha256")):
+        f = tool.config_root / rel
+        if not f.is_file():
+            continue
+        if stamp.get(key) and file_hash(f) == stamp[key]:
+            removed.append(f"hook {rel.name}")
+            if not dry_run:
+                f.unlink()
+        else:
+            kept.append((f"hook {rel.name}", "not the copy that was installed"))
+
+    for line in removed:
+        print(f"    remove  → {line}")
+    if _owns_roster(tool):
+        remove_roster_block(tool.roster, dry_run)
+    for what, why in kept:
+        print(f"    kept    → {what}: {why}")
+    print(f"    stamp   → {stamp_file.name} removed")
+    if not dry_run:
+        stamp_file.unlink()
+        for d in (tool.config_root / GUARD_REL.parent, tool.config_root / GUARD_REL.parent.parent,
+                  tool.skills_dir, tool.agents_dir):
+            if d is not None:
+                _rmdir_if_empty(d, dry_run)
+        home = TOOLS_BY_KEY.get(tool.key)
+        if home is not None and tool.config_root != home.config_root:
+            _rmdir_if_empty(tool.config_root, dry_run)      # a project's own config dir, never the home one
+    verb = "would remove" if dry_run else "removed"
+    print(f"    {verb} {len(removed)}; kept {len(kept)}"
+          + (f"; {strangers} file(s) that were never ours, untouched" if strangers else ""))
+    if kept:
+        print("    what was kept is yours now: the catalog no longer tracks it. Delete it by hand "
+              "if you do not want it.")
+    if backups:
+        print(f"    Kiro's own backups of those agents remain ({len(backups)} *.bak in {tool.agents_dir})")
+    _warn_default_agent(tool, removed)
+    return True
+
+
+def _warn_default_agent(tool: Tool, removed: list) -> None:
+    """A host told to start with an agent that is gone starts badly. The
+    setting is default_agent.py's to put back, not ours — say so."""
+    home = TOOLS_BY_KEY.get(tool.key)
+    if home is None or tool.config_root != home.config_root:
+        return
+    try:
+        sys.dont_write_bytecode = True      # no __pycache__ in the catalog: it would read as a dirty tree
+        import default_agent
+        host = default_agent.HOSTS.get(tool.key)
+        now = default_agent.current(host) if host else default_agent.ABSENT
+    except Exception:           # the script is optional; its absence must not break an uninstall
+        return
+    if isinstance(now, str) and any(r == f"agent {now}{agent_suffix(tool)}" for r in removed):
+        print(f"    NOTE    → {tool.label} is still set to start with `{now}`, one of the agents removed: "
+              f"run ./default_agent.py --restore --tool {tool.key}")
+
+
+# --------------------------------------------------------------------------- #
 # Interactive menu
 # --------------------------------------------------------------------------- #
 def choose(prompt: str, options: list) -> Optional[int]:
@@ -2063,6 +2230,10 @@ def main():
     ap.add_argument("--refresh", action="store_true",
                     help="reinstall the whole suite into every tool that already holds "
                          "a catalog install (overwrites catalog files only)")
+    ap.add_argument("--uninstall", action="store_true",
+                    help="remove what the installer put, and only that: catalog files that are "
+                         "still as installed. Edited copies and anything foreign stay. Every "
+                         "tool that holds an install, or the one named with --tool")
     ap.add_argument("--all", action="store_true", help="install the whole suite (all agents + skills)")
     ap.add_argument("--agent", action="append", default=[], help="agent name to install (repeatable)")
     ap.add_argument("--skill", action="append", default=[], help="skill as agent:skill or name (repeatable)")
@@ -2148,6 +2319,26 @@ def main():
         # date and leaves everything else — foreign, edited, links — alone.
         for t in installed:
             refresh_tool(target(t), args.dry_run, agents, skills_by_name, catalog)
+        return
+
+    if args.uninstall:
+        if args.all or args.agent or args.skill:
+            sys.exit("--uninstall removes a whole install; it does not combine with --all, "
+                     "--agent or --skill")
+        if args.tool and args.tool not in TOOLS_BY_KEY:
+            sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
+        done, seen = 0, set()
+        for t in ([TOOLS_BY_KEY[args.tool]] if args.tool else TOOLS):
+            here = project_tool(t, project) if project else t
+            # Per project, shared and antigravity are one `.agents/` and one stamp.
+            if here.config_root in seen:
+                if here.agent_style == "roster_md":
+                    remove_roster_block(here.roster, args.dry_run)
+                continue
+            seen.add(here.config_root)
+            done += uninstall_tool(here, args.dry_run, agents)
+        if not done:
+            sys.exit(f"--uninstall: no catalog install found here (no {MANIFEST})")
         return
 
     # Non-interactive: whole suite

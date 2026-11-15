@@ -639,6 +639,46 @@ twice. Copies like that show up in `--status` as retired.
 
 ---
 
+## Uninstalling: `--uninstall`
+
+The way back takes what the installer put, and only that.
+
+```bash
+./install.py --uninstall --dry-run     # show what would go, change nothing
+./install.py --uninstall               # every tool that holds a catalog install
+./install.py --uninstall --tool kiro   # only that one
+./install.py --uninstall --project .   # a project's install, not your home's
+```
+
+It decides what is "ours" the way every other path does (see above): by the
+skill's id and by the hash the stamp recorded, never by name.
+
+| In the host's directory | What happens |
+|---|---|
+| A catalog skill or agent, still as it was installed | Removed |
+| The hook scripts the installer copied, still as copied | Removed |
+| The roster block in `AGENTS.md` | Removed; everything outside the markers stays, and a file that held nothing else goes with it |
+| The stamp, `.local-agents.json` | Removed |
+| A catalog skill, agent or hook script you **edited** since | Kept, and named in the output |
+| Anything foreign, even with one of our names | Not touched |
+| A directory left empty (`skills/`, `agents/`, `hooks/`, a project's config dir) | Removed; your home's config dir never is |
+
+- **What is kept is yours from then on.** The stamp goes either way, so the
+  catalog no longer tracks an edited copy: delete it by hand if you do not want
+  it. A leftover file costs less than a lost edit.
+- **Kiro's backups stay.** Kiro writes a `.bak` next to every agent it
+  upgrades; those files are Kiro's, and the output says how many remain.
+- **The default agent is not this command's.** If a host is still set to start
+  with an agent that was just removed, the output says so and names the
+  command that puts the setting back: `./default_agent.py --restore`.
+- **Measured, not promised:** for each of the six tools, and for a project,
+  the tests install into a directory that already holds the user's own
+  settings, skills and agents, uninstall, and compare the directory byte for
+  byte with what it was (`tests/test_uninstall.py`). One limit: an `AGENTS.md`
+  that did not end with exactly one newline comes back ending with one.
+
+---
+
 ## Installation Destinations (Per Tool)
 
 | Tool | Agents | Skills |
@@ -680,6 +720,7 @@ available to both.
 | `--project [PATH]` | Install into a repository instead of user home (no path = current dir) |
 | `--status` | Check what is INSTALLED in each tool and whether it is up to date, then exit |
 | `--refresh` | Reinstall the suite into every tool that already holds a catalog install |
+| `--uninstall` | Remove what the installer put, and only that; edited and foreign files stay. With `--tool`, `--project`, `--dry-run` |
 
 ---
 

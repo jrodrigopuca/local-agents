@@ -171,6 +171,21 @@ class Cli(Base):
         self.assertFalse(self.claude.path.exists())
         self.assertTrue(self.kiro.path.exists())
 
+    def test_running_it_leaves_no_bytecode_in_the_catalog(self):
+        # a __pycache__ there reads as a dirty tree in every install stamp
+        import os, shutil, subprocess
+        copy = self.home / "catalog"
+        copy.mkdir()
+        for f in ("default_agent.py", "install.py"):
+            shutil.copy(ROOT / f, copy / f)
+        env = {k: v for k, v in os.environ.items() if k != "PYTHONDONTWRITEBYTECODE"}
+        env.update(HOME=str(self.home), USERPROFILE=str(self.home))
+        env.pop("PYTHONPYCACHEPREFIX", None)
+        run = subprocess.run([sys.executable, str(copy / "default_agent.py"), "--status"],
+                             capture_output=True, text=True, env=env)
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertEqual(sorted(p.name for p in copy.iterdir()), ["default_agent.py", "install.py"])
+
     def test_codex_and_antigravity_are_named_as_unsupported(self):
         with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), mock.patch("sys.stderr", io.StringIO()) as err:
             da.main(["--set", "generalist", "--tool", "codex"])

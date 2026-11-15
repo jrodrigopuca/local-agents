@@ -39,7 +39,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
-from install import TOOLS_BY_KEY
+# Importing install.py must not leave a __pycache__ in the catalog: with no global git
+# excludes (CI, a throwaway HOME) it would read as a dirty tree in every install stamp.
+sys.dont_write_bytecode = True
+from install import TOOLS_BY_KEY  # noqa: E402
 
 STATE = ".local-agents-default-agent.json"
 ABSENT = "absent"     # the setting did not exist; `None` would also be a legal JSON value
