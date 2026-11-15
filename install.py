@@ -556,9 +556,9 @@ def sync_guard(tool: Tool, dry_run: bool):
 def script_state(dest: Path, source: Path) -> str:
     """Whether a hook script on disk is the catalog's current one."""
     if not dest.is_file():
-        return "script MISSING — the agents' hook fails open; reinstall"
+        return "script MISSING: the agents' hook fails open; reinstall"
     if file_hash(dest) != file_hash(source):
-        return "script stale — --refresh updates it"
+        return "script out of date: --refresh updates it"
     return "script current"
 
 
@@ -568,8 +568,8 @@ def guard_status(tool: Tool) -> str:
     dest = guard_path(tool)
     if not guard_on(tool):
         extra = f" (a copy is still at {dest})" if dest.is_file() else ""
-        return f"guard    shell-write guard off{extra} — enable: --refresh --shell-write-guard"
-    return f"guard    shell-write guard on · {script_state(dest, GUARD_SOURCE)} · {dest}"
+        return f"shell-write guard off{extra}"
+    return f"shell-write guard on, {script_state(dest, GUARD_SOURCE)}, {show_path(dest)}"
 
 
 def verify_on(tool: Tool) -> bool:
@@ -635,11 +635,11 @@ def verify_status(tool: Tool) -> str:
     dest = verify_path(tool)
     if not verify_on(tool):
         extra = f" (a copy is still at {dest})" if dest.is_file() else ""
-        return f"verify   verify hook off{extra} — enable: --refresh --verify-hook"
+        return f"verify hook off{extra}"
     default = verify_default(tool)
     what = (f"runs each repo's .local-agents/verify, default {default!r}" if default
             else "runs each repo's .local-agents/verify, no default")
-    return f"verify   verify hook on · {what} · {script_state(dest, VERIFY_SOURCE)} · {dest}"
+    return f"verify hook on, {what}, {script_state(dest, VERIFY_SOURCE)}, {show_path(dest)}"
 
 
 def access_of(meta: dict) -> str:
@@ -1688,18 +1688,21 @@ def read_manifest(tool: Tool):
         return None
 
 
-def provenance_line(tool: Tool, catalog: Path, installed_names: set):
-    """One or two lines describing how far behind this install is.
+def provenance_line(tool: Tool, catalog: Path, behind: bool = False):
+    """Lines for --status --verbose: which catalog commit this install came
+    from, and how far the catalog has moved since. Context, not the verdict:
+    `behind` says whether any installed file actually differs, and a count of
+    commits that changed none of them must not read as something to do.
 
     Degrades honestly at every step: no manifest, no git, or a commit that is no
     longer in history (rebase, force-push, fresh clone) each get a specific
     message rather than a wrong number."""
     man = read_manifest(tool)
     if not man:
-        return ["provenance: unknown — installed before stamping, or by hand"]
+        return ["no install record: installed before records existed, or by hand"]
     was = man.get("catalog_commit") or ""
     if not was:
-        return ["installed from a catalog that was not a git checkout — no commit to compare"]
+        return ["installed from a catalog that was not a git checkout: no commit to compare"]
     now = git(catalog, "rev-parse", "HEAD")
     if not now:
         return [f"installed from {was[:7]} (catalog is not a git checkout here)"]
@@ -1707,28 +1710,13 @@ def provenance_line(tool: Tool, catalog: Path, installed_names: set):
     if man.get("catalog_dirty"):
         stamp += " + uncommitted changes"
     if was == now:
-        return [f"{stamp} — up to date with the catalog"]
+        return [f"{stamp}, the catalog's current commit"]
     if git(catalog, "cat-file", "-e", f"{was}^{{commit}}") is None:
-        return [f"{stamp} — that commit is not in this history "
+        return [f"{stamp}; that commit is not in this history "
                 f"(rebased, or a different clone); reinstall to resync"]
-    behind = git(catalog, "rev-list", "--count", f"{was}..{now}") or "?"
-    out = [f"{stamp} — {behind} commit(s) behind {now[:7]}"]
-    diff = git(catalog, "diff", "--name-only", was, now) or ""
-    moved = sorted({
-        m.group(1) for line in diff.splitlines()
-        for m in [re.search(r"skills/([a-z][a-z-]*)/SKILL\.md$", line)]
-        if m and m.group(1) in installed_names
-    })
-    agents_moved = sorted({
-        m.group(1) for line in diff.splitlines()
-        for m in [re.match(r"([a-z][a-z-]*)/AGENTS\.md$", line)]
-        if m and m.group(1) in installed_names
-    })
-    for label, items in (("skills changed", moved), ("agents changed", agents_moved)):
-        if items:
-            out.append(f"  {label}: {', '.join(items[:8])}"
-                       f"{f' +{len(items) - 8} more' if len(items) > 8 else ''}")
-    return out
+    n = git(catalog, "rev-list", "--count", f"{was}..{now}") or "?"
+    return [f"{stamp}, {n} commit{'s' if n != '1' else ''} before {now[:7]}; "
+            + ("a refresh brings what changed" if behind else "no installed file differs")]
 
 
 def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
@@ -2025,129 +2013,180 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, 
 # CLI
 # --------------------------------------------------------------------------- #
 def shadow_report(tool: Tool, skills_by_name: dict, project=None) -> list:
-    """Lines warning that this host sees a catalog skill in more than one dir
-    and at least one copy is stale.
+    """[(dir, out-of-date copies there, key of the tool that owns that dir)]
+    for a host that sees a catalog skill in more than one dir with at least
+    one copy out of date.
 
     A host that reads several skill dirs keeps ONE copy per name, and which one
     is not stable: measured on opencode 1.18.11, three identical runs took 32,
     10 and 4 of 48 skills from the project and the rest from global copies — one
-    of them two months old. Identical copies make that harmless; a stale one
-    makes the skill the host loads a coin toss. So the report is about stale
-    copies, not duplicates, and it names the refresh that fixes each."""
+    of them two months old. Identical copies make that harmless; an out-of-date
+    one makes the skill the host loads a coin toss. So the report is about
+    out-of-date copies, not duplicates, and it names the refresh that fixes each."""
     dirs = [tool.skills_dir, *tool.also_reads]
     owners, owner_tool = {}, {}
     for t in TOOLS:
         t = project_tool(t, project) if project else t
         owners.setdefault(t.skills_dir, t.key)
         owner_tool.setdefault(t.skills_dir, t)
-    seen_twice, stale_in = 0, {}
+    stale_in = {}
     ours = {d: present_skills(d, skills_by_name) for d in dirs}   # a foreign same-name skill is not a copy of ours
     for name, src in skills_by_name.items():
         copies = [d for d in dirs if name in ours[d]]
         if len(copies) < 2:
             continue
-        seen_twice += 1
         text = (src.path / "SKILL.md").read_text(encoding="utf-8")
         for d in copies:
             if d in owner_tool and classify_skill(d / name, run_for(owner_tool[d]).stamp)[0] == EDITED:
-                continue   # kept on purpose, and refresh leaves it: not a stale copy
+                continue   # kept on purpose, and refresh leaves it: not an out-of-date copy
             fresh = render_skill(text, src.agent, name, ours[d])
             if (d / name / "SKILL.md").read_text(encoding="utf-8") != fresh:
                 stale_in[d] = stale_in.get(d, 0) + 1
-    if not stale_in:
-        return []
-    lines = [f"shadowing: {seen_twice} catalog skills are visible here from more "
-             f"than one dir, and the host may load any copy — stale ones:"]
-    for d, n in sorted(stale_in.items(), key=lambda kv: str(kv[0])):
-        owner = owners.get(d)
-        scope = f" --project {project}" if project else ""
-        fix = (f"  → ./install.py --all --tool {owner}{scope}" if owner else "")
-        lines.append(f"  {n} stale in {d}{fix}")
-    return lines
+    return [(d, n, owners.get(d)) for d, n in sorted(stale_in.items(), key=lambda kv: str(kv[0]))]
 
 
-def print_status(agents, skills_by_name, project=None, catalog=None):
-    """What is actually installed in each tool, and whether it still matches the
-    catalog. Answers the question `--list` cannot: not "what could I install"
-    but "what is out there, and is it current".
+# --------------------------------------------------------------------------- #
+# Status
+#
+# What a person asks of --status is one thing: do I have to do something? So
+# the state of each tool is computed first, as a value, and printed after: the
+# headline is the answer, there is one row per tool, and the detail a person
+# only wants when something is off (what is not ours, what is switched off, how
+# many commits ago) waits behind --verbose.
+#
+# "Out of date" is decided by CONTENT, never by commits: every installed file
+# is rendered again from the catalog and compared. A commit that touches the
+# catalog without changing an installed file is not something to refresh for.
+# --------------------------------------------------------------------------- #
+UP_TO_DATE, OUT_OF_DATE, NOTHING, NOT_DETECTED = ("up to date", "out of date",
+                                                  "nothing installed", "not detected")
 
-    Staleness is decided by re-rendering: a skill is compared byte-for-byte, an
-    agent is re-composed through the same path the installer uses and compared
-    to the file on disk. Anything the catalog doesn't own is reported as foreign
-    and never touched."""
-    if project:
-        print(f"scope: project {project}")
-    for tool in TOOLS:
-        if project:
-            tool = project_tool(tool, project)
-        if not tool.config_root.exists():
-            state = "not set up here" if project else "not detected"
-            print(f"\n{tool.label}  ({tool.key})\n  {state} — {tool.config_root} missing")
-            continue
-        print(f"\n{tool.label}  ({tool.key})\n  {tool.config_root}")
 
-        # --- skills: who owns each folder, then whether ours is current ---
-        stamp = run_for(tool).stamp
-        here = present_skills(tool.skills_dir, skills_by_name)
-        groups = {k: [] for k in ("stale", EDITED, FOREIGN, LINK, RETIRED, ELSEWHERE)}
-        present = []
-        if tool.skills_dir.exists():
-            for d in sorted(p for p in tool.skills_dir.iterdir() if p.is_dir() or p.is_symlink()):
-                kind, sk = classify_skill(d, stamp)
-                if kind in (FOREIGN, LINK, RETIRED):
-                    groups[kind].append(d.name)
-                    continue
-                if kind == ELSEWHERE:
-                    groups[ELSEWHERE].append(f"{sk.name} as {d.name}")
-                    continue
-                present.append(d.name)
-                if kind == EDITED:
-                    groups[EDITED].append(d.name)
-                    continue
-                fresh = render_skill((sk.path / "SKILL.md").read_text(encoding="utf-8"),
-                                     sk.agent, d.name, here)
-                if fresh != (d / "SKILL.md").read_text(encoding="utf-8"):
-                    groups["stale"].append(d.name)
-        missing = sorted(set(skills_by_name) - set(present))
-        counts = [f"{len(groups['stale'])} stale" if groups["stale"] else "",
-                  f"{len(groups[EDITED])} edited by hand (refresh leaves them)" if groups[EDITED] else "",
-                  f"{len(missing)} missing" if missing else "",
-                  f"{len(groups[FOREIGN])} not ours (untouched)" if groups[FOREIGN] else "",
-                  f"{len(groups[LINK])} links (untouched)" if groups[LINK] else "",
-                  f"{len(groups[RETIRED])} retired copies" if groups[RETIRED] else "",
-                  f"{len(groups[ELSEWHERE])} under another name" if groups[ELSEWHERE] else ""]
-        print(f"    skills   {len(present)}/{len(skills_by_name)} from catalog"
-              + "".join(f" · {c}" for c in counts if c))
-        for label, items in (("stale", groups["stale"]), ("edited", groups[EDITED]),
-                             ("missing", missing), ("links", groups[LINK]),
-                             ("ours under another name", groups[ELSEWHERE])):
-            if items:
-                print(f"      {label}: {', '.join(items[:8])}"
-                      f"{f' +{len(items) - 8} more' if len(items) > 8 else ''}")
-        if groups[RETIRED]:
-            # Ours, under a name the catalog no longer uses: a renamed or removed
-            # skill, or a `-2` copy an older installer left. Nothing loads the
-            # right one by that name any more; deleting is the user's call.
-            print(f"      retired (ours, old name — safe to delete): {', '.join(groups[RETIRED])}")
-            print(f"        rm -r " + " ".join(str(tool.skills_dir / n) for n in groups[RETIRED]))
-        for line in shadow_report(tool, skills_by_name, project):
-            print(f"    {line}")
+def show_path(p, project=None) -> str:
+    """A path as a person would type it: relative to the project, `~` for the
+    home on POSIX (PowerShell does not expand `~` in an argument), else whole."""
+    p = Path(p)
+    if project is not None:
+        try:
+            return str(p.relative_to(project)) or "."
+        except ValueError:
+            pass
+    if os.name != "nt":
+        try:
+            return "~/" + p.relative_to(HOME).as_posix()
+        except ValueError:
+            pass
+    return str(p)
 
-        # --- agents: the stamp says which files we wrote ---
-        if tool.agents_dir is None:
-            print("    agents   (this tool has no place for agent bodies)")
-            continue
-        suffix = agent_suffix(tool)
-        files = (sorted(tool.agents_dir.glob(f"*{suffix}")) if tool.agents_dir.exists() else [])
-        a_present, a_foreign, a_edited, a_stale = [], [], [], []
+
+def shell_arg(path: str) -> str:
+    """A path inside a command to copy. Quoted only when it has to be: quotes
+    around `~/x` would stop the shell from expanding the home."""
+    return path if re.fullmatch(r"[\w@%+=:,./~-]+", path) else shlex.quote(path)
+
+
+def names(items: list, limit: int = 4) -> str:
+    return ", ".join(items[:limit]) + (f" +{len(items) - limit} more" if len(items) > limit else "")
+
+
+@dataclass
+class ToolState:
+    """Everything --status knows about one tool, before a word is printed."""
+    tool: Tool
+    detected: bool = True
+    stamp: Optional[dict] = None
+    skills: dict = field(default_factory=lambda: {k: [] for k in (
+        "present", "stale", "edited", "missing", "blocked", "foreign", "links", "old", "elsewhere")})
+    agents: dict = field(default_factory=lambda: {k: [] for k in (
+        "present", "stale", "edited", "missing", "foreign")})
+    has_agents: bool = True
+    adoptable: bool = False          # agents named like ours and no install record
+    hooks: list = field(default_factory=list)     # [(label, on, state, line for --verbose)]
+    shadow: list = field(default_factory=list)
+    index: Optional[tuple] = None    # (exists, rows) for a tool that needs an agent index
+    record: list = field(default_factory=list)
+
+    @property
+    def installed(self) -> bool:
+        return self.detected and bool(self.stamp is not None or self.skills["present"]
+                                      or self.agents["present"])
+
+    @property
+    def suite(self) -> bool:
+        stamp = self.stamp or {}
+        return bool(stamp.get("suite", "skills" not in stamp and bool(stamp)))
+
+    @property
+    def behind(self) -> list:
+        """What a refresh would bring, by name. A file missing from an install
+        of the whole catalog counts; from a partial one it was never asked for."""
+        out = list(self.skills["stale"]) + [f"agent {a}" for a in self.agents["stale"]]
+        if self.suite:
+            out += self.skills["missing"] + [f"agent {a}" for a in self.agents["missing"]]
+        out += [f"{label} script" for label, on, state, _ in self.hooks if on and state != "current"]
+        return out
+
+    @property
+    def edited(self) -> list:
+        return list(self.skills["edited"]) + [f"agent {a}" for a in self.agents["edited"]]
+
+    @property
+    def state(self) -> str:
+        if not self.detected:
+            return NOT_DETECTED
+        if not self.installed:
+            return NOTHING
+        return OUT_OF_DATE if self.behind else UP_TO_DATE
+
+
+def tool_state(tool: Tool, agents: dict, skills_by_name: dict, project=None, catalog=None) -> ToolState:
+    """The state of one tool. Out-of-date is decided by re-rendering: a skill is
+    compared byte-for-byte, an agent is re-composed through the same path the
+    installer uses and compared to the file on disk. Anything the catalog does
+    not own is counted and never touched."""
+    st = ToolState(tool, has_agents=tool.agents_dir is not None)
+    if not tool.config_root.exists():
+        st.detected = False
+        return st
+    st.stamp = stamp = run_for(tool).stamp
+    here = present_skills(tool.skills_dir, skills_by_name)
+    sk_ = st.skills
+    if tool.skills_dir.exists():
+        for d in sorted(p for p in tool.skills_dir.iterdir() if p.is_dir() or p.is_symlink()):
+            kind, sk = classify_skill(d, stamp)
+            if kind in (FOREIGN, LINK, RETIRED):
+                sk_[{FOREIGN: "foreign", LINK: "links", RETIRED: "old"}[kind]].append(d.name)
+                continue
+            if kind == ELSEWHERE:
+                sk_["elsewhere"].append(f"{sk.name} as {d.name}")
+                continue
+            sk_["present"].append(d.name)
+            if kind == EDITED:
+                sk_["edited"].append(d.name)
+                continue
+            fresh = render_skill((sk.path / "SKILL.md").read_text(encoding="utf-8"),
+                                 sk.agent, d.name, here)
+            if fresh != (d / "SKILL.md").read_text(encoding="utf-8"):
+                sk_["stale"].append(d.name)
+    # Ours is not there because something that is not ours has its name: a
+    # refresh leaves that alone, so it is not something a refresh would bring.
+    taken = set(sk_["foreign"]) | set(sk_["links"])
+    absent = set(skills_by_name) - set(sk_["present"]) - {x.split(" as ")[0] for x in sk_["elsewhere"]}
+    sk_["blocked"] = sorted(absent & taken)
+    sk_["missing"] = sorted(absent - taken)
+    st.shadow = shadow_report(tool, skills_by_name, project)
+
+    if tool.agents_dir is not None:
+        ag_ = st.agents
+        files = sorted(tool.agents_dir.glob(f"*{agent_suffix(tool)}")) if tool.agents_dir.exists() else []
         for f in files:
             kind = classify_agent(f, set(agents), stamp)
             if kind in (FOREIGN, LINK) or f.stem not in agents:
-                a_foreign.append(f.stem)
+                ag_["foreign"].append(f.stem)
                 continue
-            a_present.append(f.stem)
+            ag_["present"].append(f.stem)
             if kind == EDITED:
-                a_edited.append(f.stem)
+                ag_["edited"].append(f.stem)
                 continue
             inherited, dep_skills = resolve_deps(agents[f.stem], agents, skills_by_name)
             meta, desc, body = compose_agent(agents[f.stem], inherited)
@@ -2157,45 +2196,181 @@ def print_status(agents, skills_by_name, project=None, catalog=None):
             # Compared as agent_hash does: a Kiro agent that Kiro upgraded
             # carries the host's own fields and is still current.
             if agent_hash(f) != agent_text_hash(fresh, f.name):
-                a_stale.append(f.stem)
-        a_missing = sorted(set(agents) - set(a_present))
-        if stamp is None and any(f.stem in agents for f in files):
-            # An install from before stamps: its agents look like ours but
-            # nothing records them, so nothing updates them on its own.
-            print(f"    note     agents named like the catalog's, with no install record: "
-                  f"install once with --all --tool {tool.key}"
-                  f"{f' --project {project}' if project else ''} --on-conflict overwrite "
-                  f"to adopt them (it replaces them)")
-        print(f"    agents   {len(a_present)}/{len(agents)} from catalog"
-              f"{f' · {len(a_stale)} stale' if a_stale else ''}"
-              f"{f' · {len(a_edited)} edited by hand (refresh leaves them)' if a_edited else ''}"
-              f"{f' · {len(a_missing)} missing' if a_missing else ''}"
-              f"{f' · {len(a_foreign)} not ours (untouched)' if a_foreign else ''}")
-        for label, items in (("stale", a_stale), ("edited", a_edited), ("missing", a_missing)):
-            if items:
-                print(f"      {label}: {', '.join(items)}")
-        if tool.agent_style in GUARD_STYLES:
-            print(f"    {guard_status(tool)}")
-            print(f"    {verify_status(tool)}")
+                ag_["stale"].append(f.stem)
+        ag_["missing"] = sorted(set(agents) - set(ag_["present"]))
+        # An install from before records: its agents look like ours but nothing
+        # records them, so nothing updates them on its own.
+        st.adoptable = stamp is None and any(f.stem in agents for f in files)
 
-        if catalog:
-            for line in provenance_line(tool, catalog, set(present) | set(a_present)):
-                print(f"    {line}")
+    if tool.agent_style in GUARD_STYLES:
+        for label, on, dest, source, line in (
+                ("shell-write guard", guard_on(tool), guard_path(tool), GUARD_SOURCE, guard_status(tool)),
+                ("verify hook", verify_on(tool), verify_path(tool), VERIFY_SOURCE, verify_status(tool))):
+            state = ("off" if not on else "missing" if not dest.is_file()
+                     else "current" if file_hash(dest) == file_hash(source) else "stale")
+            st.hooks.append((label, on, state, line))
+    if catalog:
+        st.record = provenance_line(tool, catalog, bool(st.behind))
+    if tool.agent_style == "roster_md":
+        roster = tool.roster
+        rows = (len(re.findall(r"^\| `[a-z-]+` \|", roster.read_text(encoding="utf-8"), re.M))
+                if roster.exists() else 0)
+        st.index = (roster.exists(), rows)
+    return st
 
-        if tool.agent_style == "roster_md":
-            roster = tool.roster
-            if not roster.exists():
-                print("      roster: MISSING — the bodies above are unreachable "
-                      "without it")
-            else:
-                rows = len(re.findall(r"^\| `[a-z-]+` \|", roster.read_text(encoding="utf-8"), re.M))
-                mark = "" if rows == len(a_present) else f" (≠ {len(a_present)} bodies)"
-                print(f"      roster: {rows} rows in {roster.name}{mark}")
 
+def status_warnings(st: ToolState, project=None) -> list:
+    """What is off in a tool that a refresh alone does not say, each with the
+    command that deals with it."""
+    tool, key, out = st.tool, st.tool.key, []
     scope = f" --project {project}" if project else ""
-    print(f"\ncatalog: {len(agents)} agents, {len(skills_by_name)} skills — bring every install "
-          f"up to date:  ./install.py --refresh{scope}"
-          f"\n  (it updates only what it installed; edited and foreign files stay as they are)")
+    if st.skills["old"]:
+        n = len(st.skills["old"])
+        out.append((f"{key}: {n} old cop{'y' if n == 1 else 'ies'} of a skill the catalog renamed or "
+                    f"dropped: {names(st.skills['old'])}",
+                    "Safe to delete: rm -r " + " ".join(
+                        shell_arg(show_path(tool.skills_dir / x, project)) for x in st.skills["old"])))
+    if st.skills["blocked"] and st.suite:
+        n = len(st.skills["blocked"])
+        out.append((f"{key}: {names(st.skills['blocked'])} {'is' if n == 1 else 'are'} not installed: "
+                    f"{'a skill' if n == 1 else 'skills'} not from this catalog "
+                    f"{'has that name' if n == 1 else 'have those names'}.",
+                    f"To install ours beside {'it' if n == 1 else 'them'}: "
+                    f"./install.py --all --tool {key}{scope} --on-conflict rename"))
+    for d, n, owner in st.shadow:
+        out.append((f"{key}: {n} skill{'s' if n != 1 else ''} also read from {show_path(d, project)} "
+                    f"{'are' if n != 1 else 'is'} out of date there; {key} may load either copy.",
+                    f"Try: ./install.py --all --tool {owner}{scope}" if owner else ""))
+    if st.index is not None and st.agents["present"]:
+        exists, rows = st.index
+        if not exists:
+            out.append((f"{key}: the agent index ({tool.roster.name}) is missing; the "
+                        f"{len(st.agents['present'])} agents there cannot be reached without it.",
+                        f"Try: ./install.py --all --tool {key}{scope}"))
+        elif rows != len(st.agents["present"]):
+            out.append((f"{key}: the agent index ({tool.roster.name}) lists {rows} agents and "
+                        f"{len(st.agents['present'])} are installed.",
+                        f"Try: ./install.py --all --tool {key}{scope}"))
+    if st.adoptable:
+        out.append((f"{key}: agents named like the catalog's, with no install record: nothing "
+                    f"updates them.",
+                    f"To adopt them (it replaces them): ./install.py --all --tool {key}{scope} "
+                    f"--on-conflict overwrite"))
+    return out
+
+
+def wrapped(text: str, indent: int, first: str = "") -> str:
+    """`first` + text, folded to 80 columns with the rest indented."""
+    import textwrap
+    return textwrap.fill(text, width=80, initial_indent=first, subsequent_indent=" " * indent,
+                         break_long_words=False, break_on_hyphens=False)
+
+
+def print_status(agents, skills_by_name, project=None, catalog=None, verbose=False):
+    """`--status`: the answer first, one row per tool, the rest on request."""
+    states = [tool_state(project_tool(t, project) if project else t,
+                         agents, skills_by_name, project, catalog) for t in TOOLS]
+    installed = [s for s in states if s.installed]
+    behind = [s for s in installed if s.behind]
+    scope = f" --project {project}" if project else ""
+    if not installed:
+        print("Nothing from this catalog is installed yet.")
+    elif behind:
+        print(f"{len(behind)} of {len(installed)} tool{'s' if len(installed) != 1 else ''} "
+              f"{'are' if len(behind) != 1 else 'is'} out of date.")
+    else:
+        print("Everything installed is up to date.")
+    if project:
+        print(f"Project: {project}")
+    print()
+
+    for st in states:
+        tool, key = st.tool, st.tool.key
+        if verbose:
+            label = tool.label.replace(" — ", ", ")     # plain ASCII: readable in any console
+            print(f"{key} ({label})  {show_path(tool.config_root, project)}")
+            print(f"  state     {st.state if st.state != OUT_OF_DATE else f'{len(st.behind)} out of date'}")
+            if not st.detected:
+                print()
+                continue
+            for title, total, grp, extra in (
+                    ("skills", len(skills_by_name), st.skills,
+                     (("not from this catalog", "foreign"), ("links, not touched", "links"),
+                      ("old copies", "old"), ("installed as", "elsewhere"))),
+                    ("agents", len(agents), st.agents, (("not from this catalog", "foreign"),))):
+                if title == "agents" and not st.has_agents:
+                    print("  agents    this tool has no place for agent files")
+                    continue
+                print(f"  {title:9} {len(grp['present'])} of {total} installed")
+                for label, k in (("out of date", "stale"), ("edited by hand", "edited"),
+                                 ("missing", "missing"),
+                                 ("not installed, the name is taken", "blocked")) + extra:
+                    if k not in grp:
+                        continue
+                    if grp[k]:
+                        print(wrapped(f"{len(grp[k])} {label}: {names(grp[k], 8)}", 12, " " * 12))
+            lead = "  options   "
+            for _, on, _, line in st.hooks:
+                if on:
+                    print(wrapped(line, 12, lead))
+                    lead = " " * 12
+            off = [(label, line) for label, on, _, line in st.hooks if not on]
+            if off:
+                print(wrapped(", ".join(line for _, line in off), 12, lead))
+                for i, (label, _) in enumerate(off):
+                    print(f"{'            enable: ' if i == 0 else ' ' * 20}./install.py --refresh "
+                          f"--{'shell-write-guard' if 'guard' in label else 'verify-hook'}")
+            for i, line in enumerate(st.record):
+                print(wrapped(line, 12, "  record    " if i == 0 else " " * 12))
+            if st.index is not None and st.index[0]:
+                print(f"  index     {st.index[1]} rows in {tool.roster.name}")
+            print()
+            continue
+        if st.state == NOT_DETECTED:
+            print(f"  {key:<13} {NOT_DETECTED:<15} ({show_path(tool.config_root, project)} does not exist)")
+        elif st.state == NOTHING:
+            print(f"  {key:<13} {NOTHING}")
+        else:
+            have = f"{len(st.agents['present'])} agents, {len(st.skills['present'])} skills"
+            if st.behind:
+                print(wrapped(f"{len(st.behind)} out of date".ljust(15) + " " + names(st.behind), 16,
+                              f"  {key:<13} "))
+            else:
+                print(f"  {key:<13} {UP_TO_DATE:<15} {have}")
+            if st.edited:
+                print(wrapped(f"{len(st.edited)} edited by hand, kept as "
+                              f"{'it is' if len(st.edited) == 1 else 'they are'}: {names(st.edited)}",
+                              16, " " * 16))
+    if not verbose:
+        print()
+
+    warnings = [w for st in states for w in status_warnings(st, project)]
+    for what, fix in warnings:
+        print(wrapped(what, 2, "! "))
+        # A command is never folded: one that does not fit goes on its own line.
+        if fix and len(fix) > 78 and ": ./" in fix:
+            say, command = fix.split(": ./", 1)
+            print(f"  {say}:\n    ./{command}")
+        elif fix:
+            print(f"  {fix}")
+    if warnings:
+        print()
+
+    if not installed:
+        first = next((s.tool.key for s in states if s.detected), TOOLS[0].key)
+        print(f"Next: ./install.py --all --tool {first}{scope}\n"
+              f"      or run ./install.py with no arguments to choose from a menu.")
+    elif behind:
+        print(f"Next: ./install.py --refresh{scope}\n"
+              f"      Updates only files this installer wrote. Files edited by hand\n"
+              f"      and files not from this catalog stay as they are.")
+    else:
+        head = git(catalog, "rev-parse", "--short=7", "HEAD") if catalog else None
+        where = f"Catalog {head}. " if head else ""
+        if not verbose:
+            print(f"{where}Details: ./install.py --status --verbose{scope}")
+        elif head:
+            print(where.strip())
 
 
 def print_list(agents, all_skills, skills_by_name):
@@ -2227,6 +2402,9 @@ def main():
                          "your home config, so the setup travels with the repo")
     ap.add_argument("--status", action="store_true",
                     help="show what is installed in each tool and whether it is current")
+    ap.add_argument("--verbose", action="store_true",
+                    help="with --status: every tool in full: what is not from this catalog, "
+                         "the options that are off, the install record")
     ap.add_argument("--refresh", action="store_true",
                     help="reinstall the whole suite into every tool that already holds "
                          "a catalog install (overwrites catalog files only)")
@@ -2296,7 +2474,7 @@ def main():
         return
 
     if args.status:
-        print_status(agents, skills_by_name, project, catalog)
+        print_status(agents, skills_by_name, project, catalog, args.verbose)
         return
 
     if args.dry_run:

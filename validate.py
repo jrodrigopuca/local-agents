@@ -765,16 +765,15 @@ def check_installer(cat: Catalog):
             if rec["name"] == "lh-tradeoffs":
                 rec["sha256"] = inst.tree_hash(stale_copy.parent)
         manifest.write_text(json.dumps(stamp), encoding="utf-8")
-        status = run("--status").stdout
-        opencode_block = status.split("opencode  (opencode)")[-1].split("\nKiro")[0]
-        if "stale in" not in opencode_block or ".agents/skills" not in opencode_block:
+        status = " ".join(run("--status").stdout.split())      # warnings are folded at 80 columns
+        if "! opencode: 1 skill also read from" not in status or ".agents/skills is out of date" not in status:
             errs.append("install.py --status did not warn that opencode can load a "
                         "stale copy of a skill from ~/.agents/skills")
         proc = run("--refresh")
         if proc.returncode != 0:
             errs.append(f"install.py --refresh exited {proc.returncode}: "
                         f"{proc.stderr.strip()[-200:]}")
-        elif "shadowing" in run("--status").stdout:
+        elif "also read from" in run("--status").stdout:
             errs.append("install.py --refresh left a stale skill copy behind")
 
         # `shared` and `antigravity` share `.agents/` per project and write the

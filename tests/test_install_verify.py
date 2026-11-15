@@ -54,7 +54,8 @@ class VerifyHookInstall(unittest.TestCase):
         self.assertNotIn("hooks:", self.frontmatter(FULL))
         self.assertFalse(self.script.exists())
         self.assertIs(self.stamp()["verify_hook"], False)
-        self.assertIn("verify hook off", self.install("--status"))
+        self.assertNotIn("verify hook", self.install("--status"))
+        self.assertIn("verify hook off", self.install("--status", "--verbose"))
 
     def test_bare_flag_hooks_every_full_agent_without_a_default(self):
         self.install("--all", "--tool", "claude", "--verify-hook")
@@ -69,8 +70,8 @@ class VerifyHookInstall(unittest.TestCase):
         self.assertIs(st["verify_hook"], True)
         self.assertEqual(st["verify_hook_default"], "")
         self.assertEqual(len(st["verify_hook_sha256"]), 64)
-        self.assertIn("verify hook on · runs each repo's .local-agents/verify, no default",
-                      self.install("--status"))
+        self.assertIn("verify hook on, runs each repo's .local-agents/verify, no default",
+                      " ".join(self.install("--status", "--verbose").split()))
 
     def test_a_command_is_the_default_on_argv(self):
         self.install("--all", "--tool", "claude", "--verify-hook", CMD)
@@ -105,11 +106,12 @@ class VerifyHookInstall(unittest.TestCase):
 
     def test_status_reports_the_default_and_agents_current(self):
         self.install("--all", "--tool", "claude", "--verify-hook", CMD)
+        verbose = " ".join(self.install("--status", "--verbose").split())   # folded at 80 columns
+        self.assertIn(f"verify hook on, runs each repo's .local-agents/verify, default {CMD!r}, "
+                      f"script current", verbose)
         out = self.install("--status")
-        self.assertIn(f"verify hook on · runs each repo's .local-agents/verify, default {CMD!r} "
-                      f"· script current", out)
-        claude = out.split("Claude Code  (claude)")[1].split("\n\n")[0]
-        self.assertNotIn("stale", claude)
+        self.assertIn("Everything installed is up to date.", out)
+        self.assertRegex(out, r"(?m)^  claude +up to date +15 agents, 51 skills$")
 
     def test_refresh_keeps_it_a_new_default_replaces_it_and_no_flag_turns_it_off(self):
         self.install("--all", "--tool", "claude", "--verify-hook", CMD)

@@ -67,8 +67,13 @@ class InstallTest(unittest.TestCase):
         self.assertEqual(run.returncode, 0, run.stderr[-500:])
         return run
 
-    def status(self):
-        return self.install("--status").stdout
+    def status(self, *args):
+        return self.install("--status", *args).stdout
+
+    def row(self, key, status=None):
+        """The line --status prints for one tool: `  key   state   detail`."""
+        lines = (status if status is not None else self.status()).splitlines()
+        return next(l for l in lines if l.startswith(f"  {key} "))
 
     def own_copy_of_catalog(self):
         """A git copy of this checkout, working tree included (the code under
@@ -122,7 +127,14 @@ class InstallTest(unittest.TestCase):
         self.assertFalse((self.skills / f"{NAME}-2").exists())
         self.assertEqual(len(list(self.agents.iterdir())), 15, "the rest must still install")
         self.assertTrue(self.stamp.is_file())
-        self.assertIn("not ours", self.status())
+        # Our skill of that name is not there, and a refresh will not bring it:
+        # that is a warning with the command that does, not "out of date".
+        status = self.status()
+        self.assertIn("Everything installed is up to date.", status)
+        self.assertIn(f"claude: {NAME} is not installed: a skill not from this catalog has that name.",
+                      " ".join(status.split()))
+        self.assertIn("--on-conflict rename", status)
+        self.assertIn("1 not from this catalog", self.status("--verbose"))
 
     def test_refresh_leaves_a_foreign_skill_alone(self):
         self.install_all()
@@ -161,7 +173,7 @@ class InstallTest(unittest.TestCase):
         self.assertTrue(self.stamp.is_file())
         self.install("--refresh")
         self.assertTrue((self.skills / NAME).is_symlink())
-        self.assertIn("links", self.status())
+        self.assertIn("links, not touched", self.status("--verbose"))
 
     # -- edited by hand --------------------------------------------------- #
 
@@ -215,7 +227,9 @@ class InstallTest(unittest.TestCase):
         self.assertIn(f"retired → removed {SKILL}", run.stdout)
         self.assertFalse((self.skills / SKILL).exists())
         self.assertTrue(self.is_ours(self.skills / "lh-verification-method"))
-        self.assertNotIn("retired", self.status())
+        status = self.status()
+        self.assertNotIn("old cop", status)
+        self.assertIn("Everything installed is up to date.", status)
 
     def test_an_edited_old_copy_of_a_renamed_skill_is_kept_and_reported(self):
         catalog = self.own_copy_of_catalog()
@@ -226,8 +240,8 @@ class InstallTest(unittest.TestCase):
         self.install("--refresh")
         self.assertIn("my own note", md.read_text())
         status = self.status()
-        self.assertIn("retired", status)
-        self.assertIn(f"rm -r {self.skills / SKILL}", status)
+        self.assertIn(f"1 old copy of a skill the catalog renamed or dropped: {SKILL}", status)
+        self.assertIn(f"Safe to delete: rm -r ~/.claude/skills/{SKILL}", status)
 
     def test_a_pre_b058_stamp_removes_no_old_copy(self):
         # No record under the old name: nothing proves the copy is untouched.
@@ -310,7 +324,9 @@ class InstallTest(unittest.TestCase):
         md.write_text(md.read_text() + "\nMY EDIT\n")
         self.install_all()
         self.assertIn("MY EDIT", md.read_text())
-        self.assertNotIn("not ours", self.status())
+        verbose = self.status("--verbose")
+        self.assertNotIn("not from this catalog", verbose)
+        self.assertIn("1 edited by hand: lh-tradeoffs", verbose)
 
     # -- found by review: rename -------------------------------------------- #
 
@@ -321,9 +337,10 @@ class InstallTest(unittest.TestCase):
         self.install_all("--on-conflict", "rename")
         self.assertTrue(self.is_ours(self.skills / "lh-tradeoffs-2"))
         self.assertFalse((self.skills / "lh-tradeoffs-3").exists())
-        status = self.status()
+        status = self.status() + self.status("--verbose")
         self.assertNotIn("rm -r", status, "our only copy must never be offered for deletion")
-        self.assertIn("lh-tradeoffs as lh-tradeoffs-2", status)
+        self.assertNotIn("old cop", status)
+        self.assertIn("1 installed as: lh-tradeoffs as lh-tradeoffs-2", status)
 
     # -- found by review: what counts as an edit ------------------------- #
 
@@ -458,9 +475,9 @@ class InstallTest(unittest.TestCase):
         kiro_stamp = self.home / ".kiro" / ".local-agents.json"
         self.make_legacy(kiro_stamp)
         self.install("--refresh")
-        kiro = self.status().split("Kiro CLI")[1].split("\nCodex")[0]
-        self.assertNotIn("stale", kiro)
-        self.assertNotIn("edited", kiro.replace("(it updates only", ""))
+        status = self.status()
+        self.assertIn("up to date", self.row("kiro", status))
+        self.assertNotIn("edited by hand", status)
 
     def test_a_partial_refresh_with_shared_dependencies_warns_about_nothing(self):
         # Two agents that share a skill, and that skill changed upstream: the
@@ -516,7 +533,7 @@ class InstallTest(unittest.TestCase):
         upgraded = target.read_bytes()
         status = self.status()
         self.assertNotIn("edited by hand", status)
-        self.assertNotIn("stale", status)        # upgraded by the host is not out of date
+        self.assertIn("up to date", self.row("kiro", status))   # upgraded by the host is not out of date
         run = self.install("--refresh")
         self.assertEqual(run.returncode, 0, run.stderr[-500:])
         self.assertNotIn("NOT UPDATED", run.stdout)

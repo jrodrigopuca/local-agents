@@ -51,7 +51,9 @@ class ShellWriteGuardInstall(unittest.TestCase):
         self.assertNotIn("hooks:", self.frontmatter(FULL))
         self.assertFalse(self.script.exists())
         self.assertIs(self.stamp()["shell_write_guard"], False)
-        self.assertIn("shell-write guard off", self.install("--status"))
+        # Off is not a problem: it shows only on request.
+        self.assertNotIn("shell-write guard", self.install("--status"))
+        self.assertIn("shell-write guard off", self.install("--status", "--verbose"))
 
     def test_on_hooks_every_full_agent_and_no_read_agent(self):
         self.install("--all", "--tool", "claude", "--shell-write-guard")
@@ -76,10 +78,10 @@ class ShellWriteGuardInstall(unittest.TestCase):
 
     def test_status_reports_on_and_agents_current(self):
         self.install("--all", "--tool", "claude", "--shell-write-guard")
+        self.assertIn("shell-write guard on, script current", self.install("--status", "--verbose"))
         out = self.install("--status")
-        self.assertIn("shell-write guard on · script current", out)
-        claude = out.split("Claude Code  (claude)")[1].split("\n\n")[0]
-        self.assertNotIn("stale", claude)
+        self.assertIn("Everything installed is up to date.", out)
+        self.assertRegex(out, r"(?m)^  claude +up to date +15 agents, 51 skills$")
 
     def test_refresh_keeps_it_and_no_flag_turns_it_off(self):
         self.install("--all", "--tool", "claude", "--shell-write-guard")

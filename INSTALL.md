@@ -266,51 +266,78 @@ the team which catalog commit they are currently using.
 
 ## What is installed and is it current?
 
-`--list` tells you what you CAN install; `--status` tells you what IS installed:
+`--list` tells you what you CAN install; `--status` tells you what IS
+installed, and its first line answers the question you came with: is there
+something to do?
 
 ```bash
 ./install.py --status
 ```
 
 ```
-Claude Code  (claude)
-  /Users/you/.claude
-    skills   51/51 from catalog · 14 foreign (untouched)
-    agents   15/15 from catalog
+Everything installed is up to date.
 
-Codex  (codex)
-  /Users/you/.codex
-    skills   51/51 from catalog · 1 foreign (untouched)
-    agents   15/15 from catalog
-      roster: 15 rows in AGENTS.md
+  claude        up to date      15 agents, 51 skills
+  opencode      up to date      15 agents, 51 skills
+  kiro          not detected    (~/.kiro does not exist)
+  codex         nothing installed
+  ...
+
+Catalog a319a78. Details: ./install.py --status --verbose
 ```
 
-What each label means:
+When something is behind, the headline counts the tools, each row names what
+a refresh would bring, and the last lines are the command:
 
-| Label | Meaning |
+```
+1 of 2 tools is out of date.
+
+  claude        2 out of date   lh-icons, agent ux-ui
+                1 edited by hand, kept as it is: lh-mockups
+  opencode      up to date      15 agents, 51 skills
+
+Next: ./install.py --refresh
+      Updates only files this installer wrote. Files edited by hand
+      and files not from this catalog stay as they are.
+```
+
+One row per tool, named by the key you pass to `--tool`:
+
+| State | Meaning |
 |---|---|
-| `N/M from catalog` | How many catalog items are present |
-| `stale` | Installed but **differs** from the catalog — needs reinstallation |
-| `missing` | Present in catalog but missing from tool |
-| `foreign (untouched)` | User-created, outside catalog. The installer never touches it |
-| `roster: N rows` | shared: rows in `AGENTS.md`. Warns if count differs from bodies |
-| `shadowing` | The host reads this skill from more than one dir and one copy is stale — names the dir and the command that refreshes it |
+| `up to date` | Every installed file is what the catalog would write today |
+| `N out of date` | N files differ from the catalog, or are missing from an install of the whole catalog. `--refresh` brings them |
+| `nothing installed` | The tool is there; nothing from this catalog is |
+| `not detected` | The tool's config directory does not exist |
+| `edited by hand` (under a row) | A catalog file you changed. `--refresh` leaves it; it is not out of date |
 
-`stale` is computed by **content**, not timestamps: skills and agents are
-re-rendered through the exact installation pipeline and compared with disk,
-making "up to date" completely deterministic.
+**Out of date is decided by content, never by commits.** Every installed skill
+and agent is rendered again through the installation pipeline and compared
+with the file on disk. A catalog that moved eleven commits without changing a
+file you have installed is not something to refresh for, and the status does
+not say it is.
 
-### One stale copy is enough: `--refresh`
+What a refresh alone would not fix comes after the rows as a warning, each
+with the command that deals with it: an old copy of a skill the catalog
+renamed, a skill of ours whose name a foreign skill holds, a skill another
+directory serves out of date (below), a missing agent index.
+
+`--status --verbose` gives every tool in full — what a normal run leaves out
+because it is not a problem: the files that are not from this catalog, the
+options that are off and how to turn them on, and the install record (which
+catalog commit the install came from, and how many commits ago).
+
+### One out-of-date copy is enough: `--refresh`
 
 Some hosts read skills from several directories. opencode, measured on 1.18.11,
 loads them from its own dir, from `~/.claude/skills`, from `~/.agents/skills`
 and per project from `.agents/skills`, and keeps **one copy per name — not the
 same one every time**: three identical runs took 32, 10 and 4 of 48 skills from
 the project and the rest from global copies. Identical copies make that
-harmless. A stale one turns every load of that skill into a coin toss, which is
-what `shadowing` reports.
+harmless. An out-of-date one turns every load of that skill into a coin toss,
+which is what the warning "also read from … is out of date there" reports.
 
-Updating one tool does not fix it if another tool's copy is the stale one.
+Updating one tool does not fix it if another tool's copy is the one behind.
 `--refresh` reinstalls the whole suite into **every tool that already holds a
 catalog install** (it has a `.local-agents.json`), overwriting catalog files
 only:
@@ -421,8 +448,8 @@ the file, and `auto` and `bypass` even tell the model to edit that way.
   command on a teammate's machine. It is a text match, not a sandbox.
 - Off for one session: start Claude Code with `LOCAL_AGENTS_SHELL_GUARD=off`
   in its environment. Off for good: `./install.py --refresh --no-shell-write-guard`.
-- `--refresh` keeps the choice (it is in the stamp); `--status` prints a
-  `guard` line per Claude Code install.
+- `--refresh` keeps the choice (it is in the stamp); `--status --verbose`
+  shows it under `options` for each Claude Code install.
 - With `--project`, the hook points at `$CLAUDE_PROJECT_DIR/.claude/hooks/…`.
   Claude Code runs a project agent's frontmatter hooks only once the folder is
   trusted, and never under `claude -p`.
@@ -485,7 +512,7 @@ printf 'npm test\n' > .local-agents/verify             # in each repo that wants
 - Off for one session: `LOCAL_AGENTS_VERIFY_HOOK=off` in Claude Code's
   environment. Off for good: `./install.py --refresh --no-verify-hook`.
 - `--refresh` keeps the choice and the default (both in the stamp);
-  `--status` prints a `verify` line per Claude Code install. With
+  `--status --verbose` shows it under `options` for each Claude Code install. With
   `--shell-write-guard` both hooks share the agent's one `hooks:` block.
 - With `--project`, the hook points at `$CLAUDE_PROJECT_DIR/.claude/hooks/…`,
   and runs only once the folder is trusted, never under `claude -p`.
@@ -718,7 +745,7 @@ available to both.
 | `--on-conflict {ask,overwrite,rename,skip}` | Collision policy |
 | `--list` | List catalog contents and detected tools, then exit |
 | `--project [PATH]` | Install into a repository instead of user home (no path = current dir) |
-| `--status` | Check what is INSTALLED in each tool and whether it is up to date, then exit |
+| `--status` | Check what is INSTALLED in each tool and whether it is up to date, then exit. `--verbose` for every tool in full |
 | `--refresh` | Reinstall the suite into every tool that already holds a catalog install |
 | `--uninstall` | Remove what the installer put, and only that; edited and foreign files stay. With `--tool`, `--project`, `--dry-run` |
 
