@@ -161,10 +161,52 @@ class Cli(Base):
     def test_a_refusal_in_one_host_does_not_stop_the_others_and_exits_1(self):
         self.opencode.path.write_text("{ // x\n}")
         code, out = self.run_main("--set", "generalist")
-        self.assertEqual(code, 1)
-        self.assertIn("REFUSED", out)
+        # something was changed, so this is not "refused, nothing touched" (2)
+        self.assertEqual(code, da.ERROR)
+        self.assertIn("refused:", out)
+        self.assertNotIn("Nothing was changed.", out)
         self.assertEqual(self.settings(self.claude)["agent"], "generalist")
         self.assertEqual(self.settings(self.kiro)["chat.defaultAgent"], "generalist")
+
+    def test_refused_everywhere_is_exit_2_and_says_nothing_was_changed(self):
+        for host in (self.claude, self.opencode, self.kiro):
+            host.path.parent.mkdir(parents=True, exist_ok=True)
+            host.path.write_text("{ // x\n}")
+        code, out = self.run_main("--set", "generalist")
+        self.assertEqual(code, da.REFUSED)
+        self.assertEqual(out.count("refused:"), 3)
+        self.assertEqual(out.splitlines()[-1], "Nothing was changed.")
+
+    def test_a_catalog_agent_missing_from_a_tool_gets_the_command_that_installs_it(self):
+        # the hint used to be ./install.py --agent nobody, which fails too
+        code, out = self.run_main("--set", "qa", "--tool", "claude,kiro")
+        self.assertEqual(code, da.REFUSED)
+        self.assertIn("refused: `qa` is not installed in claude", out)
+        self.assertIn("Try: ./install.py --agent qa --tool claude", out)
+        self.assertIn("     ./install.py --agent qa --tool kiro", out)
+
+    def test_a_name_that_is_nowhere_is_one_error_not_three_refusals(self):
+        err = io.StringIO()
+        with self.assertRaises(SystemExit) as stop, redirect_stdout(io.StringIO()) as out, \
+                mock.patch("sys.stderr", err):
+            da.main(["--set", "generalis"])
+        self.assertEqual(stop.exception.code, da.ERROR)
+        self.assertEqual(out.getvalue(), "")
+        self.assertIn("error: `generalis` is not an agent in this catalog", err.getvalue())
+        self.assertIn("Did you mean: generalist", err.getvalue())
+        self.assertNotIn("install.py --agent", err.getvalue())
+
+    def test_an_agent_of_the_user_s_own_can_be_the_default(self):
+        (self.claude.tool.agents_dir / "mine.md").write_text("x")
+        code, _ = self.run_main("--set", "mine", "--tool", "claude")
+        self.assertEqual(code, 0)
+        self.assertEqual(self.settings(self.claude)["agent"], "mine")
+
+    def test_a_mistyped_argument_is_an_error_not_a_refusal(self):
+        with self.assertRaises(SystemExit) as stop, mock.patch("sys.stderr", io.StringIO()) as err:
+            da.main(["--bogus"])
+        self.assertEqual(stop.exception.code, da.ERROR)
+        self.assertTrue(err.getvalue().startswith("error: "))
 
     def test_only_the_tools_named_are_touched(self):
         self.run_main("--set", "generalist", "--tool", "kiro")
@@ -187,9 +229,11 @@ class Cli(Base):
         self.assertEqual(sorted(p.name for p in copy.iterdir()), ["default_agent.py", "install.py"])
 
     def test_codex_and_antigravity_are_named_as_unsupported(self):
-        with self.assertRaises(SystemExit), redirect_stdout(io.StringIO()), mock.patch("sys.stderr", io.StringIO()) as err:
+        with self.assertRaises(SystemExit) as stop, redirect_stdout(io.StringIO()), \
+                mock.patch("sys.stderr", io.StringIO()) as err:
             da.main(["--set", "generalist", "--tool", "codex"])
-        self.assertIn("no default-agent setting", err.getvalue())
+        self.assertEqual(stop.exception.code, da.ERROR)
+        self.assertIn("error: Codex has no default-agent setting.", err.getvalue())
 
 
 if __name__ == "__main__":

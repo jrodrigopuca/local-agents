@@ -42,7 +42,8 @@ from typing import Optional
 # Importing install.py must not leave a __pycache__ in the catalog: with no global git
 # excludes (CI, a throwaway HOME) it would read as a dirty tree in every install stamp.
 sys.dont_write_bytecode = True
-from install import TOOLS_BY_KEY  # noqa: E402
+from install import (ERROR, REFUSED, TOOLS_BY_KEY, Parser, did_you_mean,  # noqa: E402
+                     fail, listed)
 
 STATE = ".local-agents-default-agent.json"
 ABSENT = "absent"     # the setting did not exist; `None` would also be a legal JSON value
@@ -78,7 +79,14 @@ UNSUPPORTED = {"codex": "Codex", "antigravity": "Antigravity CLI"}
 
 
 class Refused(Exception):
-    """A change this script will not make; the message says why and what to do."""
+    """A change this script will not make: why, and the way out when there is one."""
+    def __init__(self, why: str, fix: str = ""):
+        super().__init__(why)
+        self.fix = fix
+
+
+def catalog_agents() -> set:
+    return {p.parent.name for p in Path(__file__).resolve().parent.glob("*/AGENTS.md")}
 
 
 def read_json(path: Path) -> dict:
@@ -106,18 +114,26 @@ def write_json(path: Path, data: dict, like: str = "") -> None:
     os.replace(tmp, path)
 
 
-def installed(host: Host, name: str) -> Optional[str]:
+def agent_file(host: Host, name: str) -> Path:
+    return host.tool.agents_dir / host.agent_file.format(name=name)
+
+
+def installed(host: Host, name: str) -> Optional[Refused]:
     """Why `name` cannot be this host's default, or None when it can."""
-    agents = host.tool.agents_dir
-    f = agents / host.agent_file.format(name=name)
+    f = agent_file(host, name)
     if not f.is_file():
-        return f"`{name}` is not installed there ({f}); run ./install.py --agent {name} --tool {host.key}"
+        # Only an agent the catalog has can be installed from it.
+        fix = (f"./install.py --agent {name} --tool {host.key}" if name in catalog_agents() else "")
+        return Refused(f"`{name}` is not installed in {host.key}", fix)
     if host.key == "opencode":
         # opencode falls back to `build` without a word when the agent is not a primary one
         head = f.read_text(encoding="utf-8", errors="replace").split("\n---", 1)[0]
         mode = re.search(r"(?m)^mode:\s*(\S+)", head)
         if mode and mode.group(1) not in ("primary", "all"):
-            return f"`{name}` is a `{mode.group(1)}` agent in opencode; its default must be a primary one"
+            others = ",".join(k for k in HOSTS if k != "opencode")
+            return Refused(f"`{name}` is a `{mode.group(1)}` agent in opencode; its default must "
+                           f"be a primary one. Choose another agent, or leave opencode out: "
+                           f"--tool {others}")
     return None
 
 
@@ -130,7 +146,7 @@ def set_default(host: Host, name: str, dry_run: bool = False) -> str:
         return f"not installed ({host.tool.config_root}): skipped"
     why = installed(host, name)
     if why:
-        raise Refused(why)
+        raise why
     data = read_json(host.path)
     before = data.get(host.setting, ABSENT)
     if before == name:
@@ -193,8 +209,8 @@ def status(host: Host) -> str:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__.split("\n\n")[0],
-                                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap = Parser(description=__doc__.split("\n\n")[0],
+                formatter_class=argparse.RawDescriptionHelpFormatter)
     what = ap.add_mutually_exclusive_group(required=True)
     what.add_argument("--status", action="store_true", help="show what each host starts with")
     what.add_argument("--set", metavar="AGENT", help="make this installed agent the default")
@@ -205,22 +221,45 @@ def main(argv=None) -> int:
     keys = [k.strip() for k in args.tool.split(",") if k.strip()] or list(HOSTS)
     for k in keys:
         if k in UNSUPPORTED:
-            ap.error(f"{UNSUPPORTED[k]} has no default-agent setting; see INSTALL.md, \"Starting every session with an agent\"")
+            fail(f"{UNSUPPORTED[k]} has no default-agent setting.",
+                 'See INSTALL.md, "starting every session with an agent", for what can be done there.')
         if k not in HOSTS:
-            ap.error(f"unknown tool `{k}`; choose from: {', '.join(HOSTS)}")
-    failed = False
+            fail(f"unknown tool '{k}'.", listed("Tools", HOSTS), *did_you_mean(k, HOSTS))
+    if args.set:
+        # A name that is in no catalog and in no tool is a typo, not three refusals.
+        known = catalog_agents()
+        if args.set not in known and not any(
+                HOSTS[k].tool.agents_dir.is_dir() and agent_file(HOSTS[k], args.set).is_file() for k in keys):
+            fail(f"`{args.set}` is not an agent in this catalog, and not one installed in "
+                 f"{', '.join(keys)}.", listed("Agents", sorted(known)), *did_you_mean(args.set, known))
+    refused, changed, fixes = 0, 0, []
     for k in keys:
         host = HOSTS[k]
         try:
-            line = (status(host) if args.status else
-                    set_default(host, args.set, args.dry_run) if args.set else restore(host, args.dry_run))
+            if args.status:
+                line = status(host)
+            else:
+                before = current(host)
+                line = (set_default(host, args.set, args.dry_run) if args.set
+                        else restore(host, args.dry_run))
+                changed += current(host) != before
         except Refused as e:
-            line, failed = f"REFUSED — {e}", True
+            line, refused = f"refused: {e}", refused + 1
+            if e.fix:
+                fixes.append(e.fix)
         print(f"{host.tool.label:12} {line}")
     if args.status:
         for label in UNSUPPORTED.values():
             print(f"{label:12} no default-agent setting: a session without an agent uses the host's own assistant")
-    return 1 if failed else 0
+    for i, fix in enumerate(fixes):
+        print(f"{'Try: ' if i == 0 else '     '}{fix}")
+    if not refused:
+        return 0
+    # 2 is "refused, nothing touched": only true when no tool was changed.
+    if not changed:
+        print("Nothing was changed.")
+        return REFUSED
+    return ERROR
 
 
 if __name__ == "__main__":

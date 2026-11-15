@@ -22,6 +22,7 @@ No external dependencies — Python 3.9+ stdlib only.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import hashlib
 import io
 import json
@@ -169,10 +170,11 @@ def refuse_shared_project_dir(tool: Tool, agents: dict):
     use different directories."""
     other = shared_dir_owner(tool, agents)
     if other:
-        sys.exit(f"refusing to install {tool.key} into {tool.config_root}: it already "
-                 f"holds the {other} install, and both write {tool.agents_dir}/<name>.md "
-                 f"in different formats — the second would silently replace the first. "
-                 f"Use one of them per project, or remove {tool.agents_dir} first.")
+        where = f"{tool.project_dir}/{tool.agents_dir.name}"
+        fail(f"this project already holds the {other} install.",
+             f"{tool.key} and {other} write the same agent files in {where}, in different "
+             f"formats; the second would replace the first.",
+             f"Use one of them per project, or remove {where} first.", refused=True)
 
 
 def shared_dir_owner(tool: Tool, agents: dict) -> Optional[str]:
@@ -208,6 +210,63 @@ ROSTER_BEGIN = "<!-- BEGIN:local-agents -->"
 ROSTER_END = "<!-- END:local-agents -->"
 
 TOOLS_BY_KEY = {t.key: t for t in TOOLS}
+
+# --------------------------------------------------------------------------- #
+# Errors
+#
+# One form, to stderr, in at most three parts: what is wrong, what was found,
+# and a command that works. `error:` is something that cannot be done (exit 1);
+# `refused:` is something that could be done and is not safe to (exit 2), and
+# it always ends by saying nothing was changed. The codes are the ones
+# update.py and the launcher document: a script around any of the three reads
+# them alike. A mistyped argument is an error, not a refusal — argparse's own
+# exit code is 2, so the parser below overrides it.
+# --------------------------------------------------------------------------- #
+OK, ERROR, REFUSED = 0, 1, 2
+
+
+def listed(label: str, items) -> str:
+    """`Label: a, b, c`, folded at 80 columns under the first item."""
+    import textwrap
+    return textwrap.fill(f"{label}: {', '.join(items)}", width=78, initial_indent="  ",
+                         subsequent_indent=" " * (len(label) + 4), break_long_words=False,
+                         break_on_hyphens=False)
+
+
+def did_you_mean(word: str, known) -> list:
+    import difflib
+    close = difflib.get_close_matches(word, list(known), n=3, cutoff=0.6)
+    return [f"  Did you mean: {', '.join(close)}"] if close else []
+
+
+def fail(what: str, *detail: str, hint: str = "", refused: bool = False):
+    """Say what is wrong and stop. `detail` lines that are already laid out
+    (they start with two spaces) are printed as they are; the rest are folded."""
+    import textwrap
+    def fold(text: str, first: str) -> str:
+        # A long path cannot be folded, and folding around it strands the words before it.
+        if any(len(w) > 50 for w in text.split()):
+            return first + text
+        return textwrap.fill(text, width=78, initial_indent=first, subsequent_indent="  ",
+                             break_long_words=False, break_on_hyphens=False)
+
+    lines = [fold(what, "refused: " if refused else "error: ")]
+    for d in detail:
+        lines.append(d if d.startswith("  ") else fold(d, "  "))
+    if hint:
+        lines.append(f"  {hint}" if len(hint) + 2 <= 80 or ": " not in hint
+                     else f"  {hint.split(': ', 1)[0]}:\n    {hint.split(': ', 1)[1]}")
+    if refused:
+        lines.append("  Nothing was changed.")
+    print("\n".join(lines), file=sys.stderr)
+    sys.exit(REFUSED if refused else ERROR)
+
+
+class Parser(argparse.ArgumentParser):
+    """A usage error is an error (1), not a refusal (2)."""
+    def error(self, message):
+        print(f"error: {message}\n  Try: ./{Path(self.prog).name} --help", file=sys.stderr)
+        sys.exit(ERROR)
 
 
 # --------------------------------------------------------------------------- #
@@ -649,7 +708,8 @@ def verify_status(tool: Tool) -> str:
 def access_of(meta: dict) -> str:
     tier = (meta or {}).get("access", "full")
     if tier not in ACCESS_TIERS:
-        sys.exit(f"unknown access tier {tier!r} — expected one of {ACCESS_TIERS}")
+        fail(f"the catalog is not valid: unknown access tier {tier!r}.",
+             f"Expected one of: {', '.join(ACCESS_TIERS)}", hint="Try: ./validate.py")
     return tier
 
 
@@ -976,7 +1036,10 @@ def legacy_records(tool: Tool, commit: Optional[str]):
         if tool.agents_dir is not None and tool.agents_dir.is_dir():
             for name, ag in old_agents.items():
                 try:
-                    inherited, deps = resolve_deps(ag, old_agents, old_by_name)
+                    # fail() speaks before it stops; here the stop is expected
+                    # and handled, so what it says must not reach the user.
+                    with contextlib.redirect_stderr(io.StringIO()):
+                        inherited, deps = resolve_deps(ag, old_agents, old_by_name)
                 except SystemExit:
                     # A commit from before `inherits:` existed cannot be
                     # rendered by today's rules; it must not abort the refresh.
@@ -1457,12 +1520,14 @@ def declared_inherits(agent: Agent, agents: dict) -> list:
     meta, _ = split_frontmatter(agent.agents_md.read_text(encoding="utf-8"))
     raw = meta.get("inherits")
     if raw is None:
-        sys.exit(f"{agent.name}/AGENTS.md declares no `inherits:` — add the list of "
-                 f"agents it inherits from (`inherits: []` for none)")
+        fail(f"the catalog is not valid: {agent.name}/AGENTS.md declares no `inherits:`.",
+             "Add the list of agents it inherits from (`inherits: []` for none).",
+             hint="Try: ./validate.py")
     names = [n.strip() for n in raw.strip().strip("[]").split(",") if n.strip()]
     unknown = [n for n in names if n not in agents]
     if unknown:
-        sys.exit(f"{agent.name}/AGENTS.md inherits from unknown agent(s): {', '.join(unknown)}")
+        fail(f"the catalog is not valid: {agent.name}/AGENTS.md inherits from unknown "
+             f"agent(s): {', '.join(unknown)}.", hint="Try: ./validate.py")
     return [agents[n] for n in names]
 
 
@@ -2631,7 +2696,7 @@ def print_list(agents, all_skills, skills_by_name):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Install catalog agents/skills into a tool's global config.")
+    ap = Parser(description="Install catalog agents/skills into a tool's global config.")
     ap.add_argument("--catalog", type=Path, default=Path(__file__).resolve().parent,
                     help="catalog root (default: the clone this script sits in)")
     ap.add_argument("--list", action="store_true", help="list agents, skills, tools and exit")
@@ -2683,10 +2748,12 @@ def main():
 
     catalog = args.catalog
     if not catalog.exists():
-        sys.exit(f"catalog not found: {catalog}")
+        fail(f"no catalog at {catalog}.",
+             hint="Try: run install.py from a clone of the catalog, or pass --catalog <path>")
     agents, all_skills = discover(catalog)
     if not agents and not all_skills:
-        sys.exit(f"no agents or skills found under {catalog}")
+        fail(f"{catalog} does not look like the catalog: no agents or skills in it.",
+             hint="Try: run install.py from a clone of the catalog, or pass --catalog <path>")
     # skill names are unique across the catalog → safe to map by name
     skills_by_name = {}
     for s in all_skills:
@@ -2696,10 +2763,19 @@ def main():
     if args.project is not None:
         project = args.project.resolve()
         if not project.is_dir():
-            sys.exit(f"project path is not a directory: {project}")
+            fail(f"--project needs a folder; {project} is not one.")
         if project == catalog.resolve():
-            sys.exit("refusing to install into the catalog itself — pass the path of "
-                     "the project that should receive the agents")
+            fail("that folder is the catalog itself.",
+                 "Pass the project you want to install into: --project <path>", refused=True)
+
+    scope = f" --project {project}" if project else ""
+    tools_line = listed("Tools", TOOLS_BY_KEY)
+    first_tool = next((t.key for t in TOOLS
+                       if (project_tool(t, project) if project else t).config_root.exists()), TOOLS[0].key)
+
+    def known_tool(key: str) -> None:
+        if key not in TOOLS_BY_KEY:
+            fail(f"unknown tool '{key}'.", tools_line, *did_you_mean(key, TOOLS_BY_KEY))
 
     def target(tool: Tool) -> Tool:
         if not project:
@@ -2716,7 +2792,6 @@ def main():
         print_status(agents, skills_by_name, project, catalog, args.verbose)
         return
 
-    scope = f" --project {project}" if project else ""
     REPORT.verbose, REPORT.dry_run, REPORT.project = args.verbose, args.dry_run, project
     head = git(catalog, "rev-parse", "--short=7", "HEAD")
     REPORT.commit = head
@@ -2736,8 +2811,9 @@ def main():
             if (here.config_root / MANIFEST).is_file() and not shared_dir_owner(here, agents):
                 installed.append(t)
         if not installed:
-            sys.exit("--refresh: no tool here holds a catalog install (no "
-                     f"{MANIFEST} found) — install one with --all --tool <key>")
+            fail("nothing to refresh: no catalog install found"
+                 + (f" in {project}." if project else "."),
+                 hint=f"Try: ./install.py --all --tool {first_tool}{scope}")
         # `update`, not `overwrite`: a refresh brings what we installed up to
         # date and leaves everything else — foreign, edited, links — alone.
         REPORT.mode = "refresh"
@@ -2749,10 +2825,11 @@ def main():
 
     if args.uninstall:
         if args.all or args.agent or args.skill:
-            sys.exit("--uninstall removes a whole install; it does not combine with --all, "
-                     "--agent or --skill")
-        if args.tool and args.tool not in TOOLS_BY_KEY:
-            sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
+            fail("--uninstall removes a whole install and cannot be combined with --all, "
+                 "--agent or --skill.",
+                 hint=f"Try: ./install.py --uninstall{f' --tool {args.tool}' if args.tool else ''}{scope}")
+        if args.tool:
+            known_tool(args.tool)
         targets, seen = [], set()
         for t in ([TOOLS_BY_KEY[args.tool]] if args.tool else TOOLS):
             here = project_tool(t, project) if project else t
@@ -2765,7 +2842,10 @@ def main():
             if (here.config_root / MANIFEST).is_file():
                 targets.append((here, False))
         if not targets:
-            sys.exit(f"--uninstall: no catalog install found here (no {MANIFEST})")
+            fail("nothing to uninstall: no catalog install found in "
+                 f"{args.tool if args.tool else 'any tool'}"
+                 + (f" under {project}." if project else "."),
+                 hint=f"Try: ./install.py --status{scope}")
         REPORT.mode = "uninstall"
         REPORT.open(f"Removing what this installer put in "
                     f"{plural(len([1 for _, twin in targets if not twin]), 'tool')}")
@@ -2782,9 +2862,9 @@ def main():
     # Non-interactive: whole suite
     if args.all:
         if not args.tool:
-            sys.exit("--tool is required with --all")
-        if args.tool not in TOOLS_BY_KEY:
-            sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
+            fail("--all needs a target tool.", tools_line,
+                 hint=f"Try: ./install.py --all --tool {first_tool}{scope}")
+        known_tool(args.tool)
         tool = target(TOOLS_BY_KEY[args.tool])
         REPORT.open(f"Installing the whole catalog into {into(tool)}")
         install_suite(tool, args.on_conflict, False, args.dry_run, agents, skills_by_name, catalog)
@@ -2794,17 +2874,22 @@ def main():
     # Non-interactive path
     if args.agent or args.skill:
         if not args.tool:
-            sys.exit("--tool is required with --agent/--skill")
-        if args.tool not in TOOLS_BY_KEY:
-            sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
+            asked = "".join(f" --agent {a}" for a in args.agent) + "".join(
+                f" --skill {k}" for k in args.skill)
+            fail("--agent and --skill need a target tool.", tools_line,
+                 hint=f"Try: ./install.py{asked} --tool {first_tool}{scope}")
+        known_tool(args.tool)
         tool = target(TOOLS_BY_KEY[args.tool])
         skills_by_q = {s.qualified: s for s in all_skills}
         for name in args.agent:
             if name not in agents:
-                sys.exit(f"unknown agent '{name}'. Known: {', '.join(sorted(agents))}")
+                fail(f"unknown agent '{name}'.", listed("Agents", sorted(agents)),
+                     *did_you_mean(name, agents))
         for ref in args.skill:
             if not (skills_by_q.get(ref) or skills_by_name.get(ref)):
-                sys.exit(f"unknown skill '{ref}'. Use --list to see options.")
+                fail(f"unknown skill '{ref}'.",
+                     *did_you_mean(ref.split(":")[-1], skills_by_name),
+                     hint="Try: ./install.py --list")
         what = [f"agent {n}" for n in args.agent] + [f"skill {r.split(':')[-1]}" for r in args.skill]
         REPORT.open(wrapped(f"Installing {', '.join(what)} into {into(tool)}", 2))
 

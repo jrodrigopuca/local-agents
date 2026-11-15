@@ -792,7 +792,7 @@ def check_installer(cat: Catalog):
                 continue
             before = body.read_text(encoding="utf-8")
             proc = install(second)
-            if proc.returncode == 0 or "refusing" not in proc.stderr:
+            if proc.returncode != 2 or "refused:" not in proc.stderr:
                 errs.append(f"install.py let --tool {second} --project overwrite a "
                             f"{first} install in .agents/ — it must refuse the mix")
             elif body.read_text(encoding="utf-8") != before:

@@ -794,6 +794,34 @@ available to both.
 
 ---
 
+## Errors and exit codes
+
+Every error has the same form, on stderr: what is wrong, what was found, and
+a command that works.
+
+```
+error: --all needs a target tool.
+  Tools: claude, opencode, kiro, codex, antigravity, shared
+  Try: ./install.py --all --tool claude
+```
+
+A name that is close to a real one gets `Did you mean: …`. The `Try:` line is
+a command you can run as it is: it carries the agents, skills and `--project`
+you passed.
+
+| Code | Prefix | Meaning |
+|---|---|---|
+| `0` | | Done |
+| `1` | `error:` | It cannot be done: a mistyped flag, an unknown name, nothing installed to act on |
+| `2` | `refused:` | It could be done and is not safe to. Always ends with `Nothing was changed.` |
+
+These are the codes `update.py` and the `local-hero` launcher document (which
+add `3`, the remote could not be reached), so a script around any of them
+reads the same numbers. `default_agent.py` follows them too: `2` only when no
+tool was changed, `1` when it refused in one tool and changed another.
+
+---
+
 ## Adding a New Tool
 
 The tool registry is data, not buried logic. Open `install.py`, locate the
