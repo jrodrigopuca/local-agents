@@ -123,7 +123,9 @@ class InstallTest(unittest.TestCase):
         # Untouched, both files — B-053 measured our SKILL.md written into it.
         self.assertEqual((theirs / "SKILL.md").read_text(), before)
         self.assertTrue((theirs / "agents" / "openai.yaml").is_file())
-        self.assertIn("not ours", run.stdout)
+        self.assertIn("Kept 1 file as it is:", run.stdout)
+        self.assertRegex(run.stdout, rf"skill {NAME} +not from this catalog +~/.claude/skills/{NAME}")
+        self.assertIn("--all --tool claude --on-conflict overwrite", run.stdout)
         self.assertFalse((self.skills / f"{NAME}-2").exists())
         self.assertEqual(len(list(self.agents.iterdir())), 15, "the rest must still install")
         self.assertTrue(self.stamp.is_file())
@@ -183,7 +185,8 @@ class InstallTest(unittest.TestCase):
         md.write_text(md.read_text() + "\nmy own note\n")
         for _ in range(2):   # a second refresh must not launder the edit into "intact"
             run = self.install("--refresh")
-            self.assertIn("edited by hand", run.stdout)
+            self.assertIn("Kept 1 file as it is:", run.stdout)
+            self.assertRegex(run.stdout, rf"skill {SKILL} +edited by hand")
             self.assertIn("my own note", md.read_text())
         self.assertIn("edited by hand", self.status())
         self.install_all("--on-conflict", "overwrite")
@@ -223,8 +226,9 @@ class InstallTest(unittest.TestCase):
         catalog = self.own_copy_of_catalog()
         self.install_all()
         self.rename_in_catalog(catalog, SKILL, "lh-verification-method")
-        run = self.install("--refresh")
-        self.assertIn(f"retired → removed {SKILL}", run.stdout)
+        run = self.install("--refresh", "--verbose")
+        self.assertRegex(run.stdout, rf"removed +skill {SKILL} +old copy of lh-verification-method")
+        self.assertRegex(run.stdout, r"(?m)^  claude .*\b1 removed\b")
         self.assertFalse((self.skills / SKILL).exists())
         self.assertTrue(self.is_ours(self.skills / "lh-verification-method"))
         status = self.status()
@@ -273,8 +277,8 @@ class InstallTest(unittest.TestCase):
         self.assertEqual(run.returncode, 0, run.stderr[-500:])
         # Rebuilt from the stamped commit, not the author fallback: only the
         # rebuild can tell an edit apart.
-        self.assertNotIn("cannot be told apart", run.stdout)
-        self.assertNotIn("left alone", run.stdout)
+        self.assertNotIn("told apart", run.stdout)
+        self.assertNotIn("Kept", run.stdout)
         self.assertTrue(all(self.is_ours(d) for d in self.skills.iterdir()))
         self.assertFalse([p for p in self.agents.iterdir() if "-2" in p.stem])
         stamp = json.loads(self.stamp.read_text())
@@ -308,9 +312,12 @@ class InstallTest(unittest.TestCase):
                              env=self.env, timeout=300)
         self.assertEqual(run.returncode, 0, run.stderr[-500:])
         self.assertTrue(self.stamp.is_file(), "the menu installed an agent and left no record")
-        self.assertIn("agent", run.stdout)
+        self.assertRegex(run.stdout, r"agents +1 installed")
+        self.assertIn("Done:", run.stdout)
         again = self.install("--agent", "apple-dev", "--tool", "claude")
-        self.assertNotIn("not ours", again.stdout)
+        # the menu picked that same agent: with its record it reads as ours, as it was
+        self.assertNotIn("Kept", again.stdout)
+        self.assertRegex(again.stdout, r"agents +1 unchanged")
 
     def test_a_catalog_that_is_not_a_git_checkout_still_records_and_protects(self):
         plain = self.tmp / "plain-catalog"
@@ -385,7 +392,7 @@ class InstallTest(unittest.TestCase):
         stamp["catalog_commit"] = "0" * 40
         self.stamp.write_text(json.dumps(stamp))
         run = self.install("--refresh")
-        self.assertIn("cannot be told apart", run.stdout)
+        self.assertIn("hand edits there cannot be told apart", " ".join(run.stdout.split()))
         self.assertFalse([p for p in self.agents.iterdir() if "-2" in p.stem])
 
 
@@ -416,7 +423,7 @@ class InstallTest(unittest.TestCase):
         run = self.install("--refresh")
         self.assertEqual(run.returncode, 0, run.stdout[-300:] + run.stderr[-300:])
         self.assertNotIn("declares no `inherits:`", run.stdout + run.stderr)
-        self.assertIn("cannot be told apart", run.stdout)
+        self.assertIn("hand edits there cannot be told apart", " ".join(run.stdout.split()))
         self.assertTrue(json.loads(kiro_stamp.read_text())["suite"])
 
 
@@ -466,9 +473,12 @@ class InstallTest(unittest.TestCase):
         self.legacy_install_from_a_catalog_without_ids("claude")
         self.make_legacy(self.stamp)
         run = self.install("--refresh")
-        self.assertIn("Installing the WHOLE SUITE", run.stdout)
-        self.assertNotIn("left alone", run.stdout)
-        self.assertTrue(json.loads(self.stamp.read_text())["suite"])
+        # the whole catalog went through, each file once, and none read as edited
+        self.assertRegex(run.stdout, r"(?m)^  claude .*\b(updated|unchanged)\b")
+        self.assertNotIn("Kept", run.stdout)
+        stamp = json.loads(self.stamp.read_text())
+        self.assertTrue(stamp["suite"])
+        self.assertEqual((len(stamp["skills"]), len(stamp["agents"])), (51, 15))
 
     def test_kiro_agents_list_all_their_skills_after_a_legacy_refresh(self):
         self.legacy_install_from_a_catalog_without_ids("kiro")
@@ -489,7 +499,8 @@ class InstallTest(unittest.TestCase):
         self.commit("change a shared skill")
         run = self.install("--refresh")
         self.assertEqual(run.returncode, 0, run.stderr)
-        self.assertNotIn("left alone", run.stdout)
+        self.assertNotIn("Kept", run.stdout)
+        self.assertRegex(run.stdout, r"(?m)^  claude .*\b1 updated\b")
         self.assertIn("new in the catalog", (self.skills / SKILL / "SKILL.md").read_text())
 
 
@@ -536,7 +547,8 @@ class InstallTest(unittest.TestCase):
         self.assertIn("up to date", self.row("kiro", status))   # upgraded by the host is not out of date
         run = self.install("--refresh")
         self.assertEqual(run.returncode, 0, run.stderr[-500:])
-        self.assertNotIn("NOT UPDATED", run.stdout)
+        self.assertNotIn("Kept", run.stdout)
+        self.assertIn("Nothing to update.", run.stdout)
         self.assertEqual(target.read_bytes(), upgraded)
         self.assertNotIn("edited by hand", self.status())
 
@@ -548,10 +560,12 @@ class InstallTest(unittest.TestCase):
         target.write_text(json.dumps(agent, indent=2, ensure_ascii=False))
         self.assertIn("edited by hand", self.status())
         skipped = self.install("--refresh")
-        self.assertIn("NOT UPDATED: 1 file(s) left alone", skipped.stdout)
+        self.assertIn("Kept 1 file as it is:", skipped.stdout)
+        self.assertRegex(skipped.stdout, r"agent qa +edited by hand +~/.kiro/agents/qa.json")
+        self.assertIn("--all --tool kiro --on-conflict overwrite", skipped.stdout)
         self.assertIn("rhyme", target.read_text())
         run = self.install("--all", "--tool", "kiro", "--on-conflict", "overwrite")
-        self.assertNotIn("NOT UPDATED", run.stdout)
+        self.assertNotIn("Kept", run.stdout)
         self.assertNotIn("rhyme", target.read_text())
         self.assertNotIn("edited by hand", self.status())
 
@@ -559,9 +573,10 @@ class InstallTest(unittest.TestCase):
         # architect owns 3 skills but installs those it inherits and links to.
         listed = next(l for l in self.install("--list").stdout.splitlines()
                       if l.strip().startswith("architect"))
-        dry = self.install("--agent", "architect", "--tool", "claude", "--dry-run")
-        on_disk = sum(1 for l in dry.stdout.splitlines()
-                      if l.strip().startswith("skill") and "→" in l)
+        dry = self.install("--agent", "architect", "--tool", "claude", "--dry-run", "--verbose")
+        on_disk = sum(1 for l in dry.stdout.splitlines() if l.split()[:3] == ["would", "install", "skill"])
+        self.assertRegex(self.install("--agent", "architect", "--tool", "claude", "--dry-run").stdout,
+                         rf"skills +would install {on_disk}\b")
         self.assertIn(f"({on_disk} installed with inheritance)", listed)
 
 

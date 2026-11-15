@@ -108,8 +108,11 @@ class WhatStays(Base):
         out = self.run_install("--uninstall").stdout
         self.assertTrue(skill.is_file())
         self.assertIn("my note", agent.read_text())
-        self.assertRegex(out, r"kept\s+→ skill lh-verification: edited")
-        self.assertRegex(out, r"kept\s+→ agent qa\.md: edited")
+        self.assertIn("Kept 2 files as they are:", out)
+        self.assertRegex(out, r"skill lh-verification +edited by hand +~/.claude/skills/lh-verification")
+        self.assertRegex(out, r"agent qa +edited by hand +~/.claude/agents/qa.md")
+        self.assertIn("They are yours now", out)
+        self.assertRegex(out, r"Done: 64 files removed from claude, 2 kept\.")
         self.assertEqual(sorted(p.name for p in (self.root() / "skills").iterdir()), ["lh-verification"])
         self.assertEqual(sorted(p.name for p in (self.root() / "agents").iterdir()), ["qa.md"])
         self.assertFalse((self.root() / ".local-agents.json").exists())
@@ -121,7 +124,7 @@ class WhatStays(Base):
         out = self.run_install("--uninstall").stdout
         self.assertEqual((r / "skills" / NAME / "SKILL.md").read_text(), theirs)
         self.assertTrue((r / "agents" / "my-agent.md").is_file())
-        self.assertIn("never ours", out)
+        self.assertIn("3 files not from this catalog were not touched.", out)
 
     def test_a_skill_installed_alone_goes_alone(self):
         r = self.seed()
@@ -136,7 +139,7 @@ class WhatStays(Base):
         bak.write_text("{}")
         out = self.run_install("--uninstall").stdout
         self.assertTrue(bak.is_file())
-        self.assertIn("Kiro's own backups", out)
+        self.assertIn("kiro: 1 backup made by Kiro itself (*.bak) remains in ~/.kiro/agents", out)
         self.assertEqual([p.name for p in (self.root("kiro") / "agents").iterdir()], ["qa.json.bak"])
 
 
@@ -181,7 +184,7 @@ class Hooks(Base):
         guard.write_text("# mine now\n")
         out = self.run_install("--uninstall").stdout
         self.assertEqual(guard.read_text(), "# mine now\n")
-        self.assertRegex(out, r"kept\s+→ hook shell_write_guard\.py")
+        self.assertRegex(out, r"hook shell_write_guard\.py +not the copy that was installed")
 
     def test_the_user_s_own_hooks_folder_is_not_removed(self):
         (self.root() / "hooks").mkdir(parents=True)

@@ -51,21 +51,28 @@ installed (you can install anyway; it will prompt you).
 
 ### Step 2 — Preview with `--dry-run`
 
-`--dry-run` shows EXACTLY what files would be written without modifying anything:
+`--dry-run` says what the run would do and writes nothing. It opens and closes
+by saying so:
 
 ```bash
 ./install.py --agent architect --tool claude --dry-run
 ```
 
-Example output:
+```
+Dry run: nothing is written.
 
+Installing agent architect into claude (~/.claude)
+
+  skills   would install 7
+  agents   would install 1
+
+Done (dry run): would install 8 files in claude.
+Dry run: nothing was written. Run again without --dry-run to apply.
 ```
-  Installing agent 'architect' → Claude Code
-    skill  → /Users/you/.claude/skills/design-review
-    skill  → /Users/you/.claude/skills/mentoring
-    skill  → /Users/you/.claude/skills/tradeoffs
-    agent  → /Users/you/.claude/agents/architect.md
-```
+
+The counts are what the real run will report: for each file the dry run
+works out whether it would be installed, updated or left as it is. Add
+`--verbose` to see every file by name.
 
 ### Step 3 — Install for real (remove `--dry-run`)
 
@@ -76,6 +83,41 @@ Example output:
 The agent is placed in `~/.claude/agents/architect.md` (with the frontmatter
 `name`/`description` that Claude requires, generated automatically) and its skills
 in `~/.claude/skills/`. Claude discovers them automatically via their `description`.
+
+### What a run tells you
+
+Installing, refreshing and uninstalling all report the same way: one row per
+tool (or, for a single tool, one per kind of file), then what the run chose
+not to touch, then one closing line.
+
+```
+Updating 2 tools from catalog a319a78
+
+  claude        3 updated, 62 unchanged, 1 kept
+  kiro          3 updated, 63 unchanged
+
+Kept 1 file as it is:
+  claude   skill lh-pairing   edited by hand   ~/.claude/skills/lh-pairing
+It still has its old content. To replace it with the catalog's version:
+  ./install.py --all --tool claude --on-conflict overwrite
+
+Done: 6 files updated in 2 tools, 1 kept.
+```
+
+| Word | Meaning |
+|---|---|
+| `installed` | Was not there; now it is |
+| `updated` | Was there and differed from the catalog |
+| `unchanged` | Was there and already matched |
+| `kept` | The run chose not to touch it, always with the reason: `edited by hand`, `not from this catalog`, `a link to another tool's copy` |
+| `removed` | Deleted: an uninstall, or an old copy of a skill the catalog renamed |
+
+A file that was kept is named again after the rows, with its path and the
+command that replaces it, so it cannot be missed in a long run. When a refresh
+finds nothing to bring, it says so in one line: `No installed file differs
+from catalog a319a78. Nothing to update.`
+
+`--verbose` prints one line per file under each tool.
 
 ---
 
@@ -740,12 +782,13 @@ available to both.
 |---|---|
 | `--all` | Install the complete suite (15 agents + 51 skills) |
 | `--no-deps` | Install only the agent's own skills, omitting inheritance and cross-agent skills |
-| `--dry-run` | Show what would happen without writing files |
+| `--dry-run` | Say what the run would do, with the same counts, and write nothing |
 | `--catalog PATH` | Use a different catalog (default: directory containing the script) |
 | `--on-conflict {ask,overwrite,rename,skip}` | Collision policy |
 | `--list` | List catalog contents and detected tools, then exit |
 | `--project [PATH]` | Install into a repository instead of user home (no path = current dir) |
-| `--status` | Check what is INSTALLED in each tool and whether it is up to date, then exit. `--verbose` for every tool in full |
+| `--status` | Check what is INSTALLED in each tool and whether it is up to date, then exit |
+| `--verbose` | One line per file when installing, refreshing or uninstalling; with `--status`, every tool in full |
 | `--refresh` | Reinstall the suite into every tool that already holds a catalog install |
 | `--uninstall` | Remove what the installer put, and only that; edited and foreign files stay. With `--tool`, `--project`, `--dry-run` |
 

@@ -541,14 +541,16 @@ def sync_guard(tool: Tool, dry_run: bool):
         return
     dest = guard_path(tool)
     if guard_on(tool):
-        print(f"    guard  → {dest}")
+        REPORT.did("installed" if not dest.is_file() else
+                   "unchanged" if file_hash(dest) == file_hash(GUARD_SOURCE) else "updated",
+                   "hook", "shell-write guard", tool=tool)
         if not dry_run:
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(GUARD_SOURCE.read_bytes())
         return
     recorded = (run_for(tool).stamp or {}).get("shell_write_guard_sha256")
     if dest.is_file() and recorded and file_hash(dest) == recorded:
-        print(f"    guard  → removed {dest} (--no-shell-write-guard)")
+        REPORT.did("removed", "hook", "shell-write guard", why="--no-shell-write-guard", tool=tool)
         if not dry_run:
             dest.unlink()
 
@@ -617,14 +619,16 @@ def sync_verify(tool: Tool, dry_run: bool):
         return
     dest = verify_path(tool)
     if verify_on(tool):
-        print(f"    verify → {dest}")
+        REPORT.did("installed" if not dest.is_file() else
+                   "unchanged" if file_hash(dest) == file_hash(VERIFY_SOURCE) else "updated",
+                   "hook", "verify hook", tool=tool)
         if not dry_run:
             dest.parent.mkdir(parents=True, exist_ok=True)
             dest.write_bytes(VERIFY_SOURCE.read_bytes())
         return
     recorded = (run_for(tool).stamp or {}).get("verify_hook_sha256")
     if dest.is_file() and recorded and file_hash(dest) == recorded:
-        print(f"    verify → removed {dest} (--no-verify-hook)")
+        REPORT.did("removed", "hook", "verify hook", why="--no-verify-hook", tool=tool)
         if not dry_run:
             dest.unlink()
 
@@ -928,9 +932,9 @@ def with_legacy_records(tool: Tool, stamp: dict) -> dict:
     --status says so."""
     rebuilt = legacy_records(tool, stamp.get("catalog_commit"))
     if rebuilt is None:
-        print(f"    note   → {tool.label}: installed before install records existed, "
-              f"from a commit this catalog cannot rebuild — hand edits there cannot be "
-              f"told apart, and catalog files are updated")
+        REPORT.note("installed before install records existed, from a commit this catalog "
+                    "cannot rebuild: hand edits there cannot be told apart, and catalog files "
+                    "are updated.", tool=tool)
         return {**stamp, "suite": stamp.get("suite", True)}
     skills, agents = rebuilt
     # Before B-058 every refresh reinstalled the whole catalog; a stamp from
@@ -1039,10 +1043,10 @@ def classify_agent(f: Path, agent_names: set, stamp: Optional[dict]) -> str:
 
 
 _SAFE = {
-    FOREIGN: "not ours (no local-agents id)",
+    FOREIGN: "not from this catalog",
     LINK: "a link to another tool's copy",
-    EDITED: "edited by hand since it was installed",
-    "foreign agent": "not ours (no install record of it)",
+    EDITED: "edited by hand",
+    "foreign agent": "not from this catalog",
 }
 
 
@@ -1057,7 +1061,7 @@ def decide(kind: str, policy: str, interactive: bool, what: str) -> str:
         return "write"
     why = _SAFE["foreign agent"] if kind == FOREIGN and what.startswith("agent") else _SAFE[kind]
     if kind == LINK:
-        print(f"    · {what}: {_SAFE[LINK]} — left alone")
+        REPORT.keep(what, _SAFE[LINK])
         return "skip"
     if policy == "overwrite":
         return "write"
@@ -1070,35 +1074,264 @@ def decide(kind: str, policy: str, interactive: bool, what: str) -> str:
                 return "write"
             if ans in ("s", "skip", ""):
                 return "skip"
-    print(f"    · {what}: {why} — left alone "
-          f"(--on-conflict overwrite replaces it)")
-    LEFT_ALONE.append(what)
+    REPORT.keep(what, why)
     return "skip"
 
 
-# What a run did NOT update. Each one is said where it happens, in the middle
-# of a few hundred lines; said once more at the end, where it is read. Kiro
-# sat 19 days on an old catalog behind fifteen of those lines (B-099).
-LEFT_ALONE = []
+# --------------------------------------------------------------------------- #
+# What a run did, said once
+#
+# Every path that installs, refreshes or uninstalls records what happened to
+# each file here instead of printing it: installed, updated, unchanged, kept
+# (with the reason) or removed. The run then says it the way a person reads
+# it — one row per tool, the files it chose not to touch with the command that
+# changes that, and one closing line. One line per file is for --verbose.
+#
+# It grew out of B-099: Kiro sat 19 days on an old catalog behind fifteen
+# "left alone" lines lost among a few hundred. What a run did NOT do is the
+# part that has to survive the scroll.
+# --------------------------------------------------------------------------- #
+VERB = {"installed": "install", "updated": "update", "removed": "remove", "kept": "keep"}
+FILE_KINDS = ("skill", "agent", "hook")
 
 
-def report_left_alone():
-    if not LEFT_ALONE:
-        return
-    shown = ", ".join(LEFT_ALONE[:6]) + (f" and {len(LEFT_ALONE) - 6} more"
-                                         if len(LEFT_ALONE) > 6 else "")
-    print(f"\nNOT UPDATED: {len(LEFT_ALONE)} file(s) left alone because they are not as this "
-          f"installer wrote them — {shown}.\n  They keep their old content. "
-          f"`--on-conflict overwrite` replaces them; `--status` lists them.")
+def plural(n: int, one: str, many: str = "") -> str:
+    return f"{n} {one if n == 1 else (many or one + 's')}"
 
 
-import atexit  # noqa: E402
-atexit.register(report_left_alone)
+@dataclass
+class Tally:
+    """What one run did in one tool."""
+    tool: Tool
+    done: dict = field(default_factory=dict)       # (kind, action) -> [names]
+    kept: list = field(default_factory=list)       # [(what, why, path)]
+    notes: list = field(default_factory=list)
+    index: str = ""                                # what happened to the agent index
+    planned: dict = field(default_factory=dict)    # skill folder -> (Skill, its hash before, or None)
+    strangers: int = 0                             # files that were never ours (uninstall)
+    closing: list = field(default_factory=list)
+
+    def n(self, action: str, kinds=FILE_KINDS) -> int:
+        return sum(len(self.done.get((k, action), ())) for k in kinds)
+
+
+class Report:
+    def __init__(self):
+        self.verbose = self.dry_run = False
+        self.mode = "install"          # install | refresh | uninstall
+        self.tallies, self.current = {}, None
+        self.project = self.commit = None
+        self.todo = []                 # (tool key, agent) left pointing at a removed agent
+
+    # -- recording -------------------------------------------------------- #
+    def open(self, title: str) -> None:
+        if self.dry_run:
+            print("Dry run: nothing is written.\n")
+        print(title)
+        if not self.verbose:
+            print()
+
+    def begin(self, tool: Tool) -> Tally:
+        t = self.tallies.get(tool.config_root)
+        if t is None:
+            t = self.tallies[tool.config_root] = Tally(tool)
+            if self.verbose:
+                label = tool.label.replace(" — ", ", ")
+                print(f"\n{tool.key} ({label})  {show_path(tool.config_root, self.project)}")
+        self.current = t
+        return t
+
+    def line(self, action: str, what: str, why: str = "") -> None:
+        if not self.verbose:
+            return
+        word = f"would {VERB[action]}" if self.dry_run and action in VERB else action
+        print(f"  {word:<13} {what}".rstrip() + (f"   {why}" if why else ""))
+
+    def did(self, action: str, kind: str, name: str, why: str = "", tool: Tool = None) -> None:
+        t = self.begin(tool) if tool is not None else self.current
+        t.done.setdefault((kind, action), []).append(name)
+        self.line(action, f"{kind} {name}", why)
+
+    def keep(self, what: str, why: str, path=None, tool: Tool = None) -> None:
+        """A file the run chose not to touch: said again at the end, with its reason."""
+        t = self.begin(tool) if tool is not None else self.current
+        if path is None:
+            kind, _, name = what.partition(" ")
+            path = (t.tool.skills_dir / name if kind == "skill" or t.tool.agents_dir is None
+                    else t.tool.agents_dir / f"{name}{agent_suffix(t.tool)}")
+        t.kept.append((what, why, path))
+        self.line("kept", what, why)
+
+    def note(self, text: str, tool: Tool = None) -> None:
+        t = self.begin(tool) if tool is not None else self.current
+        t.notes.append(text)
+        self.line("note", text)
+
+    def plan_skill(self, tool: Tool, name: str, skill, before: Optional[str]) -> None:
+        """A skill folder about to be written. Whether that is an install, an
+        update or no change is known only once every link in it is settled."""
+        self.begin(tool).planned[name] = (skill, before)
+
+    def settle(self, tool: Tool, skills_by_name: dict) -> None:
+        t = self.tallies.get(tool.config_root)
+        if t is None or not t.planned:
+            return
+        present = present_skills(tool.skills_dir, skills_by_name) | {
+            n for n in t.planned if n in skills_by_name}
+        for name, (skill, before) in sorted(t.planned.items()):
+            if before is None:
+                action = "installed"
+            else:
+                after = (expected_tree_hash(skill, name, present) if self.dry_run
+                         else tree_hash(tool.skills_dir / name))
+                action = "unchanged" if after == before else "updated"
+            self.did(action, "skill", name, tool=tool)
+        t.planned.clear()
+
+    # -- saying it -------------------------------------------------------- #
+    def phrase(self, action: str, n: int) -> str:
+        if self.dry_run and action in VERB:
+            return f"would {VERB[action]} {n}"
+        return f"{n} {action}"
+
+    def would(self, done: str) -> str:
+        return f"would be {done}" if self.dry_run and done != "unchanged" else done
+
+    def parts(self, t: Tally, kinds=FILE_KINDS, with_kept: bool = True) -> list:
+        out = [self.phrase(a, t.n(a, kinds)) for a in ("installed", "updated", "unchanged", "removed")
+               if t.n(a, kinds)]
+        if with_kept:
+            kept = [k for k in t.kept if k[0].split(" ")[0] in kinds]
+            if kept:
+                out.append(self.phrase("kept", len(kept)))
+        return out
+
+    def finish(self, scope: str = "") -> None:
+        tallies = [t for t in self.tallies.values()]
+        if not tallies:
+            return
+        total = {a: sum(t.n(a) for t in tallies) for a in ("installed", "updated", "unchanged", "removed")}
+        kept = [(t, k) for t in tallies for k in t.kept]
+        changed = total["installed"] + total["updated"] + total["removed"]
+        where = tallies[0].tool.key if len(tallies) == 1 else f"{len(tallies)} tools"
+        cat = f" catalog {self.commit}" if self.commit else " the catalog"
+        if self.verbose:
+            print()
+
+        nothing = self.mode == "refresh" and not changed and not kept
+        if nothing:
+            print(f"No installed file differs from{cat}. Nothing to update.")
+        elif len(tallies) == 1 and self.mode == "install":
+            t = tallies[0]
+            for label, kinds in (("skills", ("skill",)), ("agents", ("agent",)), ("options", ("hook",))):
+                parts = self.parts(t, kinds)
+                # a hook script that was already there says nothing
+                if parts and not (label == "options" and not (t.n("installed", kinds) + t.n("updated", kinds)
+                                                                + t.n("removed", kinds))):
+                    print(f"  {label:<8} {', '.join(parts)}")
+            if t.index:
+                print(f"  index    agent index ({t.tool.roster.name}) {self.would(t.index)}")
+        else:
+            for t in tallies:
+                parts = self.parts(t) + ([f"agent index {self.would(t.index)}"]
+                                         if t.index and t.index != "unchanged" else [])
+                print(wrapped(", ".join(parts) or "nothing to do", 16, f"  {t.tool.key:<13} "))
+
+        if kept:
+            n = len(kept)
+            print(f"\nKept {plural(n, 'file')} as {'it is' if n == 1 else 'they are'}:")
+            width = max(len(k[0]) for _, k in kept)
+            for t, (what, why, path) in kept:
+                lead = f"  {t.tool.key:<8} " if len(tallies) > 1 else "  "
+                print(f"{lead}{what:<{width}}   {why}   {show_path(path, self.project)}")
+            if self.mode == "uninstall":
+                print(wrapped(f"{'It is' if n == 1 else 'They are'} yours now: the catalog no longer "
+                              f"tracks {'it' if n == 1 else 'them'}. Delete {'it' if n == 1 else 'them'} "
+                              f"by hand if you do not want {'it' if n == 1 else 'them'}.", 0))
+            else:
+                fixable = [t for t in tallies if any(w != _SAFE[LINK] for _, w, _ in t.kept)]
+                if fixable:
+                    print(wrapped(f"{'It still has its' if n == 1 else 'They still have their'} old "
+                                  f"content. To replace {'it' if n == 1 else 'them'} with the "
+                                  f"catalog's version:", 0))
+                    for t in fixable:
+                        print(f"  ./install.py --all --tool {t.tool.key}{scope} --on-conflict overwrite")
+        for t in tallies:
+            for note in t.notes:
+                print(wrapped(f"Note ({t.tool.key}): {note}", 2))
+
+        if self.todo:
+            agents = sorted({a for _, a in self.todo})
+            keys = [k for k, _ in self.todo]
+            print("\nStill to do:")
+            listed = keys[0] if len(keys) == 1 else f"{', '.join(keys[:-1])} and {keys[-1]}"
+            print(wrapped(f"{listed} {'is' if len(keys) == 1 else 'are'} set to start with "
+                          f"{', '.join(f'`{a}`' for a in agents)}, which "
+                          f"{'this would remove' if self.dry_run else 'was just removed'}.", 2, "  "))
+            print(f"  Try: ./default_agent.py --restore --tool {','.join(keys)}")
+
+        if not nothing:
+            if self.mode == "uninstall":
+                r = total["removed"]
+                done = (f"would remove {plural(r, 'file')}" if self.dry_run
+                        else f"{plural(r, 'file')} removed") + f" from {where}"
+            elif changed:
+                words = [(a, total[a]) for a in ("installed", "updated", "removed") if total[a]]
+                first_a, first_n = words[0]
+                head = (f"would {VERB[first_a]} {plural(first_n, 'file')}" if self.dry_run
+                        else f"{plural(first_n, 'file')} {first_a}")
+                done = ", ".join([head] + [self.phrase(a, n) for a, n in words[1:]]) + f" in {where}"
+            else:
+                done = (f"nothing to {'update' if self.mode == 'refresh' else 'change'} in {where}; "
+                        f"{plural(total['unchanged'], 'file')} already up to date")
+            if kept:
+                done += f", {self.phrase('kept', len(kept))}"
+            if self.mode == "install" and changed and self.commit and not self.dry_run:
+                done += f", from catalog {self.commit}"
+            print(f"\nDone{' (dry run)' if self.dry_run else ''}: {done}.")
+        strangers = sum(t.strangers for t in tallies)
+        if strangers:
+            print(f"{plural(strangers, 'file')} not from this catalog "
+                  f"{'was' if strangers == 1 else 'were'} not touched.")
+        for t in tallies:
+            for line in t.closing:
+                print(wrapped(f"{t.tool.key}: {line}", 2))
+        if self.dry_run:
+            print("Dry run: nothing was written. Run again without --dry-run to apply.")
+        elif self.mode == "install" and not self.todo:
+            print(f"Check any time: ./install.py --status{scope}")
+
+
+REPORT = Report()
+
+
+def expected_tree_hash(skill, name: str, present: Optional[set] = None) -> str:
+    """The tree_hash the installed folder would have: the catalog's files, with
+    SKILL.md rendered as it gets installed. What a dry run compares against,
+    since it writes nothing to hash."""
+    h = hashlib.sha256()
+    d = skill.path
+    try:
+        files = []
+        for root, dirs, names_ in os.walk(d, followlinks=False):
+            dirs[:] = sorted(x for x in dirs if not x.startswith("."))
+            files += [Path(root) / n for n in names_ if not n.startswith(".")]
+        for f in sorted(files, key=lambda p: p.relative_to(d).as_posix()):
+            if f.is_symlink():
+                continue
+            rel, data = f.relative_to(d).as_posix(), f.read_bytes()
+            if rel == "SKILL.md":
+                data = render_skill(data.decode("utf-8"), skill.agent, name, present).encode("utf-8")
+            h.update(rel.encode() + b"\0" + data + b"\0")
+    except OSError:
+        return UNREADABLE
+    return h.hexdigest()
 
 
 def copy_skill(skill: Skill, tool: Tool, name: str, dry_run: bool):
     dest = tool.skills_dir / name
-    print(f"    skill  → {dest}")
+    REPORT.plan_skill(tool, name, skill,
+                      tree_hash(dest) if dest.is_dir() and not dest.is_symlink() else None)
     if dry_run:
         return name
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -1131,13 +1364,16 @@ def relink_skills(tool: Tool, skills_by_name: dict, dry_run: bool):
     skill become its name; a later install that brings it turns the name back
     into a link. Only our untouched copies: an edited one keeps its edits, and
     a foreign one with our name is not ours to rewrite (B-053 measured exactly
-    that — a foreign folder left with our SKILL.md next to its own files)."""
-    if dry_run:
-        return
+    that — a foreign folder left with our SKILL.md next to its own files).
+    A dry run walks the same skills and says which it would rewrite."""
     run = run_for(tool)
-    present = present_skills(tool.skills_dir, skills_by_name)
+    planned = REPORT.begin(tool).planned
+    present = present_skills(tool.skills_dir, skills_by_name) | (
+        {n for n in planned if n in skills_by_name} if dry_run else set())
     for name in sorted(present):
         d = tool.skills_dir / name
+        if name in planned and dry_run:
+            continue                      # not on disk yet; settle() says what it would be
         if name not in run.skills_written and classify_skill(d, run.stamp)[0] != OURS:
             continue
         src = skills_by_name[name]
@@ -1145,8 +1381,12 @@ def relink_skills(tool: Tool, skills_by_name: dict, dry_run: bool):
         fresh = render_skill((src.path / "SKILL.md").read_text(encoding="utf-8"),
                              src.agent, name, present)
         if md.read_text(encoding="utf-8") != fresh:
-            md.write_text(fresh, encoding="utf-8")
-            run.skills_written.add(name)
+            if not dry_run:
+                md.write_text(fresh, encoding="utf-8")
+                run.skills_written.add(name)
+            if name not in planned:       # a skill this run did not install, re-pointed
+                REPORT.did("updated", "skill", name, why="its links to other skills", tool=tool)
+    REPORT.settle(tool, skills_by_name)
 
 
 def sweep_retired(tool: Tool, dry_run: bool):
@@ -1156,8 +1396,10 @@ def sweep_retired(tool: Tool, dry_run: bool):
     then a host lists both, with the same description, and may load the old
     one. Anything short of all three is kept and reported by --status: a
     duplicate costs less than a lost edit. A stamp from before B-058 has no
-    record under the old name, so nothing is removed there."""
-    if dry_run or not tool.skills_dir.is_dir():
+    record under the old name, so nothing is removed there. A dry run says
+    what it finds on disk; a copy that only becomes old once the run has
+    written the new name is not there to be seen yet."""
+    if not tool.skills_dir.is_dir():
         return
     recs = (run_for(tool).stamp or {}).get("skills") or {}
     for d in sorted(tool.skills_dir.iterdir()):
@@ -1168,8 +1410,9 @@ def sweep_retired(tool: Tool, dry_run: bool):
             continue
         rec = recs.get(sk.id)
         if rec and rec.get("name") == d.name and rec.get("sha256") == tree_hash(d):
-            shutil.rmtree(d)
-            print(f"    retired → removed {d.name} (now {sk.name})")
+            if not dry_run:
+                shutil.rmtree(d)
+            REPORT.did("removed", "skill", d.name, why=f"old copy of {sk.name}", tool=tool)
 
 
 def install_skill(skill: Skill, tool: Tool, policy: str, interactive: bool, dry_run: bool):
@@ -1370,7 +1613,7 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
                   dry_run: bool, agents: dict, skills_by_name: dict,
                   with_deps: bool = True, skip_skills: bool = False,
                   roster: bool = True):
-    print(f"\n  Installing agent '{agent.name}' → {tool.label}")
+    REPORT.begin(tool)
 
     if with_deps:
         inherited, dep_skills = resolve_deps(agent, agents, skills_by_name)
@@ -1381,9 +1624,10 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
         own = {s.name for s in agent.skills}
         extra = [s.name for s in dep_skills if s.name not in own]
         if inherited:
-            print(f"    deps   → inherits (reasoning inlined): {', '.join(a.name for a in inherited)}")
+            REPORT.line("with", f"agent {agent.name}",
+                        f"inherits {', '.join(a.name for a in inherited)} (reasoning inlined)")
         if extra:
-            print(f"    deps   → extra skills pulled in: {', '.join(extra)}")
+            REPORT.line("with", f"agent {agent.name}", f"skills pulled in: {', '.join(extra)}")
 
     # install all skills (own + inherited/cross-agent deps) unless already done
     # globally by a bulk (--all) run
@@ -1404,8 +1648,7 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
                                       if s.name in present and s.name not in installed_skill_names]
 
     if tool.agents_dir is None:
-        print(f"    note   → {tool.label} has nowhere to put an agent body. "
-              f"Skills installed above.")
+        REPORT.note(f"this tool has no place for agent files; `{agent.name}` is its skills.")
         return
 
     meta, desc, body = compose_agent(agent, inherited)
@@ -1437,7 +1680,10 @@ def install_agent(agent: Agent, tool: Tool, policy: str, interactive: bool,
                                      agent.name)
     dest, contents = render_agent(tool, final, body, desc, installed_skill_names, meta,
                                   guard=guard_command(tool), verify=verify_command(tool))
-    print(f"    agent  → {dest}")
+    there = dest.is_file() and not dest.is_symlink()
+    REPORT.did("installed" if not there else
+               "unchanged" if agent_hash(dest) == agent_text_hash(contents, dest.name) else "updated",
+               "agent", final)
     if not dry_run:
         dest.parent.mkdir(parents=True, exist_ok=True)
         # A host that upgrades our file (Kiro) keeps a backup each time it
@@ -1474,7 +1720,7 @@ def retire_roster_install(tool: Tool, agents: dict, dry_run: bool):
         old = tool.agents_dir / f"{name}.md"
         if old.is_file() and old.read_text(encoding="utf-8").startswith(
                 ROSTER_BODY_HEAD.format(name=name)):
-            print(f"    retire → {old} (pre-TOML roster body)")
+            REPORT.did("removed", "agent", old.name, why="left by an older install", tool=tool)
             if not dry_run:
                 old.unlink()
     roster = tool.roster
@@ -1487,11 +1733,12 @@ def retire_roster_install(tool: Tool, agents: dict, dry_run: bool):
     if roster.parent != tool.config_root and any(
             f.read_text(encoding="utf-8").startswith("# `")
             for f in shared_bodies.glob("*.md")):
-        print(f"    keep   → roster block in {roster}: the shared install still uses it")
+        REPORT.line("kept", f"agent index in {roster.name}", "the shared install still uses it")
         return
     rest = (text[:text.index(ROSTER_BEGIN)]
             + text[text.index(ROSTER_END) + len(ROSTER_END):]).strip()
-    print(f"    retire → roster block in {roster}")
+    REPORT.begin(tool).index = "removed"
+    REPORT.line("removed", f"agent index in {roster.name}", "left by an older install")
     if not dry_run:
         if rest:
             roster.write_text(rest + "\n", encoding="utf-8")
@@ -1546,14 +1793,16 @@ def write_roster(tool: Tool, agents: dict, just_installed: list, dry_run: bool):
         if ROSTER_BEGIN in current and ROSTER_END in current:
             head = current[:current.index(ROSTER_BEGIN)]
             tail = current[current.index(ROSTER_END) + len(ROSTER_END):]
-            contents, verb = head + block + tail, "roster updated in"
+            contents, verb = head + block + tail, "updated"
         else:
             contents = current.rstrip() + "\n\n" + block + "\n"
-            verb = "roster appended to"
+            verb = "added"
     else:
-        contents, verb = block + "\n", "roster written to"
+        contents, verb = block + "\n", "written"
 
-    print(f"    {verb} → {dest}")
+    same = dest.exists() and dest.read_text(encoding="utf-8") == contents
+    REPORT.begin(tool).index = "unchanged" if same else verb
+    REPORT.line("unchanged" if same else verb, f"agent index ({dest.name})")
     if not dry_run:
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_text(contents, encoding="utf-8")
@@ -1614,7 +1863,10 @@ def write_manifest(tool: Tool, catalog: Path, dry_run: bool, suite: bool = False
     sync_verify(tool, dry_run)
     where = (f"@ {commit[:7]}{' (dirty tree)' if dirty else ''}" if commit
              else "(catalog is not a git checkout: no commit recorded)")
-    print(f"    stamp  → {dest.name} {where}")
+    REPORT.begin(tool)
+    REPORT.line("record", dest.name, where)
+    if commit:
+        REPORT.commit = commit[:7]
     if dry_run:
         return
     dest.parent.mkdir(parents=True, exist_ok=True)
@@ -1724,28 +1976,21 @@ def install_suite(tool: Tool, policy: str, interactive: bool, dry_run: bool,
     """Install the WHOLE catalog — every skill once, then every agent file with
     its inheritance inlined. This guarantees all cross-agent handoffs, shared
     skills, and orchestration references resolve, because everything is present."""
-    print(f"\n  Installing the WHOLE SUITE ({len(agents)} agents, "
-          f"{len(skills_by_name)} skills) → {tool.label}")
-
-    print("  — skills (each installed once) —")
+    REPORT.begin(tool)
     for name in sorted(skills_by_name):
         install_skill(skills_by_name[name], tool, policy, interactive, dry_run)
     relink_skills(tool, skills_by_name, dry_run)
     sweep_retired(tool, dry_run)
 
     if tool.agents_dir is None:
-        print(f"  — {tool.label} has no named-agent slot: skills above are the install. —")
         return
 
-    print("  — agents (inheritance inlined; skills already installed above) —")
     for name in sorted(agents):
         install_agent(agents[name], tool, policy, interactive, dry_run,
                       agents, skills_by_name, with_deps=True, skip_skills=True,
                       roster=False)
 
     if tool.agent_style == "roster_md":
-        print("  — roster (no named-agent slot: the bodies above are indexed "
-              "in AGENTS.md) —")
         write_roster(tool, agents, sorted(agents), dry_run)
     retire_roster_install(tool, agents, dry_run)
 
@@ -1761,7 +2006,7 @@ def refresh_tool(tool: Tool, dry_run: bool, agents: dict, skills_by_name: dict,
     if stamp.get("suite", "skills" not in stamp):
         install_suite(tool, "update", False, dry_run, agents, skills_by_name, catalog)
         return
-    print(f"\n  Refreshing what was installed → {tool.label}")
+    REPORT.begin(tool)
     suffix = agent_suffix(tool) if tool.agents_dir is not None else None
     for f in sorted((stamp.get("agents") or {})):
         name = f[:-len(suffix)] if suffix and f.endswith(suffix) else None
@@ -1816,7 +2061,7 @@ def remove_roster_block(roster: Path, dry_run: bool) -> bool:
         rest = head.rstrip("\n") + "\n\n" + tail.lstrip("\n")
     else:
         rest = head.rstrip("\n") + "\n" if head.strip() else tail.lstrip("\n")
-    print(f"    roster  → block removed from {roster}")
+    REPORT.line("removed", f"agent index from {roster.name}")
     if not dry_run:
         if rest.strip():
             roster.write_text(rest, encoding="utf-8")
@@ -1845,8 +2090,7 @@ def uninstall_tool(tool: Tool, dry_run: bool, agents: dict) -> bool:
     if not stamp_file.is_file():
         return False
     stamp = run_for(tool).stamp or {}
-    print(f"\n  Uninstalling → {tool.label}")
-    removed, kept, strangers = [], [], 0
+    tally = REPORT.begin(tool)
 
     # Skills: ours by id, and still the bytes the stamp recorded under that name.
     recs = stamp.get("skills") or {}
@@ -1854,57 +2098,54 @@ def uninstall_tool(tool: Tool, dry_run: bool, agents: dict) -> bool:
         for d in sorted(tool.skills_dir.iterdir()):
             kind, sk = classify_skill(d, stamp)
             if kind in (FOREIGN, LINK):
-                strangers += kind == FOREIGN
+                tally.strangers += kind == FOREIGN
                 continue
             # A skill the catalog no longer has is still ours if the stamp recorded it here.
             rec = recs.get(sk.id) if sk is not None else next(
                 (r for r in recs.values() if r.get("name") == d.name), None)
             if kind != EDITED and rec and rec.get("name") == d.name and rec.get("sha256") == tree_hash(d):
-                removed.append(f"skill {d.name}")
+                REPORT.did("removed", "skill", d.name)
                 if not dry_run:
                     shutil.rmtree(d)
             else:
-                kept.append((f"skill {d.name}", "edited since it was installed" if kind == EDITED or rec
-                             else "no install record for it"))
+                REPORT.keep(f"skill {d.name}", _SAFE[EDITED] if kind == EDITED or rec
+                            else "no install record for it", d)
 
     # Agents: the files the stamp lists, while they are what we wrote.
-    backups = []
+    backups, gone = 0, []
     if tool.agents_dir is not None and tool.agents_dir.is_dir():
         for f in sorted(tool.agents_dir.iterdir()):
             if not f.is_file() or not f.name.endswith(agent_suffix(tool)):
                 continue
             kind = classify_agent(f, set(agents), stamp)
             if kind == OURS:
-                removed.append(f"agent {f.name}")
+                REPORT.did("removed", "agent", f.stem)
+                gone.append(f.stem)
                 # Kiro keeps its own backup of an agent it upgraded; that file is Kiro's.
-                if (f.parent / (f.name + ".bak")).is_file():
-                    backups.append(f.name + ".bak")
+                backups += (f.parent / (f.name + ".bak")).is_file()
                 if not dry_run:
                     f.unlink()
             elif kind == EDITED:
-                kept.append((f"agent {f.name}", "edited since it was installed"))
+                REPORT.keep(f"agent {f.stem}", _SAFE[EDITED], f)
             elif kind == FOREIGN:
-                strangers += 1
+                tally.strangers += 1
 
     # Hook scripts: only a copy whose hash is the one we recorded.
-    for rel, key in ((GUARD_REL, "shell_write_guard_sha256"), (VERIFY_REL, "verify_hook_sha256")):
+    for rel, key, name in ((GUARD_REL, "shell_write_guard_sha256", "shell-write guard"),
+                           (VERIFY_REL, "verify_hook_sha256", "verify hook")):
         f = tool.config_root / rel
         if not f.is_file():
             continue
         if stamp.get(key) and file_hash(f) == stamp[key]:
-            removed.append(f"hook {rel.name}")
+            REPORT.did("removed", "hook", name)
             if not dry_run:
                 f.unlink()
         else:
-            kept.append((f"hook {rel.name}", "not the copy that was installed"))
+            REPORT.keep(f"hook {rel.name}", "not the copy that was installed", f)
 
-    for line in removed:
-        print(f"    remove  → {line}")
-    if _owns_roster(tool):
-        remove_roster_block(tool.roster, dry_run)
-    for what, why in kept:
-        print(f"    kept    → {what}: {why}")
-    print(f"    stamp   → {stamp_file.name} removed")
+    if _owns_roster(tool) and remove_roster_block(tool.roster, dry_run):
+        tally.index = f"removed from {tool.roster.name}"
+    REPORT.line("removed", f"install record ({stamp_file.name})")
     if not dry_run:
         stamp_file.unlink()
         for d in (tool.config_root / GUARD_REL.parent, tool.config_root / GUARD_REL.parent.parent,
@@ -1914,21 +2155,18 @@ def uninstall_tool(tool: Tool, dry_run: bool, agents: dict) -> bool:
         home = TOOLS_BY_KEY.get(tool.key)
         if home is not None and tool.config_root != home.config_root:
             _rmdir_if_empty(tool.config_root, dry_run)      # a project's own config dir, never the home one
-    verb = "would remove" if dry_run else "removed"
-    print(f"    {verb} {len(removed)}; kept {len(kept)}"
-          + (f"; {strangers} file(s) that were never ours, untouched" if strangers else ""))
-    if kept:
-        print("    what was kept is yours now: the catalog no longer tracks it. Delete it by hand "
-              "if you do not want it.")
     if backups:
-        print(f"    Kiro's own backups of those agents remain ({len(backups)} *.bak in {tool.agents_dir})")
-    _warn_default_agent(tool, removed)
+        tally.closing.append(f"{plural(backups, 'backup')} made by Kiro itself (*.bak) "
+                             f"remain{'s' if backups == 1 else ''} in "
+                             f"{show_path(tool.agents_dir, REPORT.project)}")
+    _warn_default_agent(tool, gone)
     return True
 
 
 def _warn_default_agent(tool: Tool, removed: list) -> None:
     """A host told to start with an agent that is gone starts badly. The
-    setting is default_agent.py's to put back, not ours — say so."""
+    setting is default_agent.py's to put back, not ours — say so, once for
+    every tool it happened in."""
     home = TOOLS_BY_KEY.get(tool.key)
     if home is None or tool.config_root != home.config_root:
         return
@@ -1939,9 +2177,8 @@ def _warn_default_agent(tool: Tool, removed: list) -> None:
         now = default_agent.current(host) if host else default_agent.ABSENT
     except Exception:           # the script is optional; its absence must not break an uninstall
         return
-    if isinstance(now, str) and any(r == f"agent {now}{agent_suffix(tool)}" for r in removed):
-        print(f"    NOTE    → {tool.label} is still set to start with `{now}`, one of the agents removed: "
-              f"run ./default_agent.py --restore --tool {tool.key}")
+    if isinstance(now, str) and now in removed:
+        REPORT.todo.append((tool.key, now))
 
 
 # --------------------------------------------------------------------------- #
@@ -1985,6 +2222,8 @@ def interactive(agents, all_skills, skills_by_name, policy, dry_run, with_deps, 
         if ans not in ("y", "yes"):
             return
 
+    print()
+    REPORT.begin(tool)
     if mode == 0:
         install_suite(tool, policy, True, dry_run, agents, skills_by_name, catalog)
     elif mode == 1:
@@ -2403,8 +2642,8 @@ def main():
     ap.add_argument("--status", action="store_true",
                     help="show what is installed in each tool and whether it is current")
     ap.add_argument("--verbose", action="store_true",
-                    help="with --status: every tool in full: what is not from this catalog, "
-                         "the options that are off, the install record")
+                    help="one line per file when installing, refreshing or uninstalling; with "
+                         "--status, every tool in full")
     ap.add_argument("--refresh", action="store_true",
                     help="reinstall the whole suite into every tool that already holds "
                          "a catalog install (overwrites catalog files only)")
@@ -2477,8 +2716,14 @@ def main():
         print_status(agents, skills_by_name, project, catalog, args.verbose)
         return
 
-    if args.dry_run:
-        print("=== DRY RUN — no files will be written ===")
+    scope = f" --project {project}" if project else ""
+    REPORT.verbose, REPORT.dry_run, REPORT.project = args.verbose, args.dry_run, project
+    head = git(catalog, "rev-parse", "--short=7", "HEAD")
+    REPORT.commit = head
+    from_catalog = f"catalog {head}" if head else "the catalog"
+
+    def into(tool: Tool) -> str:
+        return f"{tool.key} ({show_path(tool.config_root, project)})"
 
     # One stale copy is enough for a host that reads several skill dirs to load
     # it (see shadow_report), so refresh every catalog install, not one tool.
@@ -2495,8 +2740,11 @@ def main():
                      f"{MANIFEST} found) — install one with --all --tool <key>")
         # `update`, not `overwrite`: a refresh brings what we installed up to
         # date and leaves everything else — foreign, edited, links — alone.
+        REPORT.mode = "refresh"
+        REPORT.open(f"Updating {plural(len(installed), 'tool')} from {from_catalog}")
         for t in installed:
             refresh_tool(target(t), args.dry_run, agents, skills_by_name, catalog)
+        REPORT.finish(scope)
         return
 
     if args.uninstall:
@@ -2505,18 +2753,30 @@ def main():
                      "--agent or --skill")
         if args.tool and args.tool not in TOOLS_BY_KEY:
             sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
-        done, seen = 0, set()
+        targets, seen = [], set()
         for t in ([TOOLS_BY_KEY[args.tool]] if args.tool else TOOLS):
             here = project_tool(t, project) if project else t
-            # Per project, shared and antigravity are one `.agents/` and one stamp.
+            # Per project, shared and antigravity are one `.agents/` and one install record.
             if here.config_root in seen:
-                if here.agent_style == "roster_md":
-                    remove_roster_block(here.roster, args.dry_run)
+                if here.agent_style == "roster_md" and (here.config_root / MANIFEST).is_file():
+                    targets.append((here, True))
                 continue
             seen.add(here.config_root)
-            done += uninstall_tool(here, args.dry_run, agents)
-        if not done:
+            if (here.config_root / MANIFEST).is_file():
+                targets.append((here, False))
+        if not targets:
             sys.exit(f"--uninstall: no catalog install found here (no {MANIFEST})")
+        REPORT.mode = "uninstall"
+        REPORT.open(f"Removing what this installer put in "
+                    f"{plural(len([1 for _, twin in targets if not twin]), 'tool')}")
+        twins = [here for here, twin in targets if twin]
+        for here, twin in targets:
+            if not twin:
+                uninstall_tool(here, args.dry_run, agents)
+        for here in twins:                # the same folder under its other name: only its index is left
+            if remove_roster_block(here.roster, args.dry_run):
+                REPORT.tallies[here.config_root].index = f"removed from {here.roster.name}"
+        REPORT.finish(scope)
         return
 
     # Non-interactive: whole suite
@@ -2525,8 +2785,10 @@ def main():
             sys.exit("--tool is required with --all")
         if args.tool not in TOOLS_BY_KEY:
             sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
-        install_suite(target(TOOLS_BY_KEY[args.tool]), args.on_conflict, False, args.dry_run,
-                      agents, skills_by_name, catalog)
+        tool = target(TOOLS_BY_KEY[args.tool])
+        REPORT.open(f"Installing the whole catalog into {into(tool)}")
+        install_suite(tool, args.on_conflict, False, args.dry_run, agents, skills_by_name, catalog)
+        REPORT.finish(scope)
         return
 
     # Non-interactive path
@@ -2536,29 +2798,35 @@ def main():
         if args.tool not in TOOLS_BY_KEY:
             sys.exit(f"unknown tool '{args.tool}'. Known: {', '.join(TOOLS_BY_KEY)}")
         tool = target(TOOLS_BY_KEY[args.tool])
-
+        skills_by_q = {s.qualified: s for s in all_skills}
         for name in args.agent:
             if name not in agents:
                 sys.exit(f"unknown agent '{name}'. Known: {', '.join(sorted(agents))}")
+        for ref in args.skill:
+            if not (skills_by_q.get(ref) or skills_by_name.get(ref)):
+                sys.exit(f"unknown skill '{ref}'. Use --list to see options.")
+        what = [f"agent {n}" for n in args.agent] + [f"skill {r.split(':')[-1]}" for r in args.skill]
+        REPORT.open(wrapped(f"Installing {', '.join(what)} into {into(tool)}", 2))
+
+        for name in args.agent:
             install_agent(agents[name], tool, args.on_conflict, False, args.dry_run,
                           agents, skills_by_name, with_deps=not args.no_deps)
 
-        skills_by_q = {s.qualified: s for s in all_skills}
         for ref in args.skill:
             sk = skills_by_q.get(ref) or skills_by_name.get(ref)
-            if not sk:
-                sys.exit(f"unknown skill '{ref}'. Use --list to see options.")
-            print(f"\n  Installing skill '{sk.qualified}' → {tool.label}")
+            REPORT.begin(tool)
             install_skill(sk, tool, args.on_conflict, False, args.dry_run)
         relink_skills(tool, skills_by_name, args.dry_run)
         # Once, after the last write — a relink after the stamp would read as a
         # hand edit next time.
         write_manifest(tool, catalog, args.dry_run)
+        REPORT.finish(scope)
         return
 
     # Interactive path
     interactive(agents, all_skills, skills_by_name, args.on_conflict,
                 args.dry_run, with_deps=not args.no_deps, project=project, catalog=catalog)
+    REPORT.finish(scope)
 
 
 if __name__ == "__main__":
