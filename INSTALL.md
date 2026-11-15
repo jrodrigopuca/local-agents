@@ -809,6 +809,21 @@ A name that is close to a real one gets `Did you mean: …`. The `Try:` line is
 a command you can run as it is: it carries the agents, skills and `--project`
 you passed.
 
+**A suggested command is one you can type.** Every `Try:` and `Next:` is built
+from how you came in:
+
+| You ran | A suggestion looks like |
+|---|---|
+| `./install.py …` inside the catalog | `./install.py --refresh` |
+| `install.py` from another folder | `~/path/to/catalog/install.py --refresh` |
+| `update.py …` | `./update.py update` |
+| a launcher (`npx github:…/local-hero …`) | the launcher's own command, or its verb alone (`` `update` ``) from a launcher that does not say its name |
+
+Whoever is in front says how it was typed in the environment variable
+`LOCAL_AGENTS_FRONT`; `update.py` sets it for itself and for the `install.py`
+it runs, and a launcher can set it first. Unset, the scripts suggest
+themselves.
+
 | Code | Prefix | Meaning |
 |---|---|---|
 | `0` | | Done |

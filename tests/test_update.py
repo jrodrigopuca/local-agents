@@ -86,12 +86,13 @@ class UpdateTest(unittest.TestCase):
 
     # -- helpers ---------------------------------------------------------- #
 
-    def sh(self, *cmd, cwd=None):
-        return subprocess.run(list(cmd), capture_output=True, text=True, env=self.env,
+    def sh(self, *cmd, cwd=None, env=None):
+        return subprocess.run(list(cmd), capture_output=True, text=True,
+                              env=dict(self.env, **(env or {})),
                               cwd=cwd, stdin=subprocess.DEVNULL, timeout=300)
 
-    def upd(self, *args, cwd=None):
-        return self.sh(sys.executable, str(UPDATER), *args, cwd=str(cwd or self.tmp))
+    def upd(self, *args, cwd=None, env=None):
+        return self.sh(sys.executable, str(UPDATER), *args, cwd=str(cwd or self.tmp), env=env)
 
     def head(self, repo):
         return self.sh("git", "-C", str(repo), "rev-parse", "HEAD").stdout.strip()
@@ -139,11 +140,31 @@ class UpdateTest(unittest.TestCase):
         spec = importlib.util.spec_from_file_location("update_under_test", UPDATER)
         update = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(update)
-        managed = update.managed_dir()
-        self.assertIn("bootstrap --all --tool", update.install_hint(managed))
-        self.assertNotIn("install.py", update.install_hint(managed))
-        own = Path("/somewhere/else")
-        self.assertIn(str(own / "install.py"), update.install_hint(own))
+        # Whoever is in front says how it was typed; the hint starts with that.
+        hint = lambda: update.install_hint(update.managed_dir())
+        with mock.patch.dict(os.environ, {update.FRONT_ENV: "npx github:x/local-hero"}):
+            self.assertIn("npx github:x/local-hero bootstrap --all --tool <tool>", hint())
+        # A launcher that did not say its name, running the managed clone: the verb alone.
+        with mock.patch.dict(os.environ), mock.patch.object(update, "HERE", update.managed_dir().resolve()):
+            os.environ.pop(update.FRONT_ENV, None)
+            self.assertIn("`bootstrap --all --tool <tool>`", hint())
+        # A clone of one's own, run directly: this script, from where the person is.
+        with mock.patch.dict(os.environ), mock.patch.object(update, "HERE", Path.cwd().resolve()):
+            os.environ.pop(update.FRONT_ENV, None)
+            self.assertIn("./update.py bootstrap --all --tool <tool>", hint())
+        for case in (hint(),):
+            self.assertNotIn("install.py", case)
+
+    def test_the_installer_it_runs_suggests_commands_through_update_py(self):
+        # install.py's own error, reached through bootstrap: the way out it
+        # offers has to go back through the door the person used.
+        self.bootstrap()
+        run = self.upd("bootstrap", "--all")
+        self.assertEqual(run.returncode, 1, run.stderr)
+        self.assertRegex(run.stderr, r"Try:\s+\S*update\.py bootstrap --all --tool claude")
+        self.assertNotIn("install.py", run.stderr)
+        named = self.upd("bootstrap", "--all", env={"LOCAL_AGENTS_FRONT": "local-hero"})
+        self.assertIn("Try: local-hero bootstrap --all --tool claude", named.stderr)
 
     def test_second_bootstrap_says_it_installs_not_that_it_refuses(self):
         self.bootstrap()
@@ -156,8 +177,12 @@ class UpdateTest(unittest.TestCase):
         # No terminal (this run's pipes): the commands to copy, not a path to install.py.
         plain = self.upd("bootstrap")
         self.assertEqual(plain.returncode, 0, plain.stderr)
-        self.assertIn("`bootstrap --list`", plain.stdout)
+        self.assertRegex(plain.stdout, r"Next: \S*update\.py bootstrap --list\n")
+        self.assertIn("bootstrap --all --tool <tool>", plain.stdout)
         self.assertNotIn("install.py", plain.stdout)
+        # ... and through a launcher that says its name, the launcher's command
+        named = self.upd("bootstrap", env={"LOCAL_AGENTS_FRONT": "npx github:x/local-hero"})
+        self.assertIn("Next: npx github:x/local-hero bootstrap --list", named.stdout)
         # A terminal: install.py's own menu, which asks before touching anything.
         pid, fd = pty.fork()
         if pid == 0:

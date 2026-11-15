@@ -42,8 +42,8 @@ from typing import Optional
 # Importing install.py must not leave a __pycache__ in the catalog: with no global git
 # excludes (CI, a throwaway HOME) it would read as a dirty tree in every install stamp.
 sys.dont_write_bytecode = True
-from install import (ERROR, REFUSED, TOOLS_BY_KEY, Parser, did_you_mean,  # noqa: E402
-                     fail, listed)
+from install import (ERROR, REFUSED, TOOLS_BY_KEY, Parser, command,  # noqa: E402
+                     did_you_mean, fail, listed)
 
 STATE = ".local-agents-default-agent.json"
 ABSENT = "absent"     # the setting did not exist; `None` would also be a legal JSON value
@@ -123,7 +123,8 @@ def installed(host: Host, name: str) -> Optional[Refused]:
     f = agent_file(host, name)
     if not f.is_file():
         # Only an agent the catalog has can be installed from it.
-        fix = (f"./install.py --agent {name} --tool {host.key}" if name in catalog_agents() else "")
+        fix = (command("install", f"--agent {name}", f"--tool {host.key}")
+               if name in catalog_agents() else "")
         return Refused(f"`{name}` is not installed in {host.key}", fix)
     if host.key == "opencode":
         # opencode falls back to `build` without a word when the agent is not a primary one

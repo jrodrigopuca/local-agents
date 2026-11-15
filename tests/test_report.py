@@ -46,7 +46,7 @@ class Base(unittest.TestCase):
     def run_install(self, *args):
         run = subprocess.run([sys.executable, str(self.catalog / "install.py"), *args],
                              capture_output=True, text=True, env=self.env,
-                             stdin=subprocess.DEVNULL, timeout=300)
+                             stdin=subprocess.DEVNULL, timeout=300, cwd=str(self.catalog))
         self.assertEqual(run.returncode, 0, (run.stdout + run.stderr)[-800:])
         return run.stdout
 

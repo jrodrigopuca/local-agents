@@ -265,8 +265,60 @@ def fail(what: str, *detail: str, hint: str = "", refused: bool = False):
 class Parser(argparse.ArgumentParser):
     """A usage error is an error (1), not a refusal (2)."""
     def error(self, message):
-        print(f"error: {message}\n  Try: ./{Path(self.prog).name} --help", file=sys.stderr)
+        name = Path(self.prog).name
+        helps = command("install", "--help") if name == "install.py" else f"{script(name)} --help"
+        print(f"error: {message}\n  Try: {helps}", file=sys.stderr)
         sys.exit(ERROR)
+
+
+# --------------------------------------------------------------------------- #
+# The command to run next, as THIS person can type it
+#
+# Every `Try:` and `Next:` goes through command(). Someone who came in through
+# a launcher (`npx github:…/local-hero update`) never sees install.py: telling
+# them to run `./install.py --refresh` is telling them to run a file they do
+# not know they have. So whoever is in front says how it was typed, in one
+# environment variable, and the same intent comes out in that grammar:
+#
+#   unset             the scripts' own flags       ./install.py --refresh
+#   a prefix          the verbs of update.py       npx github:…/local-hero update
+#   "-"               the verbs, with no prefix    `update`
+#
+# update.py sets it for itself and for the install.py it runs; a launcher that
+# knows its own name sets it first. "-" is a launcher that did not say: the
+# verb alone is less than the whole command, and it is not a wrong one.
+# --------------------------------------------------------------------------- #
+FRONT_ENV = "LOCAL_AGENTS_FRONT"
+SELF_DIR = Path(__file__).resolve().parent
+VERBS = {"refresh": "update", "install": "bootstrap", "status": "bootstrap --status",
+         "uninstall": "bootstrap --uninstall", "list": "bootstrap --list", "menu": "bootstrap"}
+FLAGS = {"refresh": "--refresh", "install": "", "status": "--status",
+         "uninstall": "--uninstall", "list": "--list", "menu": ""}
+
+
+def script(name: str = "install.py") -> str:
+    """One of the catalog's scripts as it can be typed from where the person
+    is: `./install.py` inside the catalog, its path from anywhere else."""
+    try:
+        here = Path.cwd().resolve() == SELF_DIR
+    except OSError:
+        here = False
+    return f"./{name}" if here else shell_arg(show_path(SELF_DIR / name))
+
+
+def command(intent: str, *args: str) -> str:
+    """The command for `intent` (a key of FLAGS, or "default"), with `args`."""
+    args = [a.strip() for a in args if a and a.strip()]
+    front = os.environ.get(FRONT_ENV, "").strip()
+    if front and intent in VERBS:
+        verb = VERBS[intent]
+        if intent == "refresh" and args:
+            verb = "bootstrap --refresh"    # `update` takes no options and refreshes the home installs only
+        text = " ".join([verb, *args])
+        return f"`{text}`" if front == "-" else f"{front} {text}"
+    if intent == "default":
+        return " ".join([script("default_agent.py"), *args])
+    return " ".join(x for x in (script(), FLAGS[intent], *args) if x)
 
 
 # --------------------------------------------------------------------------- #
@@ -709,7 +761,7 @@ def access_of(meta: dict) -> str:
     tier = (meta or {}).get("access", "full")
     if tier not in ACCESS_TIERS:
         fail(f"the catalog is not valid: unknown access tier {tier!r}.",
-             f"Expected one of: {', '.join(ACCESS_TIERS)}", hint="Try: ./validate.py")
+             f"Expected one of: {', '.join(ACCESS_TIERS)}", hint=f"Try: {script('validate.py')}")
     return tier
 
 
@@ -1318,7 +1370,8 @@ class Report:
                                   f"content. To replace {'it' if n == 1 else 'them'} with the "
                                   f"catalog's version:", 0))
                     for t in fixable:
-                        print(f"  ./install.py --all --tool {t.tool.key}{scope} --on-conflict overwrite")
+                        print("  " + command("install", "--all", f"--tool {t.tool.key}", scope,
+                                             "--on-conflict overwrite"))
         for t in tallies:
             for note in t.notes:
                 print(wrapped(f"Note ({t.tool.key}): {note}", 2))
@@ -1331,7 +1384,7 @@ class Report:
             print(wrapped(f"{listed} {'is' if len(keys) == 1 else 'are'} set to start with "
                           f"{', '.join(f'`{a}`' for a in agents)}, which "
                           f"{'this would remove' if self.dry_run else 'was just removed'}.", 2, "  "))
-            print(f"  Try: ./default_agent.py --restore --tool {','.join(keys)}")
+            print("  Try: " + command("default", "--restore", f"--tool {','.join(keys)}"))
 
         if not nothing:
             if self.mode == "uninstall":
@@ -1362,7 +1415,7 @@ class Report:
         if self.dry_run:
             print("Dry run: nothing was written. Run again without --dry-run to apply.")
         elif self.mode == "install" and not self.todo:
-            print(f"Check any time: ./install.py --status{scope}")
+            print("Check any time: " + command("status", scope))
 
 
 REPORT = Report()
@@ -1522,12 +1575,12 @@ def declared_inherits(agent: Agent, agents: dict) -> list:
     if raw is None:
         fail(f"the catalog is not valid: {agent.name}/AGENTS.md declares no `inherits:`.",
              "Add the list of agents it inherits from (`inherits: []` for none).",
-             hint="Try: ./validate.py")
+             hint=f"Try: {script('validate.py')}")
     names = [n.strip() for n in raw.strip().strip("[]").split(",") if n.strip()]
     unknown = [n for n in names if n not in agents]
     if unknown:
         fail(f"the catalog is not valid: {agent.name}/AGENTS.md inherits from unknown "
-             f"agent(s): {', '.join(unknown)}.", hint="Try: ./validate.py")
+             f"agent(s): {', '.join(unknown)}.", hint=f"Try: {script('validate.py')}")
     return [agents[n] for n in names]
 
 
@@ -2540,26 +2593,26 @@ def status_warnings(st: ToolState, project=None) -> list:
                     f"{'a skill' if n == 1 else 'skills'} not from this catalog "
                     f"{'has that name' if n == 1 else 'have those names'}.",
                     f"To install ours beside {'it' if n == 1 else 'them'}: "
-                    f"./install.py --all --tool {key}{scope} --on-conflict rename"))
+                    + command("install", "--all", f"--tool {key}", scope, "--on-conflict rename")))
     for d, n, owner in st.shadow:
         out.append((f"{key}: {n} skill{'s' if n != 1 else ''} also read from {show_path(d, project)} "
                     f"{'are' if n != 1 else 'is'} out of date there; {key} may load either copy.",
-                    f"Try: ./install.py --all --tool {owner}{scope}" if owner else ""))
+                    "Try: " + command("install", "--all", f"--tool {owner}", scope) if owner else ""))
     if st.index is not None and st.agents["present"]:
         exists, rows = st.index
         if not exists:
             out.append((f"{key}: the agent index ({tool.roster.name}) is missing; the "
                         f"{len(st.agents['present'])} agents there cannot be reached without it.",
-                        f"Try: ./install.py --all --tool {key}{scope}"))
+                        "Try: " + command("install", "--all", f"--tool {key}", scope)))
         elif rows != len(st.agents["present"]):
             out.append((f"{key}: the agent index ({tool.roster.name}) lists {rows} agents and "
                         f"{len(st.agents['present'])} are installed.",
-                        f"Try: ./install.py --all --tool {key}{scope}"))
+                        "Try: " + command("install", "--all", f"--tool {key}", scope)))
     if st.adoptable:
         out.append((f"{key}: agents named like the catalog's, with no install record: nothing "
                     f"updates them.",
-                    f"To adopt them (it replaces them): ./install.py --all --tool {key}{scope} "
-                    f"--on-conflict overwrite"))
+                    "To adopt them (it replaces them): "
+                    + command("install", "--all", f"--tool {key}", scope, "--on-conflict overwrite")))
     return out
 
 
@@ -2622,8 +2675,8 @@ def print_status(agents, skills_by_name, project=None, catalog=None, verbose=Fal
             if off:
                 print(wrapped(", ".join(line for _, line in off), 12, lead))
                 for i, (label, _) in enumerate(off):
-                    print(f"{'            enable: ' if i == 0 else ' ' * 20}./install.py --refresh "
-                          f"--{'shell-write-guard' if 'guard' in label else 'verify-hook'}")
+                    print(('            enable: ' if i == 0 else ' ' * 20) + command(
+                        "refresh", f"--{'shell-write-guard' if 'guard' in label else 'verify-hook'}"))
             for i, line in enumerate(st.record):
                 print(wrapped(line, 12, "  record    " if i == 0 else " " * 12))
             if st.index is not None and st.index[0]:
@@ -2652,9 +2705,9 @@ def print_status(agents, skills_by_name, project=None, catalog=None, verbose=Fal
     for what, fix in warnings:
         print(wrapped(what, 2, "! "))
         # A command is never folded: one that does not fit goes on its own line.
-        if fix and len(fix) > 78 and ": ./" in fix:
-            say, command = fix.split(": ./", 1)
-            print(f"  {say}:\n    ./{command}")
+        if fix and len(fix) > 78 and ": " in fix:
+            say, to_run = fix.split(": ", 1)
+            print(f"  {say}:\n    {to_run}")
         elif fix:
             print(f"  {fix}")
     if warnings:
@@ -2662,17 +2715,17 @@ def print_status(agents, skills_by_name, project=None, catalog=None, verbose=Fal
 
     if not installed:
         first = next((s.tool.key for s in states if s.detected), TOOLS[0].key)
-        print(f"Next: ./install.py --all --tool {first}{scope}\n"
-              f"      or run ./install.py with no arguments to choose from a menu.")
+        print(f"Next: {command('install', '--all', f'--tool {first}', scope)}\n"
+              f"      or, to choose from a menu: {command('menu', scope)}")
     elif behind:
-        print(f"Next: ./install.py --refresh{scope}\n"
+        print(f"Next: {command('refresh', scope)}\n"
               f"      Updates only files this installer wrote. Files edited by hand\n"
               f"      and files not from this catalog stay as they are.")
     else:
         head = git(catalog, "rev-parse", "--short=7", "HEAD") if catalog else None
         where = f"Catalog {head}. " if head else ""
         if not verbose:
-            print(f"{where}Details: ./install.py --status --verbose{scope}")
+            print(f"{where}Details: {command('status', '--verbose', scope)}")
         elif head:
             print(where.strip())
 
@@ -2813,7 +2866,7 @@ def main():
         if not installed:
             fail("nothing to refresh: no catalog install found"
                  + (f" in {project}." if project else "."),
-                 hint=f"Try: ./install.py --all --tool {first_tool}{scope}")
+                 hint="Try: " + command("install", "--all", f"--tool {first_tool}", scope))
         # `update`, not `overwrite`: a refresh brings what we installed up to
         # date and leaves everything else — foreign, edited, links — alone.
         REPORT.mode = "refresh"
@@ -2827,7 +2880,7 @@ def main():
         if args.all or args.agent or args.skill:
             fail("--uninstall removes a whole install and cannot be combined with --all, "
                  "--agent or --skill.",
-                 hint=f"Try: ./install.py --uninstall{f' --tool {args.tool}' if args.tool else ''}{scope}")
+                 hint="Try: " + command("uninstall", f"--tool {args.tool}" if args.tool else "", scope))
         if args.tool:
             known_tool(args.tool)
         targets, seen = [], set()
@@ -2845,7 +2898,7 @@ def main():
             fail("nothing to uninstall: no catalog install found in "
                  f"{args.tool if args.tool else 'any tool'}"
                  + (f" under {project}." if project else "."),
-                 hint=f"Try: ./install.py --status{scope}")
+                 hint="Try: " + command("status", scope))
         REPORT.mode = "uninstall"
         REPORT.open(f"Removing what this installer put in "
                     f"{plural(len([1 for _, twin in targets if not twin]), 'tool')}")
@@ -2863,7 +2916,7 @@ def main():
     if args.all:
         if not args.tool:
             fail("--all needs a target tool.", tools_line,
-                 hint=f"Try: ./install.py --all --tool {first_tool}{scope}")
+                 hint="Try: " + command("install", "--all", f"--tool {first_tool}", scope))
         known_tool(args.tool)
         tool = target(TOOLS_BY_KEY[args.tool])
         REPORT.open(f"Installing the whole catalog into {into(tool)}")
@@ -2877,7 +2930,7 @@ def main():
             asked = "".join(f" --agent {a}" for a in args.agent) + "".join(
                 f" --skill {k}" for k in args.skill)
             fail("--agent and --skill need a target tool.", tools_line,
-                 hint=f"Try: ./install.py{asked} --tool {first_tool}{scope}")
+                 hint="Try: " + command("install", asked, f"--tool {first_tool}", scope))
         known_tool(args.tool)
         tool = target(TOOLS_BY_KEY[args.tool])
         skills_by_q = {s.qualified: s for s in all_skills}
@@ -2889,7 +2942,7 @@ def main():
             if not (skills_by_q.get(ref) or skills_by_name.get(ref)):
                 fail(f"unknown skill '{ref}'.",
                      *did_you_mean(ref.split(":")[-1], skills_by_name),
-                     hint="Try: ./install.py --list")
+                     hint="Try: " + command("list"))
         what = [f"agent {n}" for n in args.agent] + [f"skill {r.split(':')[-1]}" for r in args.skill]
         REPORT.open(wrapped(f"Installing {', '.join(what)} into {into(tool)}", 2))
 

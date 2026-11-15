@@ -66,13 +66,35 @@ def managed_dir() -> Path:
     return base / "local-agents"
 
 
+# How a suggested command has to start for the person to be able to type it.
+# install.py reads the same variable (see its command()): a launcher that knows
+# its own name sets it; otherwise this script answers for itself.
+FRONT_ENV = "LOCAL_AGENTS_FRONT"
+
+
+def front() -> str:
+    given = os.environ.get(FRONT_ENV, "").strip()
+    if given:
+        return given
+    # Run from the managed clone, it was a launcher that started this and did
+    # not say its name: the verb alone is all that can be said truthfully.
+    if HERE == managed_dir().resolve():
+        return "-"
+    try:
+        here = Path.cwd().resolve() == HERE
+    except OSError:
+        here = False
+    return "./update.py" if here else str(HERE / "update.py")
+
+
+def typed(verb: str) -> str:
+    """One of this script's verbs as the person can type it."""
+    return f"`{verb}`" if front() == "-" else f"{front()} {verb}"
+
+
 def install_hint(cat: Path) -> str:
-    """The command that installs, as the person reading it can type it. The
-    managed clone is where a launcher user never sees install.py, so for them
-    the way in is `bootstrap`; a clone of their own has install.py at hand."""
-    if cat == managed_dir():
-        return "install with `bootstrap --all --tool <tool>`"
-    return f"install with `{cat / 'install.py'} --all --tool <tool>`"
+    """The command that installs, as the person reading it can type it."""
+    return f"install with {typed('bootstrap --all --tool <tool>')}"
 
 
 def git(repo: Optional[Path], *args, timeout: int = 120) -> subprocess.CompletedProcess:
@@ -147,8 +169,8 @@ def resolve_catalog(installer) -> Tuple[Optional[Path], List[Tuple[str, dict]], 
         cat = next(iter(paths))
         if not (cat / "install.py").is_file():
             return None, stamps, (f"the clone your installs came from is gone ({cat}). "
-                                  f"Run `update.py bootstrap --all --tool <tool>` to "
-                                  f"reinstall from a fresh clone.")
+                                  f"To reinstall from a fresh clone: "
+                                  f"{typed('bootstrap --all --tool <tool>')}")
         return cat, stamps, ""
     return HERE, stamps, ""
 
@@ -270,7 +292,7 @@ def project_hint(installer, cat: Path):
     mine = [k for k, man in read_stamps(installer, cwd) if stamped_path(man) == cat]
     if mine:
         print(f"\nThis repo has a project install ({', '.join(mine)}). It is not updated "
-              f"automatically; when you want it:\n  {cat / 'install.py'} --refresh --project {cwd}")
+              f"automatically; when you want it:\n  {typed(f'bootstrap --refresh --project {cwd}')}")
 
 
 def cmd_check(installer) -> int:
@@ -363,7 +385,8 @@ def cmd_bootstrap(install_args: List[str]) -> int:
         # keyboard it would only wait on input, so a script gets the commands.
         if sys.stdin.isatty() and sys.stdout.isatty():
             return subprocess.run([sys.executable, str(dest / "install.py")]).returncode
-        print("Next: `bootstrap --list`, then `bootstrap --all --tool <tool>`")
+        print(f"Next: {typed('bootstrap --list')}\n"
+              f"      then {typed('bootstrap --all --tool <tool>')}")
         return OK
     return subprocess.run([sys.executable, str(dest / "install.py"), *install_args]).returncode
 
@@ -383,6 +406,9 @@ def main(argv: Optional[List[str]] = None) -> int:
         print("update.py needs git, and it is not on PATH — install git and run it again.",
               file=sys.stderr)
         return ERROR
+    # Whatever runs from here on — install.py included — suggests commands the
+    # way this person came in.
+    os.environ[FRONT_ENV] = front()
     # bootstrap hands everything after it to install.py untouched. argparse's
     # REMAINDER drops a leading `--option` inside a subcommand, so the split
     # happens before argparse sees the line.
