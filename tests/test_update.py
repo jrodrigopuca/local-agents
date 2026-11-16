@@ -469,15 +469,20 @@ class UpdateTest(unittest.TestCase):
         self.assertNotIn("bootstrap", said)
 
     def test_help_is_headed_by_the_command_that_was_typed(self):
+        # argparse folds the usage line to the terminal's width, and a long
+        # path (CI checks out under /home/runner/work/...) moves the fold: read
+        # it with the folds taken out.
+        def usage(*args, env=None):
+            return " ".join(self.upd(*args, env=env).stdout.split())
         named = {"LOCAL_AGENTS_FRONT": "npx github:x/local-hero"}
-        self.assertTrue(self.upd("--help", env=named).stdout.startswith("usage: npx github:x/local-hero "))
+        self.assertTrue(usage("--help", env=named).startswith("usage: npx github:x/local-hero "))
         self.install()
-        self.assertTrue(self.upd("install", "--help", env=named).stdout.startswith(
+        self.assertTrue(usage("install", "--help", env=named).startswith(
             "usage: npx github:x/local-hero install "))
-        self.assertTrue(self.upd("default", "--help", env=named).stdout.startswith(
+        self.assertTrue(usage("default", "--help", env=named).startswith(
             "usage: npx github:x/local-hero default "))
         # run directly, a script is headed by its own name
-        self.assertRegex(self.upd("--help").stdout, r"^usage: \S*update\.py ")
+        self.assertRegex(usage("--help"), r"^usage: \S*update\.py ")
 
     def test_a_mistyped_verb_is_an_error_with_the_way_to_the_help(self):
         run = self.upd("bogus")
