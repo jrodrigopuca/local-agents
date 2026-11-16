@@ -28,17 +28,20 @@ Needs node 24+, git and Python 3.9+ (macOS, Linux, Windows). `npx` runs it
 straight from GitHub; the catalog is cloned where you never have to look.
 
 ```bash
-npx github:jrodrigopuca/local-hero bootstrap                       # first time: a menu asks what to install, and into which tool
-npx github:jrodrigopuca/local-hero bootstrap --all --tool claude   # or say it up front
-npx github:jrodrigopuca/local-hero check                           # later: what changed upstream — writes nothing
-npx github:jrodrigopuca/local-hero update                          # pull it and refresh every install
+npx github:jrodrigopuca/local-hero install                       # first time: a menu asks what to install, and into which tool
+npx github:jrodrigopuca/local-hero install --all --tool claude   # or say it up front
+npx github:jrodrigopuca/local-hero check                         # later: is there something new upstream? writes nothing
+npx github:jrodrigopuca/local-hero update                        # bring it and refresh every install
+npx github:jrodrigopuca/local-hero status                        # what is installed here, and whether it is current
+npx github:jrodrigopuca/local-hero uninstall                     # take it all back out
 ```
 
-`bootstrap` is the only command that installs; everything after it goes to
-`install.py` unchanged, so `--project`, `--dry-run` and the hook flags below
-work here too. `check` and `update` only look after what is already
-installed. To drop the `npx` prefix: `npm install -g github:jrodrigopuca/local-hero`,
-then `local-hero update`. Details in
+Everything after `install` goes to `install.py` unchanged, so `--project`,
+`--dry-run` and the hook flags below work here too. Every command the catalog
+has is a verb here (`list`, `default` for the agent a session starts with):
+see [INSTALL.md](INSTALL.md), "One door, with verbs". To drop the `npx`
+prefix: `npm install -g github:jrodrigopuca/local-hero`, then `local-hero
+update`. Details in
 [local-hero's README](https://github.com/jrodrigopuca/local-hero).
 
 ### B. From a clone of the repo

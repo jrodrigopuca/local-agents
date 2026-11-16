@@ -54,9 +54,11 @@ herramienta). Elegí por lo que querés hacer:
   clonás nada; necesita node 24+, git y Python 3.9+.
 
   ```bash
-  npx github:jrodrigopuca/local-hero bootstrap                      # primera vez: un menú pregunta qué y en qué herramienta
-  npx github:jrodrigopuca/local-hero bootstrap --all --tool claude  # o decilo de una
-  npx github:jrodrigopuca/local-hero update                         # después: trae lo nuevo y refresca todo lo instalado
+  npx github:jrodrigopuca/local-hero install                      # primera vez: un menú pregunta qué y en qué herramienta
+  npx github:jrodrigopuca/local-hero install --all --tool claude  # o decilo de una
+  npx github:jrodrigopuca/local-hero update                       # después: trae lo nuevo y refresca todo lo instalado
+  npx github:jrodrigopuca/local-hero status                       # qué tenés instalado y si está al día
+  npx github:jrodrigopuca/local-hero uninstall                    # sacar todo lo que se instaló
   ```
 
 - **Leer o tocar el catálogo, contribuir: cloná el repo.** Solo git y Python.

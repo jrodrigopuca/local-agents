@@ -495,7 +495,7 @@ came in through a launcher — and never sees `install.py` — can do all of it:
 |---|---|
 | `check` | compares the clone with the remote |
 | `update` | brings the remote, then `install.py --refresh` |
-| `install [ARGS]` | clones the catalog the first time, then `install.py ARGS` (no arguments: the menu). `bootstrap` is its older name and keeps working |
+| `install [ARGS]` | clones the catalog the first time, then `install.py ARGS` (no arguments: the menu) |
 | `status [--verbose]` | `install.py --status` |
 | `list` | `install.py --list` |
 | `uninstall [ARGS]` | `install.py --uninstall ARGS` |

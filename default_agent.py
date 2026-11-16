@@ -44,7 +44,7 @@ from typing import Optional
 # excludes (CI, a throwaway HOME) it would read as a dirty tree in every install stamp.
 sys.dont_write_bytecode = True
 from install import (ERROR, REFUSED, TOOLS_BY_KEY, Parser, command,  # noqa: E402
-                     did_you_mean, fail, listed, show_path)
+                     did_you_mean, fail, listed, show_path, typed_as)
 
 STATE = ".local-agents-default-agent.json"
 ABSENT = "absent"     # the setting did not exist; `None` would also be a legal JSON value
@@ -223,8 +223,9 @@ def row(key: str, text: str) -> None:
 
 
 def main(argv=None) -> int:
-    ap = Parser(description=__doc__.split("\n\n")[0],
+    ap = Parser(prog=typed_as("default"), description=__doc__.split("\n\n")[0],
                 formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.help_command = command("default", "--help")
     what = ap.add_mutually_exclusive_group(required=True)
     what.add_argument("--status", action="store_true", help="show what each host starts with")
     what.add_argument("--set", metavar="AGENT", help="make this installed agent the default")

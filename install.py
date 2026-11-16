@@ -265,10 +265,16 @@ def fail(what: str, *detail: str, hint: str = "", refused: bool = False):
 class Parser(argparse.ArgumentParser):
     """A usage error is an error (1), not a refusal (2)."""
     def error(self, message):
-        name = Path(self.prog).name
-        helps = command("install", "--help") if name == "install.py" else f"{script(name)} --help"
+        helps = getattr(self, "help_command", "") or f"{script(Path(self.prog).name)} --help"
         print(f"error: {message}\n  Try: {helps}", file=sys.stderr)
         sys.exit(ERROR)
+
+
+def typed_as(verb: str) -> Optional[str]:
+    """What heads --help: the command this person typed to get here, when
+    whoever is in front said its name; else argparse's own (the file)."""
+    front = os.environ.get(FRONT_ENV, "").strip()
+    return f"{front} {verb}" if front and front != "-" else None
 
 
 # --------------------------------------------------------------------------- #
@@ -2777,7 +2783,9 @@ def print_list(agents, all_skills, skills_by_name):
 
 
 def main():
-    ap = Parser(description="Install catalog agents/skills into a tool's global config.")
+    ap = Parser(prog=typed_as("install"),
+                description="Install catalog agents/skills into a tool's global config.")
+    ap.help_command = command("install", "--help")
     ap.add_argument("--catalog", type=Path, default=Path(__file__).resolve().parent,
                     help="catalog root (default: the clone this script sits in)")
     ap.add_argument("--list", action="store_true", help="list agents, skills, tools and exit")

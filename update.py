@@ -10,9 +10,8 @@
     ./update.py default [ARGS...]      # the agent a session starts with (default_agent.py)
     ./update.py --launcher-api         # the contract version launchers check (local-hero)
 
-`bootstrap` is the older name of `install` and keeps working. `status` is this
-machine against its own copy of the catalog, with no network; `check` is that
-copy against the remote.
+`status` is this machine against its own copy of the catalog, with no network;
+`check` is that copy against the remote.
 
 One door, with verbs. A person who came in through a launcher never sees
 install.py or default_agent.py, so everything they can do has a verb here and
@@ -28,8 +27,8 @@ owns the fetching and calls install.py through its command line, the same way
 a user would. Python 3.9, standard library only, like install.py.
 
 Exit codes: 0 done (or nothing to do) · 1 error · 2 refused, nothing touched ·
-3 the remote could not be reached. `bootstrap` with install arguments exits
-with install.py's own code.
+3 the remote could not be reached. `install` with arguments exits with
+install.py's own code.
 """
 import argparse
 import importlib.util
@@ -71,7 +70,7 @@ GIT_ENV = dict(os.environ, GIT_TERMINAL_PROMPT="0")
 
 
 def managed_dir() -> Path:
-    """Where bootstrap clones the catalog when the user never cloned it. Part
+    """Where `install` clones the catalog when the user never cloned it. Part
     of the launcher contract (see LAUNCHER_API). The XDG spec ignores a
     relative XDG_DATA_HOME — otherwise every working directory would get a
     clone of its own."""
@@ -427,8 +426,8 @@ def cmd_update(installer) -> int:
 
 
 def cmd_install(install_args: List[str]) -> int:
-    """`install` (and `bootstrap`, its older name). The first run on a machine
-    clones where the user never has to look; every run hands the install over
+    """`install`. The first run on a machine clones where the user never has
+    to look; every run hands the install over
     to install.py. `--filter=blob:none` keeps the whole history (the install
     record is a commit, and `check` counts from it) without downloading old
     file contents; `--depth 1` would break that count."""
@@ -479,7 +478,10 @@ def cmd_script(script: str, args: List[str]) -> int:
     if code == OK and args[:1] == ["--uninstall"] and "--dry-run" not in args \
             and HERE == managed_dir().resolve() and not read_stamps(load_installer(HERE)):
         # Through a launcher the clone is the one thing the person never saw.
-        print(f"The catalog copy remains at {HERE}; delete that folder to remove it completely.")
+        where = str(HERE)
+        if os.name != "nt" and where.startswith(str(Path.home()) + os.sep):
+            where = "~" + where[len(str(Path.home())):]
+        print(f"The catalog copy remains at {where}\nDelete that folder to remove it completely.")
     return code
 
 
@@ -493,8 +495,7 @@ class Parser(argparse.ArgumentParser):
     """A usage error is an error (1), not a refusal (2) — argparse's own exit
     code would collide with REFUSED."""
     def error(self, message):
-        self.print_usage(sys.stderr)
-        print(f"{self.prog}: error: {message}", file=sys.stderr)
+        print(f"error: {message}\n  Try: {typed('--help')}", file=sys.stderr)
         sys.exit(ERROR)
 
 
@@ -507,16 +508,22 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Whatever runs from here on — install.py included — suggests commands the
     # way this person came in.
     os.environ[FRONT_ENV] = front()
-    # bootstrap hands everything after it to install.py untouched. argparse's
+    # `install` hands everything after it to install.py untouched. argparse's
     # REMAINDER drops a leading `--option` inside a subcommand, so the split
     # happens before argparse sees the line.
+    # `bootstrap` is what this verb was called until 2026-11. Nothing says it
+    # any more — it read as a step before installing, not as the install — but
+    # it still runs: removing a verb is a new LAUNCHER_API, and every launcher
+    # installed globally would stop until it was reinstalled, for a word.
     if argv[:1] in (["install"], ["bootstrap"]):
         return cmd_install(argv[1:])
     if argv[:1] and argv[0] in SCRIPT_VERBS:
         script, flags = SCRIPT_VERBS[argv[0]]
         rest = argv[1:] or (["--status"] if argv[0] == "default" else [])
         return cmd_script(script, flags + rest)
-    ap = Parser(description=__doc__.split("\n")[0])
+    # The heading of --help is the command this person typed, not a file name
+    # they may never have seen.
+    ap = Parser(prog=None if front() == "-" else front(), description=__doc__.split("\n")[0])
     ap.add_argument("--launcher-api", action="store_true",
                     help="print the launcher contract version and exit")
     sub = ap.add_subparsers(dest="command", parser_class=Parser)
@@ -529,7 +536,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     sub.add_parser("list", help="what the catalog holds, and which tools were found")
     sub.add_parser("uninstall", help="remove what was installed, and only that")
     sub.add_parser("default", help="the agent a session starts with: --set NAME, --restore")
-    sub.add_parser("bootstrap", help="the older name of `install`")
     args = ap.parse_args(argv)
 
     if args.launcher_api:

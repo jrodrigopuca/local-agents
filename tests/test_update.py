@@ -8,7 +8,7 @@ developer's working tree is an accident waiting to happen. The fake remote is
 seeded from the catalog's HEAD, so the installs it makes are real ones.
 
 Every test runs THIS checkout's update.py (the code under test), which finds
-the managed clone through the stamps the bootstrap install wrote. Each test
+the managed clone through the records the first install wrote. Each test
 gets its own HOME, remote and clone, so one failure never cascades.
 """
 import importlib.util
@@ -97,10 +97,10 @@ class UpdateTest(unittest.TestCase):
     def head(self, repo):
         return self.sh("git", "-C", str(repo), "rev-parse", "HEAD").stdout.strip()
 
-    def bootstrap(self):
-        boot = self.upd("bootstrap", "--all", "--tool", "claude", "--on-conflict", "overwrite")
+    def install(self):
+        boot = self.upd("install", "--all", "--tool", "claude", "--on-conflict", "overwrite")
         self.assertEqual(boot.returncode, 0, boot.stderr or boot.stdout)
-        self.assertTrue(self.stamp.is_file(), "bootstrap wrote no install stamp")
+        self.assertTrue(self.stamp.is_file(), "install wrote no install record")
 
     def upstream_commits(self, *messages):
         """New commits on the fake remote, each touching one skill."""
@@ -136,7 +136,7 @@ class UpdateTest(unittest.TestCase):
 
     def test_install_hint_names_the_command_the_reader_can_type(self):
         # Behind a launcher install.py is not on the PATH: the way in is
-        # `bootstrap`. A clone of one's own has install.py at hand.
+        # `install`. A clone of one's own has install.py at hand.
         spec = importlib.util.spec_from_file_location("update_under_test", UPDATER)
         update = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(update)
@@ -154,41 +154,41 @@ class UpdateTest(unittest.TestCase):
             self.assertEqual("./update.py install --all --tool <tool>", hint())
 
     def test_the_installer_it_runs_suggests_commands_through_update_py(self):
-        # install.py's own error, reached through bootstrap: the way out it
+        # install.py's own error, reached through `install`: the way out it
         # offers has to go back through the door the person used.
-        self.bootstrap()
-        run = self.upd("bootstrap", "--all")
+        self.install()
+        run = self.upd("install", "--all")
         self.assertEqual(run.returncode, 1, run.stderr)
         self.assertRegex(run.stderr, r"Try:\s+\S*update\.py install --all --tool claude")
         self.assertNotIn("install.py", run.stderr)
         named = self.upd("install", "--all", env={"LOCAL_AGENTS_FRONT": "local-hero"})
         self.assertIn("Try: local-hero install --all --tool claude", named.stderr)
 
-    def test_second_bootstrap_says_it_installs_not_that_it_refuses(self):
-        self.bootstrap()
-        again = self.upd("bootstrap", "--all", "--tool", "claude", "--on-conflict", "overwrite")
+    def test_second_install_says_it_installs_not_that_it_refuses(self):
+        self.install()
+        again = self.upd("install", "--all", "--tool", "claude", "--on-conflict", "overwrite")
         self.assertEqual(again.returncode, 0, again.stderr or again.stdout)
         # It goes straight to the install: the clone being there already is not news.
         self.assertTrue(again.stdout.startswith("Installing the whole catalog into claude"), again.stdout)
         self.assertNotIn("refused", again.stdout + again.stderr)
         self.assertNotIn("lone", again.stdout)          # no "cloning", no "already cloned"
 
-    def test_bootstrap_without_arguments_opens_the_menu_only_on_a_terminal(self):
+    def test_install_without_arguments_opens_the_menu_only_on_a_terminal(self):
         import pty
         # No terminal (this run's pipes): the commands to copy, not a path to install.py.
-        plain = self.upd("bootstrap")
+        plain = self.upd("install")
         self.assertEqual(plain.returncode, 0, plain.stderr)
         self.assertRegex(plain.stdout, r"Next: \S*update\.py list\n")
         self.assertIn("install --all --tool <tool>", plain.stdout)
         self.assertNotIn("install.py", plain.stdout)
         # ... and through a launcher that says its name, the launcher's command
-        named = self.upd("bootstrap", env={"LOCAL_AGENTS_FRONT": "npx github:x/local-hero"})
+        named = self.upd("install", env={"LOCAL_AGENTS_FRONT": "npx github:x/local-hero"})
         self.assertIn("Next: npx github:x/local-hero list", named.stdout)
         # A terminal: install.py's own menu, which asks before touching anything.
         pid, fd = pty.fork()
         if pid == 0:
             os.environ.update(self.env)
-            os.execv(sys.executable, [sys.executable, str(UPDATER), "bootstrap"])
+            os.execv(sys.executable, [sys.executable, str(UPDATER), "install"])
         out = b""
         try:
             while b"quit" not in out:
@@ -202,29 +202,29 @@ class UpdateTest(unittest.TestCase):
             os.waitpid(pid, 0)
         self.assertIn(b"quit", out, out.decode(errors="replace")[-500:])
 
-    # -- bootstrap -------------------------------------------------------- #
+    # -- install: the first run clones ------------------------------------ #
 
-    def test_bootstrap_clones_partially_and_stamps_the_managed_clone(self):
-        self.bootstrap()
+    def test_install_clones_partially_and_stamps_the_managed_clone(self):
+        self.install()
         stamped = json.loads(self.stamp.read_text())["catalog_path"]
         self.assertEqual(Path(stamped).resolve(), self.managed.resolve())
         promisor = self.sh("git", "-C", str(self.managed), "config", "remote.origin.promisor")
         self.assertEqual(promisor.stdout.strip(), "true", "not cloned with --filter=blob:none")
 
-    def test_bootstrap_refuses_a_folder_that_holds_something_else(self):
+    def test_install_refuses_a_folder_that_holds_something_else(self):
         self.managed.mkdir(parents=True)
         (self.managed / "notes.txt").write_text("mine\n")
-        self.assertRefused(self.upd("bootstrap"), "not empty")
+        self.assertRefused(self.upd("install"), "not empty")
 
-    def test_bootstrap_refuses_an_interrupted_clone(self):
+    def test_install_refuses_an_interrupted_clone(self):
         # What a Ctrl-C mid-clone used to leave: a .git with no commit.
         self.sh("git", "init", "--quiet", str(self.managed))
-        self.assertRefused(self.upd("bootstrap"), "incomplete clone")
+        self.assertRefused(self.upd("install"), "incomplete clone")
 
     # -- check ------------------------------------------------------------ #
 
     def test_check_on_a_fresh_install_says_up_to_date(self):
-        self.bootstrap()
+        self.install()
         chk = self.upd("check")
         self.assertEqual(chk.returncode, 0, chk.stderr)
         self.assertEqual(chk.stdout.splitlines()[0], "Everything installed is up to date.")
@@ -233,7 +233,7 @@ class UpdateTest(unittest.TestCase):
         self.assertNotIn("Next:", chk.stdout)
 
     def test_check_names_the_commits_and_the_skill_and_writes_nothing(self):
-        self.bootstrap()
+        self.install()
         self.upstream_commits("line one", "line two")
         head, skill = self.head(self.managed), self.installed.read_text(encoding="utf-8")
         chk = self.upd("check")
@@ -248,7 +248,7 @@ class UpdateTest(unittest.TestCase):
 
     def test_installs_from_two_clones_are_refused(self):
         # Only the user knows which clone is right.
-        self.bootstrap()
+        self.install()
         other = self.home / ".kiro" / ".local-agents.json"
         other.parent.mkdir(parents=True)
         other.write_text(json.dumps({"catalog_commit": self.head(self.managed),
@@ -259,12 +259,12 @@ class UpdateTest(unittest.TestCase):
         # A bare repo will not delete its current branch, so the clone is
         # pointed at one that never existed — the state a pruning fetch leaves
         # behind once a branch is deleted upstream.
-        self.bootstrap()
+        self.install()
         self.sh("git", "-C", str(self.managed), "config", "branch.main.merge", "refs/heads/gone")
         self.assertRefused(self.upd("check"), "no longer has")
 
     def test_an_unreachable_remote_exits_3(self):
-        self.bootstrap()
+        self.install()
         self.sh("git", "-C", str(self.managed), "remote", "set-url", "origin",
                 str(self.tmp / "nowhere.git"))
         self.assertEqual(self.upd("check").returncode, 3)
@@ -274,7 +274,7 @@ class UpdateTest(unittest.TestCase):
     def test_update_from_home_fast_forwards_and_refreshes(self):
         # From $HOME, where npx usually runs: the global install must not be
         # mistaken for a project install of the home directory.
-        self.bootstrap()
+        self.install()
         self.upstream_commits("line one", "line two")
         run = self.upd("update", cwd=self.home)
         self.assertEqual(run.returncode, 0, run.stderr)
@@ -291,7 +291,7 @@ class UpdateTest(unittest.TestCase):
         self.assertNotIn("install.py", run.stdout)
 
     def test_update_refuses_a_tracked_change_and_names_it(self):
-        self.bootstrap()
+        self.install()
         self.upstream_commits("line one")
         head = self.head(self.managed)
         with open(self.managed / "README.md", "a", encoding="utf-8") as fh:
@@ -300,7 +300,7 @@ class UpdateTest(unittest.TestCase):
         self.assertEqual(self.head(self.managed), head)
 
     def test_update_refuses_an_untracked_file_that_would_be_installed(self):
-        self.bootstrap()
+        self.install()
         self.upstream_commits("line one")
         head = self.head(self.managed)
         new_skill = self.managed / "generalist" / "skills" / "zz-untracked" / "SKILL.md"
@@ -310,7 +310,7 @@ class UpdateTest(unittest.TestCase):
         self.assertEqual(self.head(self.managed), head)
 
     def test_update_refuses_local_commits(self):
-        self.bootstrap()
+        self.install()
         self.upstream_commits("line one")
         self.sh("git", "-C", str(self.managed), "commit", "--quiet", "--allow-empty", "-m", "local")
         local = self.head(self.managed)
@@ -335,7 +335,7 @@ class UpdateTest(unittest.TestCase):
             self.assertTrue(line.isascii(), line)
 
     def test_commits_that_change_no_installed_file_are_not_an_update(self):
-        self.bootstrap()
+        self.install()
         self.docs_only_commits(3)
         chk = self.upd("check")
         self.assertEqual(chk.stdout.splitlines()[0], "Everything installed is up to date.")
@@ -350,14 +350,14 @@ class UpdateTest(unittest.TestCase):
         self.assertIn("Nothing to update.", run.stdout)
 
     def test_update_with_nothing_to_bring_is_one_line(self):
-        self.bootstrap()
+        self.install()
         run = self.upd("update")
         self.assertEqual(run.returncode, 0, run.stderr)
         self.assertEqual(run.stdout.strip(), "Everything installed is up to date. Nothing to do.")
 
     def test_check_with_nothing_installed_says_how_to_install(self):
         self.assertEqual(self.upd("list").returncode, 0)       # the checkout's own scripts are there
-        boot = self.upd("bootstrap")                           # clones, installs nothing (no terminal)
+        boot = self.upd("install")                           # clones, installs nothing (no terminal)
         self.assertEqual(boot.returncode, 0, boot.stderr)
         chk = self.sh(sys.executable, str(self.managed / "update.py"), "check", cwd=str(self.tmp))
         self.assertEqual(chk.returncode, 0, chk.stderr)
@@ -365,13 +365,13 @@ class UpdateTest(unittest.TestCase):
         self.assertIn("Next: `install --all --tool <tool>`", chk.stdout)   # a launcher that gave no name
 
     def test_the_output_of_check_and_update_is_plain_and_fits(self):
-        self.bootstrap()
+        self.install()
         self.upstream_commits("line one", "line two")
         self.assertPlain(self.upd("check").stdout)
         self.assertPlain(self.upd("update").stdout)
 
     def test_a_refusal_has_one_form_and_says_nothing_was_changed(self):
-        self.bootstrap()
+        self.install()
         self.upstream_commits("line one")
         with open(self.managed / "README.md", "a", encoding="utf-8") as fh:
             fh.write("local edit\n")
@@ -383,7 +383,7 @@ class UpdateTest(unittest.TestCase):
         self.assertIn("Commit or discard them", run.stderr)
 
     def test_an_unreachable_remote_is_an_error_with_its_own_code(self):
-        self.bootstrap()
+        self.install()
         self.sh("git", "-C", str(self.managed), "remote", "set-url", "origin",
                 str(self.tmp / "nowhere.git"))
         run = self.upd("check")
@@ -392,14 +392,14 @@ class UpdateTest(unittest.TestCase):
 
     # -- the verbs --------------------------------------------------------- #
 
-    def test_install_is_bootstrap_under_the_name_people_look_for(self):
+    def test_install_installs(self):
         run = self.upd("install", "--all", "--tool", "claude")
         self.assertEqual(run.returncode, 0, run.stderr)
         self.assertTrue(self.stamp.is_file())
         self.assertIn("Done: 66 files installed in claude", run.stdout)
 
     def test_status_is_this_machine_with_no_network(self):
-        self.bootstrap()
+        self.install()
         self.sh("git", "-C", str(self.managed), "remote", "set-url", "origin",
                 str(self.tmp / "nowhere.git"))                    # check would exit 3 here
         run = self.upd("status")
@@ -415,7 +415,7 @@ class UpdateTest(unittest.TestCase):
         self.assertRegex(run.stdout, r"(?m)^  claude +(available|not detected) +agents and skills$")
 
     def test_uninstall_takes_the_install_away_and_its_flags_go_through(self):
-        self.bootstrap()
+        self.install()
         dry = self.upd("uninstall", "--dry-run")
         self.assertIn("would remove 66", dry.stdout)
         self.assertTrue(self.stamp.is_file())
@@ -427,15 +427,16 @@ class UpdateTest(unittest.TestCase):
     def test_uninstalling_through_a_launcher_names_the_copy_it_left(self):
         # Run from the managed clone, as a launcher does: the clone is the one
         # thing that person never saw, and the last thing left on the machine.
-        self.bootstrap()
+        self.install()
         mine = lambda *a: self.sh(sys.executable, str(self.managed / "update.py"), *a, cwd=str(self.tmp))
         self.assertNotIn("remains at", mine("uninstall", "--dry-run").stdout)
         run = mine("uninstall")
         self.assertEqual(run.returncode, 0, run.stderr)
-        self.assertIn(f"The catalog copy remains at {self.managed.resolve()}; delete that folder", run.stdout)
+        self.assertIn(f"The catalog copy remains at {self.managed.resolve()}\n"
+                      f"Delete that folder to remove it completely.", run.stdout)
 
     def test_default_is_the_agent_a_session_starts_with(self):
-        self.bootstrap()
+        self.install()
         shown = self.upd("default")
         self.assertEqual(shown.returncode, 0, shown.stderr)
         self.assertIn("starts with the host's own default assistant", shown.stdout)
@@ -454,8 +455,35 @@ class UpdateTest(unittest.TestCase):
 
     def test_help_names_every_verb(self):
         out = self.upd("--help").stdout
-        for verb in ("check", "update", "install", "status", "list", "uninstall", "default", "bootstrap"):
+        for verb in ("check", "update", "install", "status", "list", "uninstall", "default"):
             self.assertRegex(out, rf"(?m)^\s+{verb}\s")
+
+    def test_the_old_word_for_install_still_runs_and_is_said_nowhere(self):
+        # Scripts written against `bootstrap` keep working; nobody is told to type it.
+        run = self.upd("bootstrap", "--all", "--tool", "claude")
+        self.assertEqual(run.returncode, 0, run.stderr)
+        self.assertTrue(self.stamp.is_file())
+        said = (run.stdout + self.upd("--help").stdout + self.upd("check").stdout
+                + self.upd("install", "--all").stderr + self.upd("uninstall", "--dry-run").stdout
+                + self.upd("status").stdout + self.upd("bogus").stderr)
+        self.assertNotIn("bootstrap", said)
+
+    def test_help_is_headed_by_the_command_that_was_typed(self):
+        named = {"LOCAL_AGENTS_FRONT": "npx github:x/local-hero"}
+        self.assertTrue(self.upd("--help", env=named).stdout.startswith("usage: npx github:x/local-hero "))
+        self.install()
+        self.assertTrue(self.upd("install", "--help", env=named).stdout.startswith(
+            "usage: npx github:x/local-hero install "))
+        self.assertTrue(self.upd("default", "--help", env=named).stdout.startswith(
+            "usage: npx github:x/local-hero default "))
+        # run directly, a script is headed by its own name
+        self.assertRegex(self.upd("--help").stdout, r"^usage: \S*update\.py ")
+
+    def test_a_mistyped_verb_is_an_error_with_the_way_to_the_help(self):
+        run = self.upd("bogus")
+        self.assertEqual(run.returncode, 1)
+        self.assertTrue(run.stderr.startswith("error: "), run.stderr)
+        self.assertRegex(run.stderr, r"Try: \S*update\.py --help")
 
 
 if __name__ == "__main__":
